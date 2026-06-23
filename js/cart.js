@@ -277,7 +277,7 @@ function renderSuggestedCard(product) {
     <div class="product-card" style="background:var(--card-bg,#12151F); border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.07); transition:transform 0.2s, box-shadow 0.2s; cursor:pointer;"
          onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 32px rgba(0,0,0,0.3)'"
          onmouseleave="this.style.transform=''; this.style.boxShadow=''">
-      <a href="product-detail.html?id=${product.id}" style="text-decoration:none; display:block;">
+      <a href="product.html?slug=${product.slug || product.id}" style="text-decoration:none; display:block;">
         <div style="position:relative; height:180px; overflow:hidden; background:var(--surface,#1A1E2E);">
           <img src="${img}" alt="${escapeHtml(product.name || '')}"
                style="width:100%; height:100%; object-fit:cover;"

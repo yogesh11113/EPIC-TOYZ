@@ -378,7 +378,7 @@ function renderProductCard(product) {
   const originalPrice = product.original_price || product.originalPrice || 0;
   const discount = originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
   const badge = product.badge || '';
-  const image = (product.images && product.images[0]) || product.image || 'images/placeholder.svg';
+  const image = (product.images && product.images[0]) || product.image || 'assets/images/placeholder.svg';
   const rating = product.rating || 0;
   const reviewCount = product.review_count || product.reviewCount || 0;
   const stock = product.stock !== undefined ? product.stock : 10;
@@ -412,7 +412,7 @@ function renderProductCard(product) {
           src="${image}"
           alt="${name}"
           loading="lazy"
-          onerror="this.src='images/placeholder.svg'"
+          onerror="this.src='assets/images/placeholder.svg'"
           onclick="window.location.href='product.html?slug=${slug}'"
         >
         <button

@@ -238,11 +238,11 @@ function renderCategoryCard(cat) {
  */
 function getDefaultCategories() {
   return [
-    { name: 'Drift Cars', description: 'Precision drift machines', icon: '🏎️', color: '#E63946', slug: 'drift', productCount: 48 },
-    { name: 'Hobby Grade', description: 'Pro-level RC performance', icon: '🎮', color: '#457B9D', slug: 'hobby', productCount: 32 },
-    { name: 'Rock Crawlers', description: 'Off-road terrain beasts', icon: '🪨', color: '#2ecc71', slug: 'crawler', productCount: 24 },
-    { name: 'Monster Trucks', description: 'Big air, big fun', icon: '🚛', color: '#f39c12', slug: 'truck', productCount: 19 },
-    { name: 'Accessories', description: 'Parts, batteries & more', icon: '🔧', color: '#9b59b6', slug: 'accessories', productCount: 120 },
+    { name: 'Drift Cars', description: 'Precision sideways machines', icon: '🏎️', color: '#E63946', slug: 'drift-cars', productCount: 48 },
+    { name: 'Mini RC Cars', description: 'Compact & fast indoor cars', icon: '🚗', color: '#457B9D', slug: 'mini-rc', productCount: 32 },
+    { name: 'Hobby Grade', description: 'Professional performance', icon: '🏁', color: '#2ecc71', slug: 'hobby-grade', productCount: 24 },
+    { name: 'Crawlers', description: 'Off-road terrain beasts', icon: '🪨', color: '#e67e22', slug: 'crawlers', productCount: 19 },
+    { name: 'Unique RC', description: 'Wall climbers, amphibians & more', icon: '⭐', color: '#9b59b6', slug: 'unique-rc', productCount: 120 },
   ];
 }
 

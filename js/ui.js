@@ -525,12 +525,12 @@ function initPageTransitions() {
 
   // Intercept all local links for smooth out transitions
   document.querySelectorAll('a').forEach(anchor => {
-    const href = anchor.getAttribute('href');
-    if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || anchor.target === '_blank') {
-      return;
-    }
-    
     anchor.addEventListener('click', (e) => {
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || anchor.target === '_blank') {
+        return;
+      }
+      
       e.preventDefault();
       overlay.classList.add('active');
       setTimeout(() => {
@@ -682,3 +682,15 @@ window.generateOrderNumber = generateOrderNumber;
 window.generateWhatsAppMessage = generateWhatsAppMessage;
 window.debounce = debounce;
 window.getPathPrefix = getPathPrefix;
+
+// Bridge the UI namespace to resolve Vercel deployment issues
+window.UI = {
+  loadNavbar: injectNavbar,
+  loadFooter: injectFooter,
+  toast: showToast,
+  showToast: showToast,
+  openModal: openModal,
+  closeModal: closeModal,
+  updateWishlistBadge: () => { if (typeof Store !== 'undefined') Store.syncWishlistBadge(); },
+  updateCartBadge: () => { if (typeof Store !== 'undefined') Store.syncCartBadge(); }
+};

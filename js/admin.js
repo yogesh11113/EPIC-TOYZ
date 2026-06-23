@@ -154,8 +154,8 @@ const LocalDB = {
   },
 
   // PRODUCTS
-  getProducts() { return this._get('epic_products') || []; },
-  setProducts(arr) { this._set('epic_products', arr); },
+  getProducts() { return this._get('et_products') || []; },
+  setProducts(arr) { this._set('et_products', arr); },
   findProduct(id) { return this.getProducts().find(p => String(p.id) === String(id)) || null; },
   createProduct(data) {
     const products = this.getProducts();
@@ -174,8 +174,8 @@ const LocalDB = {
   },
 
   // CATEGORIES
-  getCategories() { return this._get('epic_categories') || []; },
-  setCategories(arr) { this._set('epic_categories', arr); },
+  getCategories() { return this._get('et_categories') || []; },
+  setCategories(arr) { this._set('et_categories', arr); },
   createCategory(data) {
     const cats = this.getCategories();
     const cat = { ...data, id: generateId(), createdAt: new Date().toISOString() };
@@ -193,8 +193,8 @@ const LocalDB = {
   },
 
   // ORDERS
-  getOrders() { return this._get('epic_orders') || []; },
-  setOrders(arr) { this._set('epic_orders', arr); },
+  getOrders() { return this._get('et_orders') || []; },
+  setOrders(arr) { this._set('et_orders', arr); },
   findOrder(id) { return this.getOrders().find(o => String(o.id) === String(id)) || null; },
   updateOrder(id, data) {
     const orders = this.getOrders().map(o => String(o.id) === String(id) ? { ...o, ...data, updatedAt: new Date().toISOString() } : o);
@@ -204,8 +204,8 @@ const LocalDB = {
   deleteOrder(id) { this.setOrders(this.getOrders().filter(o => String(o.id) !== String(id))); },
 
   // REVIEWS
-  getReviews() { return this._get('epic_reviews') || []; },
-  setReviews(arr) { this._set('epic_reviews', arr); },
+  getReviews() { return this._get('et_reviews') || []; },
+  setReviews(arr) { this._set('et_reviews', arr); },
   findReview(id) { return this.getReviews().find(r => String(r.id) === String(id)) || null; },
   approveReview(id) {
     const reviews = this.getReviews().map(r => String(r.id) === String(id) ? { ...r, approved: true } : r);

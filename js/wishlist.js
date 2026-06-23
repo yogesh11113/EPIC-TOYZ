@@ -152,7 +152,7 @@ function renderWishlistCard(item, idx) {
 
       <!-- Image -->
       <div class="wish-card-img-wrapper">
-        <a href="product-detail.html?id=${item.id}" aria-label="View ${escapeHtml(item.name)}">
+        <a href="product.html?slug=${item.slug || item.id}" aria-label="View ${escapeHtml(item.name)}">
           <img class="wish-card-img" src="${img}" alt="${escapeHtml(item.name)}"
                onerror="this.src='assets/images/placeholder.svg'">
         </a>
@@ -164,7 +164,7 @@ function renderWishlistCard(item, idx) {
       <div class="wish-card-body">
         <p class="wish-category">${escapeHtml(item.category || 'RC Car')}</p>
         <h3 class="wish-name">
-          <a href="product-detail.html?id=${item.id}" style="color:inherit; text-decoration:none;">${escapeHtml(item.name || '')}</a>
+          <a href="product.html?slug=${item.slug || item.id}" style="color:inherit; text-decoration:none;">${escapeHtml(item.name || '')}</a>
         </h3>
         <div class="wish-rating">
           <span class="wish-stars">${renderStars(rating)}</span>
@@ -187,7 +187,7 @@ function renderWishlistCard(item, idx) {
         >
           ${cartBtnText}
         </button>
-        <a href="product-detail.html?id=${item.id}" class="btn-wish-view" title="View product" aria-label="View ${escapeHtml(item.name)}">
+        <a href="product.html?slug=${item.slug || item.id}" class="btn-wish-view" title="View product" aria-label="View ${escapeHtml(item.name)}">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>
@@ -213,7 +213,7 @@ function showEmptyState() {
         Save your favourite RC cars here so you can find them later.<br>
         Start exploring our collection!
       </p>
-      <a href="products.html" class="btn-browse">
+      <a href="shop.html" class="btn-browse">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         Browse Products
       </a>

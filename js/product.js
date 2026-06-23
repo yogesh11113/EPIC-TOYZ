@@ -244,7 +244,7 @@ function renderGallery(product) {
   }
 
   // Always ensure at least one image
-  if (!galleryImages.length) galleryImages = ['images/placeholder.svg'];
+  if (!galleryImages.length) galleryImages = ['assets/images/placeholder.svg'];
 
   // Set gallery badge
   const badgeOverlay = document.getElementById('gallery-badge-overlay');
@@ -268,7 +268,7 @@ function renderGallery(product) {
 
   thumbsContainer.innerHTML = galleryImages.map((img, i) => `
     <div class="gallery-thumb ${i === 0 ? 'active' : ''}" onclick="changeMainImage(${i})" role="button" aria-label="View image ${i + 1}">
-      <img src="${img}" alt="Product view ${i + 1}" loading="lazy" onerror="this.src='images/placeholder.svg'">
+      <img src="${img}" alt="Product view ${i + 1}" loading="lazy" onerror="this.src='assets/images/placeholder.svg'">
     </div>
   `).join('');
 }
@@ -304,7 +304,21 @@ function renderSpecsTable(product) {
   if (!tbody) return;
 
   const specs = product.specifications || product.specs || {};
-  const entries = Object.entries(specs);
+  let entries = [];
+
+  if (Array.isArray(specs)) {
+    entries = specs.map(item => [item.name || item.key || '', item.value || '']);
+  } else if (typeof specs === 'object' && specs !== null) {
+    const values = Object.values(specs);
+    if (values.length > 0 && typeof values[0] === 'object' && values[0] !== null && ('name' in values[0] || 'key' in values[0] || 'value' in values[0])) {
+      entries = values.map(item => [item.name || item.key || '', item.value || '']);
+    } else {
+      entries = Object.entries(specs);
+    }
+  }
+
+  // Filter out entries without a key
+  entries = entries.filter(([k, v]) => k);
 
   if (!entries.length) {
     tbody.innerHTML = '<tr><td colspan="2" style="padding:20px;color:#555;text-align:center;">No specifications available.</td></tr>';
@@ -812,7 +826,7 @@ function renderMiniCard(product) {
   const price = product.price || 0;
   const originalPrice = product.original_price || product.originalPrice || 0;
   const discount = originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
-  const image = (product.images && product.images[0]) || product.image || 'images/placeholder.svg';
+  const image = (product.images && product.images[0]) || product.image || 'assets/images/placeholder.svg';
   const rating = product.rating || 0;
   const badge = product.badge || '';
   const stock = product.stock;
@@ -829,7 +843,7 @@ function renderMiniCard(product) {
     <div class="product-card" onclick="window.location.href='product.html?slug=${slug}'" style="cursor:pointer;">
       <div class="product-card-img-wrap">
         ${badgeHtml}
-        <img class="product-card-img" src="${image}" alt="${name}" loading="lazy" onerror="this.src='images/placeholder.svg'">
+        <img class="product-card-img" src="${image}" alt="${name}" loading="lazy" onerror="this.src='assets/images/placeholder.svg'">
       </div>
       <div class="product-card-body">
         <h3 class="product-name" style="font-size:13px;">${name}</h3>
@@ -908,12 +922,12 @@ async function confirmImageUpdate() {
 
   try {
     // Update local gallery images array
-    while (galleryImages.length <= index) galleryImages.push('images/placeholder.svg');
+    while (galleryImages.length <= index) galleryImages.push('assets/images/placeholder.svg');
     galleryImages[index] = url;
 
     // Update product images
     if (!currentProduct.images) currentProduct.images = [];
-    while (currentProduct.images.length <= index) currentProduct.images.push('images/placeholder.svg');
+    while (currentProduct.images.length <= index) currentProduct.images.push('assets/images/placeholder.svg');
     currentProduct.images[index] = url;
 
     // Persist via DB if available
