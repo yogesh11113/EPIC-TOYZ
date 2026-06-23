@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <!-- Dark background -->
+  <rect width="800" height="600" fill="#0D0E1A"/>
+  
+  <!-- Subtle tech/grid overlay -->
+  <defs>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E63946" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#1D3557" stop-opacity="0.15"/>
+    </linearGradient>
+    <radialGradient id="radialGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E63946" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#0D0E1A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  
+  <rect width="800" height="600" fill="url(#glow)"/>
+  <circle cx="400" cy="280" r="250" fill="url(#radialGlow)"/>
+  
+  <!-- RC Car Silhouette -->
+  <g transform="translate(250, 160)" stroke="#E63946" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Antenna -->
+    <line x1="80" y1="60" x2="40" y2="10" stroke="#E63946" stroke-width="3" />
+    <circle cx="40" cy="10" r="4" fill="#E63946" />
+    
+    <!-- Body Outline -->
+    <path d="M 60 70 
+             Q 100 30 180 30 
+             Q 240 30 260 60 
+             L 290 70 
+             Q 310 75 310 90 
+             L 300 110 
+             L 280 110 
+             Q 280 90 260 90 
+             Q 240 90 240 110 
+             L 100 110 
+             Q 100 90 80 90 
+             Q 60 90 60 110 
+             L 20 110 
+             Q 10 110 10 95
+             Q 10 80 30 75 
+             Z" />
+             
+    <!-- Rear Wing / Spoiler -->
+    <path d="M 25 73 L 5 50 L 35 50 L 45 70" />
+    
+    <!-- Window Outline -->
+    <path d="M 110 42 L 175 42 Q 210 42 225 65 L 100 65 Z" fill="rgba(255, 255, 255, 0.05)" />
+    
+    <!-- Wheels -->
+    <circle cx="80" cy="110" r="25" fill="#12151F" stroke="#E63946" stroke-width="4" />
+    <circle cx="80" cy="110" r="12" fill="none" stroke="#E63946" stroke-width="2" />
+    <circle cx="260" cy="110" r="25" fill="#12151F" stroke="#E63946" stroke-width="4" />
+    <circle cx="260" cy="110" r="12" fill="none" stroke="#E63946" stroke-width="2" />
+    
+    <!-- Ground Line -->
+    <line x1="-30" y1="135" x2="350" y2="135" stroke="rgba(255, 255, 255, 0.1)" stroke-width="2" />
+  </g>
+  
+  <!-- Branding Text -->
+  <text x="400" y="380" font-family="'Inter', sans-serif" font-size="36" font-weight="900" fill="#FFFFFF" text-anchor="middle" letter-spacing="4">
+    EPIC <tspan fill="#E63946">TOYZ</tspan>
+  </text>
+  
+  <text x="400" y="420" font-family="'Inter', sans-serif" font-size="18" font-weight="600" fill="#A8DADC" text-anchor="middle" letter-spacing="8">
+    PREMIUM RC CARS
+  </text>
+  
+  <!-- Subtle Details -->
+  <rect x="360" y="450" width="80" height="4" rx="2" fill="#E63946" />
+</svg>

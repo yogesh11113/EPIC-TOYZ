@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us | Epic Toyz</title>
+  <meta name="description" content="Contact Epic Toyz — India's premium RC car store. Reach us via WhatsApp, email or our contact form. Mon-Sat 9AM-8PM IST.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <style>
+    /* ── Page Hero ── */
+    .page-hero {
+      position: relative;
+      min-height: 340px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0D0E1A 0%, #1D3557 50%, #0D0E1A 100%);
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(230,57,70,0.18) 0%, transparent 70%);
+    }
+    .page-hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(69,123,157,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(69,123,157,0.08) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .page-hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 2rem 1rem;
+    }
+    .page-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(230,57,70,0.15);
+      border: 1px solid rgba(230,57,70,0.35);
+      color: #E63946;
+      padding: 0.4rem 1.2rem;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+    .page-hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .page-hero h1 span { color: #E63946; }
+    .page-hero p { font-size: 1.1rem; color: #ADB5BD; max-width: 500px; margin: 0 auto; }
+
+    /* ── Contact Section ── */
+    .contact-section { padding: 80px 0; background: #0D0E1A; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 3rem;
+      align-items: flex-start;
+    }
+
+    /* ── Form ── */
+    .contact-form-card {
+      background: #12151F;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 20px;
+      padding: 2.5rem;
+    }
+    .contact-form-card h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .contact-form-card .subtitle {
+      color: #ADB5BD;
+      font-size: 0.92rem;
+      margin-bottom: 2rem;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #ADB5BD;
+      letter-spacing: 0.03em;
+    }
+    .form-group label span { color: #E63946; }
+    .form-control {
+      background: #1A1E2E;
+      border: 1.5px solid rgba(69,123,157,0.2);
+      color: #fff;
+      font-size: 0.95rem;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .form-control::placeholder { color: #5a6070; }
+    .form-control:focus {
+      border-color: #E63946;
+      box-shadow: 0 0 0 3px rgba(230,57,70,0.12);
+    }
+    select.form-control { cursor: pointer; }
+    select.form-control option { background: #1A1E2E; }
+    textarea.form-control { resize: vertical; min-height: 140px; }
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #E63946, #c62a35);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 1rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      box-shadow: 0 4px 20px rgba(230,57,70,0.3);
+      margin-top: 0.5rem;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(230,57,70,0.45);
+    }
+    .btn-submit:active { transform: translateY(0); }
+    .form-success {
+      display: none;
+      background: rgba(46,204,113,0.1);
+      border: 1px solid rgba(46,204,113,0.3);
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      color: #2ecc71;
+      font-size: 0.95rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    /* ── Info ── */
+    .contact-info h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .contact-info .subtitle {
+      color: #ADB5BD;
+      font-size: 0.92rem;
+      margin-bottom: 1.5rem;
+    }
+    .info-cards { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+    .info-card {
+      background: #12151F;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 14px;
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+    .info-card:hover {
+      border-color: rgba(230,57,70,0.3);
+      transform: translateX(4px);
+    }
+    .info-card-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .info-card-icon.wa { background: rgba(37,211,102,0.12); }
+    .info-card-icon.phone { background: rgba(69,123,157,0.15); }
+    .info-card-icon.email { background: rgba(230,57,70,0.12); }
+    .info-card-icon.hours { background: rgba(255,215,0,0.1); }
+    .info-card-text .label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #ADB5BD;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.2rem;
+    }
+    .info-card-text .value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .info-card-text .sub {
+      font-size: 0.8rem;
+      color: #ADB5BD;
+      margin-top: 0.1rem;
+    }
+
+    /* WhatsApp CTA */
+    .wa-cta {
+      background: linear-gradient(135deg, #075E54, #128C7E);
+      border-radius: 16px;
+      padding: 1.8rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .wa-cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at top right, rgba(37,211,102,0.2), transparent 60%);
+    }
+    .wa-cta h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+    .wa-cta p {
+      color: rgba(255,255,255,0.8);
+      font-size: 0.87rem;
+      margin-bottom: 1.2rem;
+      position: relative;
+    }
+    .btn-wa-large {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: #25D366;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.85rem 2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .btn-wa-large:hover {
+      background: #1ebe5b;
+      transform: scale(1.03);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+
+    /* ── FAQ Preview ── */
+    .faq-preview-section {
+      padding: 60px 0 80px;
+      background: #12151F;
+    }
+    .faq-preview-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .faq-preview-header .label {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #E63946;
+      margin-bottom: 0.8rem;
+    }
+    .faq-preview-header h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .faq-preview-header p { color: #ADB5BD; font-size: 0.95rem; }
+    .faq-preview-list { display: flex; flex-direction: column; gap: 0.8rem; max-width: 780px; margin: 0 auto 2.5rem; }
+    .faq-preview-item {
+      background: #1A1E2E;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .faq-preview-item .q-icon {
+      width: 32px; height: 32px;
+      background: rgba(230,57,70,0.12);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #E63946;
+      flex-shrink: 0;
+    }
+    .faq-preview-item .q-text h4 {
+      font-size: 0.97rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.3rem;
+    }
+    .faq-preview-item .q-text p { font-size: 0.87rem; color: #ADB5BD; line-height: 1.6; }
+    .faq-preview-cta { text-align: center; }
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: transparent;
+      color: #E63946;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.8rem 2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      border: 2px solid #E63946;
+      transition: all 0.3s ease;
+    }
+    .btn-outline:hover {
+      background: #E63946;
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    /* ── Reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .contact-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .contact-section { padding: 50px 0; }
+      .contact-form-card { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <!-- ── PAGE HERO ── -->
+  <section class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-content">
+      <div class="page-hero-badge">💬 We're Here to Help</div>
+      <h1>Contact <span>Epic Toyz</span></h1>
+      <p>Got questions? We'd love to hear from you. Send us a message or reach us on WhatsApp.</p>
+    </div>
+  </section>
+
+  <!-- ── MAIN CONTACT ── -->
+  <section class="contact-section">
+    <div class="container">
+      <div class="contact-grid">
+
+        <!-- FORM -->
+        <div class="contact-form-card reveal">
+          <h2>Send Us a Message</h2>
+          <p class="subtitle">Fill out the form below and we'll get back to you within 24 hours.</p>
+          <form id="contactForm" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="name">Full Name <span>*</span></label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="Your full name" required>
+              </div>
+              <div class="form-group">
+                <label for="email">Email Address <span>*</span></label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="your@email.com" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="phone">Phone / WhatsApp</label>
+                <input type="tel" id="phone" name="phone" class="form-control" placeholder="+91 XXXXX XXXXX">
+              </div>
+              <div class="form-group">
+                <label for="subject">Subject <span>*</span></label>
+                <select id="subject" name="subject" class="form-control" required>
+                  <option value="" disabled selected>Select a topic</option>
+                  <option value="order">Order Inquiry</option>
+                  <option value="product">Product Question</option>
+                  <option value="return">Return / Refund</option>
+                  <option value="shipping">Shipping Query</option>
+                  <option value="technical">Technical Support</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="message">Message <span>*</span></label>
+              <textarea id="message" name="message" class="form-control" placeholder="Tell us how we can help you... Be as detailed as possible!" required></textarea>
+            </div>
+            <button type="submit" class="btn-submit">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send Message
+            </button>
+            <div class="form-success" id="formSuccess">
+              ✅ Message sent! We'll get back to you within 24 hours. Or reach us instantly on WhatsApp below.
+            </div>
+          </form>
+        </div>
+
+        <!-- INFO -->
+        <div class="contact-info reveal reveal-delay-1">
+          <h2>Get in Touch</h2>
+          <p class="subtitle">Multiple ways to reach our friendly team of RC experts.</p>
+
+          <div class="info-cards">
+            <a href="https://wa.me/916383793890?text=Hi%20Epic%20Toyz!%20I%20have%20a%20question." class="info-card" target="_blank" rel="noopener">
+              <div class="info-card-icon wa"><i class="fa-brands fa-whatsapp" style="color: #25D366;"></i></div>
+              <div class="info-card-text">
+                <div class="label">WhatsApp Support</div>
+                <div class="value">+91 63837 93890</div>
+                <div class="sub">Fastest response — usually within minutes</div>
+              </div>
+            </a>
+            <a href="https://chat.whatsapp.com/Bn4iOdLH5U22kpSyYIIV7i" class="info-card" target="_blank" rel="noopener">
+              <div class="info-card-icon wa"><i class="fa-solid fa-users" style="color: #25D366;"></i></div>
+              <div class="info-card-text">
+                <div class="label">WhatsApp Community</div>
+                <div class="value">Join Community</div>
+                <div class="sub">Connect with fellow RC enthusiasts</div>
+              </div>
+            </a>
+            <a href="https://www.instagram.com/epictoyz.in/" class="info-card" target="_blank" rel="noopener">
+              <div class="info-card-icon" style="background: rgba(230,57,70,0.12);"><i class="fa-brands fa-instagram" style="color: #E1306C;"></i></div>
+              <div class="info-card-text">
+                <div class="label">Instagram</div>
+                <div class="value">@epictoyz.in</div>
+                <div class="sub">Follow us for photos, videos & updates</div>
+              </div>
+            </a>
+            <a href="https://www.youtube.com/@EpicToyz-q4t" class="info-card" target="_blank" rel="noopener">
+              <div class="info-card-icon" style="background: rgba(230,57,70,0.12);"><i class="fa-brands fa-youtube" style="color: #FF0000;"></i></div>
+              <div class="info-card-text">
+                <div class="label">YouTube</div>
+                <div class="value">@EpicToyz-q4t</div>
+                <div class="sub">Watch our RC car reviews & tests</div>
+              </div>
+            </a>
+            <a href="tel:+916383793890" class="info-card">
+              <div class="info-card-icon phone"><i class="fa-solid fa-phone" style="color: #457B9D;"></i></div>
+              <div class="info-card-text">
+                <div class="label">Phone</div>
+                <div class="value">+91 63837 93890</div>
+                <div class="sub">Call us during business hours</div>
+              </div>
+            </a>
+            <a href="mailto:epictoyz.in@gmail.com" class="info-card">
+              <div class="info-card-icon email"><i class="fa-solid fa-envelope" style="color: #E63946;"></i></div>
+              <div class="info-card-text">
+                <div class="label">Email</div>
+                <div class="value">epictoyz.in@gmail.com</div>
+                <div class="sub">For detailed queries and documents</div>
+              </div>
+            </a>
+            <div class="info-card" style="cursor:default;">
+              <div class="info-card-icon hours"><i class="fa-solid fa-clock" style="color: #FFD700;"></i></div>
+              <div class="info-card-text">
+                <div class="label">Business Hours</div>
+                <div class="value">Mon – Sat, 9 AM – 8 PM IST</div>
+                <div class="sub">Closed on Sundays & public holidays</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WhatsApp CTA -->
+          <div class="wa-cta">
+            <h3>⚡ Fastest Way to Connect</h3>
+            <p>Start a WhatsApp chat for instant support, product recommendations, and ordering assistance.</p>
+            <a href="https://wa.me/916383793890?text=Hi%20Epic%20Toyz!%20I%20need%20help%20with%20something." class="btn-wa-large" target="_blank" rel="noopener">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Start WhatsApp Chat
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ PREVIEW ── -->
+  <section class="faq-preview-section">
+    <div class="container">
+      <div class="faq-preview-header reveal">
+        <span class="label">Quick Answers</span>
+        <h2>Frequently Asked Questions</h2>
+        <p>Here are the most common questions we get. Find more answers on our full FAQ page.</p>
+      </div>
+      <div class="faq-preview-list">
+        <div class="faq-preview-item reveal reveal-delay-1">
+          <div class="q-icon">Q</div>
+          <div class="q-text">
+            <h4>How does WhatsApp ordering work?</h4>
+            <p>Simply message us on WhatsApp with the product you're interested in. We'll send you product details, confirm availability, share payment options, and process your order — all within the chat!</p>
+          </div>
+        </div>
+        <div class="faq-preview-item reveal reveal-delay-2">
+          <div class="q-icon">Q</div>
+          <div class="q-text">
+            <h4>What is the delivery time across India?</h4>
+            <p>Most orders ship within 24 hours and arrive in 3-7 business days depending on your location. Metro cities typically receive faster delivery within 2-3 days.</p>
+          </div>
+        </div>
+        <div class="faq-preview-item reveal reveal-delay-3">
+          <div class="q-icon">Q</div>
+          <div class="q-text">
+            <h4>What is your return and refund policy?</h4>
+            <p>We offer 7-day returns for unopened products and handle manufacturer defects on a case-by-case basis. Contact us within 7 days of delivery to initiate a return.</p>
+          </div>
+        </div>
+      </div>
+      <div class="faq-preview-cta reveal">
+        <a href="faq.html" class="btn-outline">
+          View All FAQs
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/store.js"></script>
+  <script src="../js/ui.js"></script>
+  <script>
+    // Scroll reveal
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // Form submit
+    document.getElementById('contactForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = this.querySelector('.btn-submit');
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const subject = document.getElementById('subject').value;
+      const message = document.getElementById('message').value.trim();
+
+      if (!name || !email || !subject || !message) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+
+      // Build WhatsApp message as fallback / primary notification
+      const phone = document.getElementById('phone').value.trim();
+      const waMsg = encodeURIComponent(
+        `📩 New Contact Form Submission\n\n` +
+        `Name: ${name}\nEmail: ${email}\n` +
+        (phone ? `Phone: ${phone}\n` : '') +
+        `Subject: ${subject}\n\nMessage:\n${message}`
+      );
+
+      // Show success
+      setTimeout(() => {
+        btn.textContent = '✓ Message Sent!';
+        document.getElementById('formSuccess').style.display = 'block';
+        this.reset();
+        setTimeout(() => {
+          btn.textContent = 'Send Message';
+          btn.disabled = false;
+        }, 4000);
+      }, 800);
+    });
+  </script>
+</body>
+</html>

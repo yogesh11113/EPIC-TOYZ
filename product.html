@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details | Epic Toyz</title>
+  <meta name="description" content="Buy premium RC cars online in India. Fast shipping, easy returns.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    /* ===== PRODUCT PAGE STYLES ===== */
+    .product-page { background: var(--dark-bg, #0D0E1A); min-height: 100vh; }
+
+    /* Breadcrumb */
+    .page-breadcrumb {
+      background: #12151F;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 14px 0;
+    }
+    .breadcrumb-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #ADB5BD;
+      flex-wrap: wrap;
+    }
+    .breadcrumb-inner a { color: #ADB5BD; text-decoration: none; transition: color 0.2s; }
+    .breadcrumb-inner a:hover { color: #E63946; }
+    .breadcrumb-inner .sep { color: #444; }
+    .breadcrumb-inner .current { color: #fff; font-weight: 500; }
+
+    /* Product Section */
+    .product-section {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 36px 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    /* ===== GALLERY ===== */
+    .gallery-wrap { position: sticky; top: 90px; }
+    .gallery-main-wrap {
+      position: relative;
+      background: #12151F;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      cursor: zoom-in;
+    }
+    #gallery-main {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+      display: block;
+    }
+    .gallery-main-wrap:hover #gallery-main { transform: scale(1.05); }
+    .gallery-zoom-hint {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      background: rgba(13,14,26,0.8);
+      color: #ADB5BD;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .gallery-main-wrap:hover .gallery-zoom-hint { opacity: 1; }
+    .gallery-badge-overlay {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 2;
+    }
+    .gallery-badge {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .gallery-badge.badge-new { background: #2ecc71; color: #fff; }
+    .gallery-badge.badge-bestseller { background: #E63946; color: #fff; }
+    .gallery-badge.badge-featured { background: #457B9D; color: #fff; }
+    .gallery-badge.badge-sale { background: #f39c12; color: #fff; }
+
+    /* Thumbnails */
+    #gallery-thumbs {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .gallery-thumb {
+      width: 80px;
+      height: 60px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s;
+      background: #1A1E2E;
+      flex-shrink: 0;
+    }
+    .gallery-thumb.active { border-color: #E63946; }
+    .gallery-thumb:hover:not(.active) { border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* Admin image upload */
+    .admin-image-btn {
+      display: none;
+      margin-top: 12px;
+      width: 100%;
+      padding: 10px;
+      background: rgba(69,123,157,0.15);
+      border: 1px dashed #457B9D;
+      border-radius: 10px;
+      color: #457B9D;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .admin-image-btn:hover { background: rgba(69,123,157,0.25); }
+    .admin-image-btn.visible { display: block; }
+
+    /* ===== PRODUCT DETAILS ===== */
+    .product-details { min-width: 0; }
+
+    .product-badge-pill {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .product-badge-pill.badge-new { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+    .product-badge-pill.badge-bestseller { background: rgba(230,57,70,0.15); color: #E63946; border: 1px solid rgba(230,57,70,0.3); }
+    .product-badge-pill.badge-featured { background: rgba(69,123,157,0.15); color: #457B9D; border: 1px solid rgba(69,123,157,0.3); }
+    .product-badge-pill.badge-sale { background: rgba(243,156,18,0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+
+    #product-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      margin: 0 0 16px;
+    }
+
+    /* Rating */
+    .product-rating-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .rating-stars { font-size: 18px; letter-spacing: 2px; color: #FFD700; }
+    .rating-score { font-size: 15px; font-weight: 700; color: #fff; }
+    .rating-reviews { font-size: 13px; color: #ADB5BD; }
+    .write-review-link { font-size: 13px; color: #457B9D; text-decoration: none; transition: color 0.2s; }
+    .write-review-link:hover { color: #E63946; }
+
+    /* Price */
+    .product-price-block { margin-bottom: 20px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    #product-price-current { font-size: 34px; font-weight: 900; color: #E63946; }
+    #product-price-original { font-size: 18px; color: #555; text-decoration: line-through; }
+    #product-price-discount {
+      font-size: 14px;
+      font-weight: 700;
+      color: #2ecc71;
+      background: rgba(46,204,113,0.12);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    /* Short description */
+    #product-short-desc { font-size: 15px; color: #ADB5BD; line-height: 1.7; margin-bottom: 20px; }
+
+    /* Stock status */
+    .stock-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .stock-status .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .stock-status.in-stock { background: rgba(46,204,113,0.12); color: #2ecc71; }
+    .stock-status.in-stock .dot { background: #2ecc71; animation: pulse-dot 1.5s infinite; }
+    .stock-status.low-stock { background: rgba(243,156,18,0.12); color: #f39c12; }
+    .stock-status.low-stock .dot { background: #f39c12; }
+    .stock-status.out-of-stock { background: rgba(231,76,60,0.12); color: #e74c3c; }
+    .stock-status.out-of-stock .dot { background: #e74c3c; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.4)} }
+
+    /* Quantity */
+    .quantity-section { margin-bottom: 24px; }
+    .quantity-label { font-size: 13px; font-weight: 600; color: #ADB5BD; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .quantity-selector {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: #12151F;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      width: fit-content;
+      overflow: hidden;
+    }
+    .qty-btn {
+      width: 44px;
+      height: 44px;
+      background: none;
+      border: none;
+      color: #ADB5BD;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qty-btn:hover:not(:disabled) { background: rgba(230,57,70,0.15); color: #E63946; }
+    .qty-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    #quantity-display {
+      min-width: 50px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      border-left: 1px solid rgba(255,255,255,0.08);
+      border-right: 1px solid rgba(255,255,255,0.08);
+      padding: 0 10px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Action Buttons */
+    .action-buttons { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .action-row { display: flex; gap: 10px; }
+    .btn-add-cart-main {
+      flex: 1;
+      padding: 15px 24px;
+      background: linear-gradient(135deg, #E63946, #c0392b);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-add-cart-main:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(230,57,70,0.45);
+    }
+    .btn-add-cart-main:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-buy-now {
+      flex: 1;
+      padding: 15px 24px;
+      background: linear-gradient(135deg, #1D3557, #457B9D);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-buy-now:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(29,53,87,0.6);
+    }
+    .btn-buy-now:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-whatsapp {
+      width: 100%;
+      padding: 15px 24px;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-whatsapp:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(37,211,102,0.35);
+    }
+
+    /* Wishlist + Share */
+    .secondary-actions { display: flex; gap: 10px; margin-bottom: 24px; }
+    .btn-wishlist, .btn-share {
+      flex: 1;
+      padding: 11px 16px;
+      background: #12151F;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #ADB5BD;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-wishlist:hover { border-color: #E63946; color: #E63946; background: rgba(230,57,70,0.08); }
+    .btn-wishlist.active { background: rgba(230,57,70,0.15); border-color: #E63946; color: #E63946; }
+    .btn-share:hover { border-color: #457B9D; color: #457B9D; background: rgba(69,123,157,0.08); }
+
+    /* Delivery badges */
+    .delivery-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .delivery-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      font-size: 12px;
+      color: #ADB5BD;
+    }
+    .delivery-badge .icon { font-size: 16px; }
+
+    /* ===== TABS ===== */
+    .product-tabs-section {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 32px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      padding: 14px 24px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #ADB5BD;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: #fff; }
+    .tab-btn.active { color: #E63946; border-bottom-color: #E63946; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Description Tab */
+    .tab-description {
+      color: #ADB5BD;
+      line-height: 1.8;
+      font-size: 15px;
+    }
+    .tab-description p { margin: 0 0 16px; }
+    .tab-description h3 { color: #fff; font-size: 17px; margin: 24px 0 12px; }
+
+    /* Specs Table */
+    .specs-table { width: 100%; border-collapse: collapse; }
+    .specs-table tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .specs-table tr:last-child { border-bottom: none; }
+    .specs-table th {
+      width: 35%;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ADB5BD;
+      text-align: left;
+      background: rgba(255,255,255,0.02);
+    }
+    .specs-table td {
+      padding: 14px 16px;
+      font-size: 14px;
+      color: #fff;
+    }
+    .specs-table tr:hover th,
+    .specs-table tr:hover td { background: rgba(255,255,255,0.03); }
+
+    /* Features Tab */
+    .features-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+    .features-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      color: #ccc;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: background 0.2s;
+    }
+    .features-list li:hover { background: rgba(255,255,255,0.05); }
+    .feature-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(46,204,113,0.15);
+      color: #2ecc71;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Reviews Tab */
+    .reviews-container { display: flex; flex-direction: column; gap: 20px; }
+    .review-card {
+      background: #12151F;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+    .reviewer-name { font-size: 15px; font-weight: 700; color: #fff; }
+    .review-date { font-size: 12px; color: #555; }
+    .review-stars { font-size: 14px; color: #FFD700; letter-spacing: 1px; margin-bottom: 8px; }
+    .review-text { font-size: 14px; color: #ADB5BD; line-height: 1.7; }
+    .verified-badge { font-size: 11px; color: #2ecc71; background: rgba(46,204,113,0.12); padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+    /* Review Form */
+    .review-form-wrap {
+      background: #12151F;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+    .review-form-title { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 20px; }
+    .star-rating-input { display: flex; gap: 6px; margin-bottom: 16px; }
+    .star-input {
+      font-size: 28px;
+      cursor: pointer;
+      color: #333;
+      transition: color 0.15s;
+      line-height: 1;
+    }
+    .star-input.hovered, .star-input.selected { color: #FFD700; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: #ADB5BD; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background: #1A1E2E;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: #E63946; }
+    .form-textarea { min-height: 100px; resize: vertical; }
+    .btn-submit-review {
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #E63946, #c0392b);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-submit-review:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(230,57,70,0.4); }
+    .login-prompt {
+      text-align: center;
+      padding: 30px;
+      color: #ADB5BD;
+      font-size: 14px;
+    }
+    .login-prompt a { color: #E63946; text-decoration: none; font-weight: 600; }
+    .no-reviews { text-align: center; padding: 40px; color: #555; }
+    .no-reviews .emoji { font-size: 40px; display: block; margin-bottom: 12px; }
+
+    /* ===== RELATED / RECENTLY VIEWED ===== */
+    .products-row-section {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+    .section-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .section-title-h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .see-all-link { font-size: 13px; color: #E63946; text-decoration: none; font-weight: 600; transition: opacity 0.2s; }
+    .see-all-link:hover { opacity: 0.8; }
+    .products-row-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    /* ===== NOT FOUND STATE ===== */
+    #product-not-found {
+      display: none;
+      text-align: center;
+      padding: 120px 24px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    #product-not-found .icon { font-size: 72px; opacity: 0.3; margin-bottom: 20px; display: block; }
+    #product-not-found h2 { font-size: 28px; font-weight: 800; color: #fff; margin: 0 0 12px; }
+    #product-not-found p { color: #ADB5BD; font-size: 15px; margin: 0 0 28px; }
+    .btn-go-shop {
+      display: inline-block;
+      padding: 14px 32px;
+      background: #E63946;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-go-shop:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(230,57,70,0.4); }
+
+    /* Loading spinner */
+    .product-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top-color: #E63946;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Image upload modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 9000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #1A1E2E;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 32px;
+      width: 90%;
+      max-width: 480px;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 20px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+    .btn-modal-cancel {
+      padding: 10px 20px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: #ADB5BD;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-modal-confirm {
+      padding: 10px 20px;
+      background: #E63946;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 960px) {
+      .product-section { grid-template-columns: 1fr; gap: 28px; }
+      .gallery-wrap { position: static; }
+      #product-name { font-size: 22px; }
+      #product-price-current { font-size: 28px; }
+      .products-row-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .product-section { padding: 20px 16px; }
+      .product-tabs-section { padding: 0 16px 40px; }
+      .products-row-section { padding: 0 16px 40px; }
+      .action-row { flex-direction: column; }
+      .products-row-grid { grid-template-columns: 1fr; gap: var(--space-4); }
+      .tab-btn { padding: 12px 16px; font-size: 13px; }
+      .gallery-thumb { width: 64px; height: 48px; }
+    }
+  </style>
+</head>
+<body class="product-page">
+  <div id="navbar-placeholder"></div>
+
+  <!-- Breadcrumb -->
+  <div class="page-breadcrumb">
+    <div class="breadcrumb-inner" id="product-breadcrumb">
+      <a href="index.html">Home</a>
+      <span class="sep">›</span>
+      <a href="shop.html" id="breadcrumb-category-link">Shop</a>
+      <span class="sep">›</span>
+      <span class="current" id="breadcrumb-product-name">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="product-loading" id="product-loading">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Not Found -->
+  <div id="product-not-found">
+    <span class="icon">🔍</span>
+    <h2>Product Not Found</h2>
+    <p>The product you're looking for doesn't exist or has been removed.</p>
+    <a href="shop.html" class="btn-go-shop">Browse All Products</a>
+  </div>
+
+  <!-- Product Content (hidden until loaded) -->
+  <div id="product-content" style="display:none;">
+
+    <!-- Product Main Section -->
+    <div class="product-section">
+
+      <!-- LEFT: Gallery -->
+      <div class="gallery-wrap">
+        <div class="gallery-main-wrap" id="gallery-main-wrap">
+          <div class="gallery-badge-overlay" id="gallery-badge-overlay"></div>
+          <img id="gallery-main" src="assets/images/placeholder.svg" alt="Product image" loading="eager">
+          <div class="gallery-zoom-hint">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            Zoom
+          </div>
+        </div>
+        <div id="gallery-thumbs"></div>
+        <button class="admin-image-btn" id="admin-image-btn" onclick="openImageUploadModal()">
+          📷 Update Product Images (Admin)
+        </button>
+      </div>
+
+      <!-- RIGHT: Details -->
+      <div class="product-details">
+        <div id="product-badge-pill"></div>
+        <h1 id="product-name">Loading product...</h1>
+
+        <!-- Rating -->
+        <div class="product-rating-row">
+          <div class="rating-stars" id="product-rating-stars">☆☆☆☆☆</div>
+          <div class="rating-score" id="product-rating-score">0.0</div>
+          <div class="rating-reviews" id="product-review-count">(0 reviews)</div>
+          <a href="#tab-reviews" class="write-review-link" onclick="switchToReviewTab()">Write a Review</a>
+        </div>
+
+        <!-- Price -->
+        <div class="product-price-block">
+          <span id="product-price-current">₹0</span>
+          <span id="product-price-original"></span>
+          <span id="product-price-discount"></span>
+        </div>
+
+        <!-- Short Description -->
+        <p id="product-short-desc"></p>
+
+        <!-- Stock Status -->
+        <div id="product-stock-status" class="stock-status in-stock">
+          <span class="dot"></span>
+          <span id="stock-text">In Stock</span>
+        </div>
+
+        <!-- Quantity -->
+        <div class="quantity-section">
+          <div class="quantity-label">Quantity</div>
+          <div class="quantity-selector">
+            <button class="qty-btn" id="qty-decrease" onclick="changeQuantity(-1)" aria-label="Decrease quantity">−</button>
+            <div id="quantity-display">1</div>
+            <button class="qty-btn" id="qty-increase" onclick="changeQuantity(1)" aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn-whatsapp" onclick="orderViaWhatsApp()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+            Order via WhatsApp
+          </button>
+          <div class="action-row">
+            <button class="btn-add-cart-main" id="btn-add-cart" onclick="addToCart()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              Add to Cart
+            </button>
+          </div>
+        </div>
+
+        <!-- Wishlist + Share -->
+        <div class="secondary-actions">
+          <button class="btn-wishlist" id="btn-wishlist" onclick="toggleWishlistBtn()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="wishlist-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span id="wishlist-btn-text">Add to Wishlist</span>
+          </button>
+          <button class="btn-share" onclick="shareProduct()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Share
+          </button>
+        </div>
+
+        <!-- Delivery Badges -->
+        <div class="delivery-badges">
+          <div class="delivery-badge"><span class="icon">🚚</span> Delivery Charges: ₹50</div>
+          <div class="delivery-badge"><span class="icon">⚡</span> Fast dispatch</div>
+          <div class="delivery-badge"><span class="icon">✅</span> Genuine products</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TABS SECTION ===== -->
+    <div class="product-tabs-section">
+      <div class="tab-nav" role="tablist" id="tab-reviews">
+        <button class="tab-btn active" data-tab="description" role="tab" aria-selected="true" onclick="switchTab(this, 'tab-description')">Description</button>
+        <button class="tab-btn" data-tab="specifications" role="tab" aria-selected="false" onclick="switchTab(this, 'tab-specifications')">Specifications</button>
+        <button class="tab-btn" data-tab="features" role="tab" aria-selected="false" onclick="switchTab(this, 'tab-features')">Features</button>
+        <button class="tab-btn" data-tab="reviews" role="tab" aria-selected="false" onclick="switchTab(this, 'tab-reviews-panel')">Reviews <span id="review-tab-count" style="font-size:11px;color:#ADB5BD;"></span></button>
+      </div>
+
+      <div id="tab-description" class="tab-panel active" role="tabpanel">
+        <div class="tab-description" id="product-full-description">
+          <p>Loading description...</p>
+        </div>
+      </div>
+
+      <div id="tab-specifications" class="tab-panel" role="tabpanel">
+        <table class="specs-table" id="specs-table">
+          <tbody id="specs-tbody"></tbody>
+        </table>
+      </div>
+
+      <div id="tab-features" class="tab-panel" role="tabpanel">
+        <ul class="features-list" id="features-list"></ul>
+      </div>
+
+      <div id="tab-reviews-panel" class="tab-panel" role="tabpanel">
+        <div class="reviews-container" id="reviews-container">
+          <div class="no-reviews"><span class="emoji">📝</span>No reviews yet. Be the first!</div>
+        </div>
+        <!-- Review Form -->
+        <div class="review-form-wrap" id="review-form-wrap">
+          <h3 class="review-form-title">Write a Review</h3>
+          <form id="review-form" onsubmit="submitReview(event)">
+            <div class="form-group">
+              <label class="form-label">Your Rating *</label>
+              <div class="star-rating-input" id="star-rating-input" role="group" aria-label="Rating">
+                <span class="star-input" data-value="1" onclick="setReviewRating(1)" aria-label="1 star">★</span>
+                <span class="star-input" data-value="2" onclick="setReviewRating(2)" aria-label="2 stars">★</span>
+                <span class="star-input" data-value="3" onclick="setReviewRating(3)" aria-label="3 stars">★</span>
+                <span class="star-input" data-value="4" onclick="setReviewRating(4)" aria-label="4 stars">★</span>
+                <span class="star-input" data-value="5" onclick="setReviewRating(5)" aria-label="5 stars">★</span>
+              </div>
+              <input type="hidden" id="review-rating-value" value="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="review-title">Review Title</label>
+              <input type="text" class="form-input" id="review-title" placeholder="Summarize your experience" maxlength="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="review-text">Your Review *</label>
+              <textarea class="form-textarea" id="review-text" placeholder="Share your experience with this product..." required minlength="20" maxlength="1000"></textarea>
+            </div>
+            <button type="submit" class="btn-submit-review">Submit Review</button>
+          </form>
+        </div>
+        <div class="login-prompt" id="review-login-prompt" style="display:none;">
+          Please <a href="checkout.html?login=true">log in</a> to write a review.
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Products -->
+    <div class="products-row-section" id="related-section">
+      <div class="section-header-row">
+        <h2 class="section-title-h2">Related Products</h2>
+        <a href="shop.html" class="see-all-link" id="related-see-all">See all →</a>
+      </div>
+      <div class="products-row-grid" id="related-products-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Recently Viewed -->
+    <div class="products-row-section" id="recently-viewed-section" style="display:none;">
+      <div class="section-header-row">
+        <h2 class="section-title-h2">Recently Viewed</h2>
+      </div>
+      <div class="products-row-grid" id="recently-viewed-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+  </div><!-- /product-content -->
+
+  <!-- Image Upload Modal (Admin Only) -->
+  <div class="modal-overlay" id="image-upload-modal">
+    <div class="modal-box">
+      <h3 class="modal-title">📷 Update Product Image</h3>
+      <div class="form-group">
+        <label class="form-label" for="image-url-input">Image URL</label>
+        <input type="url" class="form-input" id="image-url-input" placeholder="https://example.com/image.jpg">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="image-index-input">Image Position (1-4)</label>
+        <input type="number" class="form-input" id="image-index-input" value="1" min="1" max="4">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeImageUploadModal()">Cancel</button>
+        <button class="btn-modal-confirm" onclick="confirmImageUpdate()">Update Image</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer-placeholder"></div>
+  <div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/product.js"></script>
+</body>
+</html>

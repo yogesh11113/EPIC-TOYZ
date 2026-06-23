@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms & Conditions | Epic Toyz</title>
+  <meta name="description" content="Epic Toyz Terms and Conditions — understand the rules, policies, and agreements that govern your use of India's premier RC car store.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <style>
+    /* ── Page Hero ── */
+    .page-hero {
+      position: relative;
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0D0E1A 0%, #1D3557 50%, #0D0E1A 100%);
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(230,57,70,0.15) 0%, transparent 70%);
+    }
+    .page-hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(69,123,157,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(69,123,157,0.08) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .page-hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 2rem 1rem;
+    }
+    .page-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(230,57,70,0.15);
+      border: 1px solid rgba(230,57,70,0.35);
+      color: #E63946;
+      padding: 0.4rem 1.2rem;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+    .page-hero h1 {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.8rem;
+    }
+    .page-hero p { font-size: 1rem; color: #ADB5BD; }
+    .page-hero .updated {
+      display: inline-block;
+      margin-top: 0.8rem;
+      font-size: 0.82rem;
+      color: #5a6070;
+      background: rgba(255,255,255,0.05);
+      padding: 0.3rem 0.8rem;
+      border-radius: 4px;
+    }
+
+    /* ── Layout ── */
+    .legal-section { padding: 60px 0 80px; background: #0D0E1A; }
+
+    /* ── ToC Sidebar Layout ── */
+    .legal-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 3rem;
+      align-items: flex-start;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .legal-toc {
+      position: sticky;
+      top: 90px;
+      background: #12151F;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+    .legal-toc h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #ADB5BD;
+      margin-bottom: 1rem;
+    }
+    .legal-toc ul { list-style: none; padding: 0; margin: 0; }
+    .legal-toc ul li { margin-bottom: 0.4rem; }
+    .legal-toc ul li a {
+      display: block;
+      font-size: 0.83rem;
+      color: #ADB5BD;
+      text-decoration: none;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      line-height: 1.4;
+    }
+    .legal-toc ul li a:hover {
+      color: #E63946;
+      background: rgba(230,57,70,0.08);
+    }
+
+    /* ── Doc Content ── */
+    .legal-doc {
+      background: #12151F;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 20px;
+      padding: 2.5rem;
+    }
+    .legal-section-block {
+      margin-bottom: 2.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(69,123,157,0.1);
+    }
+    .legal-section-block:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px; height: 30px;
+      background: rgba(230,57,70,0.12);
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #E63946;
+      margin-right: 0.7rem;
+      flex-shrink: 0;
+    }
+    .legal-section-block h2 {
+      display: flex;
+      align-items: center;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 1.2rem;
+    }
+    .legal-section-block p {
+      color: #ADB5BD;
+      font-size: 0.95rem;
+      line-height: 1.85;
+      margin-bottom: 1rem;
+    }
+    .legal-section-block p:last-child { margin-bottom: 0; }
+    .legal-section-block ul {
+      list-style: none;
+      padding: 0;
+      margin: 0.8rem 0;
+    }
+    .legal-section-block ul li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      color: #ADB5BD;
+      font-size: 0.93rem;
+      line-height: 1.7;
+      margin-bottom: 0.6rem;
+    }
+    .legal-section-block ul li::before {
+      content: '›';
+      color: #E63946;
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      line-height: 1.5;
+    }
+    .legal-section-block strong { color: #fff; font-weight: 600; }
+    .legal-section-block a { color: #E63946; text-decoration: none; }
+    .legal-section-block a:hover { text-decoration: underline; }
+    .info-box {
+      background: rgba(69,123,157,0.08);
+      border: 1px solid rgba(69,123,157,0.2);
+      border-left: 3px solid #457B9D;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+      color: #ADB5BD;
+      line-height: 1.7;
+    }
+    .info-box strong { color: #fff; }
+    .warn-box {
+      background: rgba(230,57,70,0.06);
+      border: 1px solid rgba(230,57,70,0.2);
+      border-left: 3px solid #E63946;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+      color: #ADB5BD;
+      line-height: 1.7;
+    }
+    .warn-box strong { color: #E63946; }
+    .contact-highlight {
+      background: rgba(230,57,70,0.08);
+      border: 1px solid rgba(230,57,70,0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .contact-highlight .icon { font-size: 2rem; }
+    .contact-highlight .text h4 { color: #fff; font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .contact-highlight .text p { color: #ADB5BD; font-size: 0.87rem; margin: 0 0 0.2rem; }
+    .contact-highlight .text a { color: #E63946; }
+
+    /* ── Reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Responsive ── */
+    @media (max-width: 800px) {
+      .legal-layout { grid-template-columns: 1fr; }
+      .legal-toc { display: none; }
+      .legal-doc { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <!-- ── PAGE HERO ── -->
+  <section class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-content">
+      <div class="page-hero-badge">📋 Legal</div>
+      <h1>Terms & Conditions</h1>
+      <p>Please read these terms carefully before using Epic Toyz services.</p>
+      <span class="updated">Last Updated: January 2025</span>
+    </div>
+  </section>
+
+  <!-- ── LEGAL CONTENT ── -->
+  <section class="legal-section">
+    <div class="legal-layout">
+
+      <!-- Table of Contents -->
+      <aside class="legal-toc">
+        <h3>Contents</h3>
+        <ul>
+          <li><a href="#acceptance">1. Acceptance of Terms</a></li>
+          <li><a href="#products-pricing">2. Products & Pricing</a></li>
+          <li><a href="#orders-payment">3. Orders & Payment</a></li>
+          <li><a href="#shipping">4. Shipping & Delivery</a></li>
+          <li><a href="#returns">5. Returns & Refunds</a></li>
+          <li><a href="#warranty">6. Warranty</a></li>
+          <li><a href="#accounts">7. User Accounts</a></li>
+          <li><a href="#prohibited">8. Prohibited Activities</a></li>
+          <li><a href="#liability">9. Limitation of Liability</a></li>
+          <li><a href="#governing">10. Governing Law</a></li>
+          <li><a href="#contact-us">11. Contact</a></li>
+        </ul>
+      </aside>
+
+      <!-- Document -->
+      <div class="legal-doc reveal">
+        <div class="info-box" style="margin-bottom:2rem;">
+          <strong>Agreement to Terms.</strong> These Terms and Conditions ("Terms") constitute a legally binding agreement between you ("User", "Customer", or "you") and Epic Toyz ("Company", "we", "us", or "our"), governing your access to and use of the Epic Toyz website and services. By placing an order or using our website, you acknowledge that you have read, understood, and agree to be bound by these Terms.
+        </div>
+
+        <!-- 1 -->
+        <div class="legal-section-block" id="acceptance">
+          <h2><span class="section-num">1</span>Acceptance of Terms</h2>
+          <p>By accessing our website, placing an order via WhatsApp or our website, or otherwise engaging with Epic Toyz services, you confirm that:</p>
+          <ul>
+            <li>You are at least 18 years of age, or are accessing the site under the supervision of a parent or legal guardian</li>
+            <li>You have the legal capacity to enter into binding contracts under Indian law</li>
+            <li>You have read, understood, and agree to these Terms in their entirety</li>
+            <li>You accept our Privacy Policy, which is incorporated by reference into these Terms</li>
+          </ul>
+          <p>If you do not agree with any part of these Terms, you must discontinue use of our website and services immediately. Epic Toyz reserves the right to modify these Terms at any time, with changes effective upon posting to this page.</p>
+        </div>
+
+        <!-- 2 -->
+        <div class="legal-section-block" id="products-pricing">
+          <h2><span class="section-num">2</span>Products & Pricing</h2>
+          <p>Epic Toyz strives to provide accurate product descriptions and pricing. However, please note the following:</p>
+          <ul>
+            <li><strong>Product Descriptions:</strong> We make reasonable efforts to ensure all product descriptions, images, and specifications are accurate. However, we do not warrant that descriptions are error-free, complete, or current.</li>
+            <li><strong>Pricing:</strong> All prices are listed in Indian Rupees (INR) and are inclusive of applicable taxes unless stated otherwise. Prices are subject to change without prior notice.</li>
+            <li><strong>Price Errors:</strong> In the event of a pricing error on our website, we reserve the right to cancel the order and notify you. You will receive a full refund if payment was already made.</li>
+            <li><strong>Stock Availability:</strong> Product availability is subject to stock levels. We reserve the right to limit quantities or discontinue products at any time.</li>
+            <li><strong>Images:</strong> Product images are for illustrative purposes. Actual products may vary slightly in color or appearance due to monitor display settings and manufacturing variations.</li>
+          </ul>
+        </div>
+
+        <!-- 3 -->
+        <div class="legal-section-block" id="orders-payment">
+          <h2><span class="section-num">3</span>Orders & Payment</h2>
+          <p>When you place an order with Epic Toyz (via website or WhatsApp), the following terms apply:</p>
+          <ul>
+            <li><strong>Order Confirmation:</strong> An order is considered confirmed only after we send you a written confirmation via WhatsApp or email. We reserve the right to accept or decline any order at our discretion.</li>
+            <li><strong>Payment Methods:</strong> We accept UPI (Google Pay, PhonePe, Paytm, BHIM), NEFT/IMPS bank transfer, and Cash on Delivery (where available). All payments must be made in Indian Rupees.</li>
+            <li><strong>Payment Timing:</strong> For prepaid orders, payment must be completed within 24 hours of order confirmation. Orders not paid within this window may be cancelled automatically.</li>
+            <li><strong>UPI ID:</strong> Our official UPI ID is <strong>yogesh2007.gv@oksbi</strong>. Please verify this before making payment. We are not responsible for payments made to incorrect UPI IDs.</li>
+            <li><strong>COD Terms:</strong> Cash on Delivery is available for eligible pin codes and orders up to ₹15,000. A COD handling fee may apply. Repeated COD order refusals may result in COD privilege suspension.</li>
+            <li><strong>Payment Security:</strong> Epic Toyz will never ask for your OTP, PIN, or bank password. Report any suspicious requests to us immediately.</li>
+          </ul>
+        </div>
+
+        <!-- 4 -->
+        <div class="legal-section-block" id="shipping">
+          <h2><span class="section-num">4</span>Shipping & Delivery</h2>
+          <p>Epic Toyz ships products across India via trusted courier partners.</p>
+          <ul>
+            <li><strong>Dispatch Time:</strong> Orders are typically dispatched within 24 business hours of payment confirmation, excluding Sundays and public holidays.</li>
+            <li><strong>Delivery Timeline:</strong> Estimated delivery is 2-7 business days depending on your location. These are estimates and not guaranteed timelines.</li>
+            <li><strong>Shipping Charges:</strong> A flat shipping/delivery fee of ₹50 applies to all orders across India.</li>
+            <li><strong>Tracking:</strong> A shipment tracking number will be shared via WhatsApp once your order is dispatched.</li>
+            <li><strong>Risk of Loss:</strong> Risk of loss or damage transfers to you upon delivery to the shipping carrier. However, we will assist with claims for transit damage if reported within 48 hours of delivery.</li>
+            <li><strong>Delivery Address:</strong> You are responsible for providing a complete and accurate delivery address. Epic Toyz is not liable for non-delivery or delays due to incorrect address information.</li>
+            <li><strong>Non-Delivery:</strong> If a shipment is returned to us due to non-availability of the recipient or incorrect address, re-shipping charges will apply.</li>
+          </ul>
+          <div class="warn-box">
+            <strong>Important:</strong> Please photograph and video-record your parcel before opening if you suspect damage. This documentation is required for transit damage claims.
+          </div>
+        </div>
+
+        <!-- 5 -->
+        <div class="legal-section-block" id="returns">
+          <h2><span class="section-num">5</span>Returns & Refunds</h2>
+          <p>We want you to be completely satisfied with your purchase. Our return and refund policy is as follows:</p>
+          <ul>
+            <li><strong>Return Window:</strong> Returns are accepted within 7 days of delivery for eligible products.</li>
+            <li><strong>Eligible Returns:</strong> Unopened products in original packaging, products with manufacturing defects, wrong items delivered, or products damaged in transit.</li>
+            <li><strong>Ineligible Returns:</strong> Products damaged by the user (crash damage, water damage outside rated IP rating, improper use), products without original packaging, and products returned after the 7-day window.</li>
+            <li><strong>Return Process:</strong> Contact us via WhatsApp (+91 63837 93890) or email within the return window with proof of purchase and reason for return.</li>
+            <li><strong>Refund Method:</strong> Approved refunds are processed within 5-7 business days via the original payment method (UPI/bank transfer). COD refunds are issued via bank transfer.</li>
+            <li><strong>Return Shipping:</strong> For defective or wrong products, return shipping costs are borne by Epic Toyz. For change-of-mind returns, return shipping is at the customer's expense.</li>
+          </ul>
+        </div>
+
+        <!-- 6 -->
+        <div class="legal-section-block" id="warranty">
+          <h2><span class="section-num">6</span>Warranty</h2>
+          <p>Products sold by Epic Toyz are covered by the manufacturer's warranty as applicable. The following warranty terms apply:</p>
+          <ul>
+            <li><strong>Manufacturer Warranty:</strong> Most RC cars come with 3-6 months manufacturer warranty against manufacturing defects. Specific warranty terms vary by brand and model.</li>
+            <li><strong>Warranty Coverage:</strong> Covers manufacturing defects in materials and workmanship under normal use conditions.</li>
+            <li><strong>Warranty Exclusions:</strong> Normal wear and tear, crash damage, water damage (for non-waterproof models), damage from improper use or modification, and damage from running beyond rated specifications.</li>
+            <li><strong>Warranty Claims:</strong> Contact us with proof of purchase and description of the defect. We will coordinate with the manufacturer for assessment and resolution.</li>
+            <li><strong>No Extended Warranty:</strong> Epic Toyz does not currently offer extended warranty plans beyond the manufacturer's warranty period.</li>
+          </ul>
+          <div class="info-box">
+            Epic Toyz acts as an intermediary for warranty claims with manufacturers. We will make reasonable efforts to facilitate claims on your behalf, but ultimate warranty decisions rest with the manufacturer.
+          </div>
+        </div>
+
+        <!-- 7 -->
+        <div class="legal-section-block" id="accounts">
+          <h2><span class="section-num">7</span>User Accounts</h2>
+          <p>If you create an account on our website, you agree to the following:</p>
+          <ul>
+            <li>You are responsible for maintaining the confidentiality of your account credentials.</li>
+            <li>You are responsible for all activities that occur under your account.</li>
+            <li>You must notify us immediately of any unauthorized use of your account.</li>
+            <li>You must provide accurate, current, and complete account information.</li>
+            <li>You may not create accounts using false identities or for the purpose of collecting bulk pricing or benefits not intended for individual customers.</li>
+            <li>Epic Toyz reserves the right to suspend or terminate accounts that violate these Terms.</li>
+          </ul>
+        </div>
+
+        <!-- 8 -->
+        <div class="legal-section-block" id="prohibited">
+          <h2><span class="section-num">8</span>Prohibited Activities</h2>
+          <p>When using Epic Toyz services, you agree NOT to:</p>
+          <ul>
+            <li>Use our services for any unlawful purpose or in violation of applicable Indian laws</li>
+            <li>Attempt to gain unauthorized access to our systems, databases, or other accounts</li>
+            <li>Engage in fraudulent activity, including providing false information or initiating fraudulent chargebacks</li>
+            <li>Scrape, copy, or redistribute our product data, pricing, or content without written permission</li>
+            <li>Use our platform to transmit spam, malware, or other harmful content</li>
+            <li>Impersonate Epic Toyz, our staff, or other customers</li>
+            <li>Resell Epic Toyz products in bulk without prior written authorization as an authorized reseller</li>
+            <li>Post false reviews or engage in any activity intended to manipulate our reputation</li>
+          </ul>
+          <p>Violation of these prohibited activities may result in immediate termination of your account and, where applicable, legal action.</p>
+        </div>
+
+        <!-- 9 -->
+        <div class="legal-section-block" id="liability">
+          <h2><span class="section-num">9</span>Limitation of Liability</h2>
+          <p>To the fullest extent permitted by Indian law, Epic Toyz and its owners, employees, and agents shall not be liable for:</p>
+          <ul>
+            <li>Any indirect, incidental, special, consequential, or punitive damages arising from your use of our services</li>
+            <li>Loss of profits, data, or business opportunities resulting from any purchase or use of our products</li>
+            <li>Personal injury or property damage resulting from the use or misuse of RC products purchased from us</li>
+            <li>Delays, failures, or errors in product delivery caused by third-party shipping carriers</li>
+            <li>Temporary unavailability of our website or services due to technical issues</li>
+          </ul>
+          <p>Our maximum liability to you for any claim arising from a transaction shall not exceed the total amount paid by you for the specific product giving rise to the claim.</p>
+          <div class="warn-box">
+            <strong>RC Car Safety Notice:</strong> RC cars and vehicles can reach high speeds and may cause injury or property damage if operated irresponsibly. Always operate RC vehicles in safe, open areas away from people, animals, and traffic. Epic Toyz is not liable for accidents or damages resulting from unsafe use of products sold.
+          </div>
+        </div>
+
+        <!-- 10 -->
+        <div class="legal-section-block" id="governing">
+          <h2><span class="section-num">10</span>Governing Law & Dispute Resolution</h2>
+          <p>These Terms and Conditions shall be governed by and construed in accordance with the laws of India, specifically:</p>
+          <ul>
+            <li>The Indian Contract Act, 1872</li>
+            <li>The Consumer Protection Act, 2019</li>
+            <li>The Information Technology Act, 2000 and its amendments</li>
+            <li>The Sale of Goods Act, 1930</li>
+          </ul>
+          <p>Any disputes arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts located in Tamil Nadu, India.</p>
+          <p>Before initiating formal legal proceedings, we encourage all parties to attempt resolution through direct negotiation. Contact us at <a href="mailto:epictoyz.in@gmail.com">epictoyz.in@gmail.com</a> to raise a dispute, and we will respond within 5 business days.</p>
+        </div>
+
+        <!-- 11 -->
+        <div class="legal-section-block" id="contact-us">
+          <h2><span class="section-num">11</span>Contact Us</h2>
+          <p>If you have any questions, concerns, or need clarification about these Terms and Conditions, please contact us:</p>
+          <div class="contact-highlight">
+            <div class="icon">📋</div>
+            <div class="text">
+              <h4>Epic Toyz — Legal & Support Team</h4>
+              <p>Email: <a href="mailto:epictoyz.in@gmail.com">epictoyz.in@gmail.com</a></p>
+              <p>WhatsApp: <a href="https://wa.me/916383793890" target="_blank" rel="noopener">+91 63837 93890</a></p>
+              <p>Business Hours: Monday – Saturday, 9 AM – 8 PM IST</p>
+            </div>
+          </div>
+          <p style="margin-top:1.5rem;">These Terms constitute the entire agreement between you and Epic Toyz regarding your use of our services and supersede all prior agreements. If any provision of these Terms is found to be unenforceable, the remaining provisions shall continue in full force and effect.</p>
+          <p>By continuing to use Epic Toyz, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions. Thank you for being a valued customer of Epic Toyz — India's Premier RC Car Store.</p>
+        </div>
+
+      </div><!-- /legal-doc -->
+    </div><!-- /legal-layout -->
+  </section>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/store.js"></script>
+  <script src="../js/ui.js"></script>
+  <script>
+    // Scroll reveal
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.05 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // Smooth scroll for ToC links
+    document.querySelectorAll('.legal-toc a[href^="#"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

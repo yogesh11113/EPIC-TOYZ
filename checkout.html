@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | Epic Toyz</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    /* ===== CHECKOUT PAGE STYLES ===== */
+    .checkout-page {
+      min-height: 100vh;
+      background: var(--dark-bg, #0D0E1A);
+      padding-bottom: 80px;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb-bar {
+      background: var(--surface, #1A1E2E);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 12px 0;
+    }
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted, #ADB5BD);
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .breadcrumb a { color: var(--text-muted,#ADB5BD); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--primary-red,#E63946); }
+    .breadcrumb .sep { opacity: 0.4; }
+    .breadcrumb .current { color: #fff; font-weight: 500; }
+
+    /* Page header */
+    .checkout-header {
+      max-width: 1100px;
+      margin: 36px auto 24px;
+      padding: 0 24px;
+    }
+    .checkout-header h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+
+    /* Progress Steps */
+    .steps-progress {
+      max-width: 1100px;
+      margin: 0 auto 36px;
+      padding: 0 24px;
+    }
+    .steps-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      position: relative;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+    .step-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: rgba(255,255,255,0.1);
+      z-index: -1;
+      transition: background 0.4s;
+    }
+    .step-item.completed:not(:last-child)::after {
+      background: var(--primary-red, #E63946);
+    }
+    .step-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #ADB5BD;
+      transition: all 0.3s;
+    }
+    .step-item.active .step-circle {
+      background: var(--primary-red, #E63946);
+      border-color: var(--primary-red, #E63946);
+      color: #fff;
+      box-shadow: 0 0 0 4px rgba(230,57,70,0.2);
+    }
+    .step-item.completed .step-circle {
+      background: #2ecc71;
+      border-color: #2ecc71;
+      color: #fff;
+    }
+    .step-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #ADB5BD;
+      margin-top: 8px;
+      text-align: center;
+      transition: color 0.3s;
+    }
+    .step-item.active .step-label { color: #fff; }
+    .step-item.completed .step-label { color: #2ecc71; }
+
+    /* Layout */
+    .checkout-layout {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    /* ===== CHECKOUT STEPS ===== */
+    .checkout-steps-container {
+      position: relative;
+    }
+    .checkout-step {
+      display: none;
+      background: var(--card-bg, #12151F);
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid rgba(255,255,255,0.07);
+      animation: fadeInUp 0.35s ease both;
+    }
+    .checkout-step.active { display: block; }
+    .checkout-step h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .checkout-step h2 svg { color: var(--primary-red, #E63946); }
+
+    /* ===== STEP 1: LOGIN / REGISTER ===== */
+    .auth-tabs {
+      display: flex;
+      gap: 0;
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      background: none;
+      border: none;
+      color: #ADB5BD;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .auth-tab.active {
+      background: var(--primary-red, #E63946);
+      color: #fff;
+    }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #ADB5BD;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 7px;
+    }
+    .form-group label .required { color: var(--primary-red,#E63946); margin-left:2px; }
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.2s, background 0.2s;
+      box-sizing: border-box;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-red, #E63946);
+      background: rgba(255,255,255,0.07);
+    }
+    .form-control::placeholder { color: rgba(255,255,255,0.25); }
+    .form-control.error { border-color: #e74c3c; }
+    .field-error {
+      font-size: 0.78rem;
+      color: #e74c3c;
+      margin-top: 4px;
+      display: none;
+    }
+    .field-error.visible { display: block; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    select.form-control {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ADB5BD' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+    select.form-control option { background: #12151F; color: #fff; }
+
+    /* Guest divider */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+    .auth-divider span { color: #ADB5BD; font-size: 0.82rem; white-space: nowrap; }
+
+    .btn-guest {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: #ADB5BD;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      font-family: inherit;
+    }
+    .btn-guest:hover { border-color: rgba(255,255,255,0.35); color: #fff; background: rgba(255,255,255,0.04); }
+
+    .social-proof {
+      margin-top: 20px;
+      padding: 14px;
+      background: rgba(69,123,157,0.1);
+      border: 1px solid rgba(69,123,157,0.2);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: #ADB5BD;
+      text-align: center;
+    }
+    .social-proof strong { color: #457B9D; }
+
+    /* ===== DELIVERY OPTIONS ===== */
+    .delivery-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .delivery-option {
+      position: relative;
+      cursor: pointer;
+    }
+    .delivery-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .delivery-option-label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .delivery-option input:checked + .delivery-option-label {
+      border-color: var(--primary-red, #E63946);
+      background: rgba(230,57,70,0.06);
+    }
+    .delivery-option-label .del-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .delivery-option-label .del-time {
+      font-size: 0.78rem;
+      color: #ADB5BD;
+    }
+    .delivery-option-label .del-price {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #2ecc71;
+      margin-top: 4px;
+    }
+
+    /* ===== PAYMENT OPTIONS ===== */
+    .payment-methods {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .payment-method {
+      position: relative;
+    }
+    .payment-method input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .payment-method-label {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.04);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .payment-method input:checked + .payment-method-label {
+      border-color: var(--primary-red, #E63946);
+      background: rgba(230,57,70,0.06);
+    }
+    .payment-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .payment-icon.whatsapp { background: rgba(37,211,102,0.15); }
+    .payment-icon.upi { background: rgba(69,123,157,0.15); }
+    .payment-icon.cod { background: rgba(255,215,0,0.12); }
+    .payment-method-info .pay-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .payment-method-info .pay-desc {
+      font-size: 0.78rem;
+      color: #ADB5BD;
+      margin-top: 2px;
+    }
+
+    /* Payment detail panels */
+    .payment-details-panel {
+      display: none;
+      margin-top: 16px;
+      padding: 18px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.07);
+      animation: fadeInUp 0.25s ease;
+    }
+    .payment-details-panel.visible { display: block; }
+
+    .upi-id-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+    .upi-id {
+      font-family: monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+    .copy-btn {
+      background: rgba(69,123,157,0.2);
+      border: 1px solid rgba(69,123,157,0.3);
+      color: #457B9D;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-family: inherit;
+    }
+    .copy-btn:hover { background: rgba(69,123,157,0.35); }
+
+    .qr-placeholder {
+      width: 140px;
+      height: 140px;
+      background: #fff;
+      border-radius: 12px;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: #333;
+      text-align: center;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    .upi-steps {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .upi-steps li {
+      font-size: 0.82rem;
+      color: #ADB5BD;
+      padding: 4px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .upi-steps li::before {
+      content: attr(data-step);
+      background: var(--primary-red,#E63946);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Order Review Table */
+    .order-review-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .order-review-table thead th {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #ADB5BD;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .order-review-table thead th:last-child { text-align: right; }
+    .order-review-table tbody td {
+      padding: 12px 10px;
+      font-size: 0.88rem;
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      vertical-align: middle;
+    }
+    .order-review-table tbody td:last-child { text-align: right; font-weight: 600; }
+    .review-item-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      object-fit: cover;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    /* Buttons */
+    .btn-primary-full {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #E63946, #c0392b);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary-full:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(230,57,70,0.4);
+    }
+    .btn-primary-full:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .btn-back {
+      background: none;
+      border: none;
+      color: #ADB5BD;
+      font-size: 0.88rem;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 20px;
+      transition: color 0.2s;
+      font-family: inherit;
+    }
+    .btn-back:hover { color: #fff; }
+
+    /* ===== ORDER SIDEBAR ===== */
+    .order-sidebar {
+      position: sticky;
+      top: 100px;
+    }
+    .order-sidebar-card {
+      background: var(--card-bg, #12151F);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .order-sidebar-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-items { margin-bottom: 16px; }
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .sidebar-item:last-child { border-bottom: none; }
+    .sidebar-item-img {
+      width: 46px;
+      height: 46px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: var(--surface,#1A1E2E);
+      flex-shrink: 0;
+    }
+    .sidebar-item-info { flex: 1; min-width: 0; }
+    .sidebar-item-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sidebar-item-qty { font-size: 0.75rem; color: #ADB5BD; }
+    .sidebar-item-price {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .sidebar-summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    .sidebar-summary-row .lbl { color: #ADB5BD; }
+    .sidebar-summary-row .val { color: #fff; font-weight: 500; }
+    .sidebar-summary-row .free { color: #2ecc71; font-weight: 600; }
+    .sidebar-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: 8px;
+    }
+    .sidebar-total .lbl { font-size: 0.95rem; font-weight: 700; color: #fff; }
+    .sidebar-total .val { font-size: 1.3rem; font-weight: 800; color: #E63946; }
+
+    /* Success state */
+    .order-success {
+      text-align: center;
+      padding: 60px 40px;
+    }
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(46,204,113,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 2.5rem;
+    }
+    .order-success h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 10px;
+    }
+    .order-success p {
+      color: #ADB5BD;
+      font-size: 0.95rem;
+      margin: 0 0 28px;
+      line-height: 1.6;
+    }
+    .order-id-tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-family: monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #E63946;
+      margin-bottom: 24px;
+      letter-spacing: 0.06em;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Loading spinner */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .checkout-layout {
+        grid-template-columns: 1fr;
+      }
+      .order-sidebar { position: static; order: -1; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+    }
+    @media (max-width: 500px) {
+      .checkout-step { padding: 20px 16px; }
+      .checkout-header h1 { font-size: 1.5rem; }
+      .delivery-options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="checkout-page">
+  <div id="navbar-placeholder"></div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-bar">
+    <nav class="breadcrumb">
+      <a href="index.html">Home</a>
+      <span class="sep">›</span>
+      <a href="cart.html">Cart</a>
+      <span class="sep">›</span>
+      <span class="current">Checkout</span>
+    </nav>
+  </div>
+
+  <!-- Page Header -->
+  <div class="checkout-header">
+    <h1>Secure Checkout</h1>
+  </div>
+
+  <!-- Progress Steps -->
+  <div class="steps-progress">
+    <div class="steps-bar">
+      <div class="step-item active" id="step-indicator-1">
+        <div class="step-circle" id="step-circle-1">1</div>
+        <span class="step-label">Account</span>
+      </div>
+      <div class="step-item" id="step-indicator-2">
+        <div class="step-circle" id="step-circle-2">2</div>
+        <span class="step-label">Delivery</span>
+      </div>
+      <div class="step-item" id="step-indicator-3">
+        <div class="step-circle" id="step-circle-3">3</div>
+        <span class="step-label">Payment</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Layout -->
+  <div class="checkout-layout">
+    <!-- Left: Steps -->
+    <div class="checkout-steps-container">
+
+      <!-- STEP 1: Account -->
+      <div class="checkout-step active" id="checkout-step-1">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Account Details
+        </h2>
+
+        <div class="auth-tabs">
+          <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+          <button class="auth-tab" onclick="switchAuthTab('register')">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <div class="auth-form active" id="login-form">
+          <div class="form-group">
+            <label>Email Address <span class="required">*</span></label>
+            <input type="email" class="form-control" id="login-email" placeholder="your@email.com" autocomplete="email">
+            <div class="field-error" id="login-email-error">Please enter a valid email</div>
+          </div>
+          <div class="form-group">
+            <label>Password <span class="required">*</span></label>
+            <input type="password" class="form-control" id="login-password" placeholder="Your password" autocomplete="current-password">
+            <div class="field-error" id="login-password-error">Password is required</div>
+          </div>
+          <div id="login-error-msg" style="display:none; background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.25); border-radius:8px; padding:12px; font-size:0.85rem; color:#e74c3c; margin-bottom:16px;"></div>
+          <button class="btn-primary-full" onclick="handleLogin()" id="btn-login">
+            Login &amp; Continue
+          </button>
+        </div>
+
+        <!-- Register Form -->
+        <div class="auth-form" id="register-form">
+          <div class="form-group">
+            <label>Full Name <span class="required">*</span></label>
+            <input type="text" class="form-control" id="reg-name" placeholder="Your full name" autocomplete="name">
+            <div class="field-error" id="reg-name-error">Full name is required</div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email <span class="required">*</span></label>
+              <input type="email" class="form-control" id="reg-email" placeholder="your@email.com" autocomplete="email">
+              <div class="field-error" id="reg-email-error">Valid email required</div>
+            </div>
+            <div class="form-group">
+              <label>Phone <span class="required">*</span></label>
+              <input type="tel" class="form-control" id="reg-phone" placeholder="10-digit number" autocomplete="tel" maxlength="10">
+              <div class="field-error" id="reg-phone-error">Valid phone required</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Password <span class="required">*</span></label>
+              <input type="password" class="form-control" id="reg-password" placeholder="Min 6 characters" autocomplete="new-password">
+              <div class="field-error" id="reg-password-error">Min 6 characters required</div>
+            </div>
+            <div class="form-group">
+              <label>Confirm Password <span class="required">*</span></label>
+              <input type="password" class="form-control" id="reg-confirm" placeholder="Re-enter password" autocomplete="new-password">
+              <div class="field-error" id="reg-confirm-error">Passwords do not match</div>
+            </div>
+          </div>
+          <div id="reg-error-msg" style="display:none; background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.25); border-radius:8px; padding:12px; font-size:0.85rem; color:#e74c3c; margin-bottom:16px;"></div>
+          <button class="btn-primary-full" onclick="handleRegister()" id="btn-register">
+            Create Account &amp; Continue
+          </button>
+        </div>
+
+        <!-- Guest option -->
+        <div class="auth-divider"><span>or</span></div>
+        <div class="form-group">
+          <label>Continue as Guest</label>
+          <input type="text" class="form-control" id="guest-name" placeholder="Your full name" autocomplete="name">
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <input type="email" class="form-control" id="guest-email" placeholder="Email address" autocomplete="email">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <input type="tel" class="form-control" id="guest-phone" placeholder="Phone number" autocomplete="tel" maxlength="10">
+          </div>
+        </div>
+        <button class="btn-guest" onclick="continueAsGuest()">Continue as Guest →</button>
+
+        <div class="social-proof">
+          🔒 <strong>Trusted by 2,000+ RC enthusiasts</strong> across India.<br>Your data is encrypted and secure.
+        </div>
+      </div>
+
+      <!-- STEP 2: Delivery -->
+      <div class="checkout-step" id="checkout-step-2">
+        <button class="btn-back" onclick="showStep(1)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Delivery Details
+        </h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name <span class="required">*</span></label>
+            <input type="text" class="form-control" id="d-name" placeholder="Recipient name" autocomplete="name">
+            <div class="field-error" id="d-name-error">Name is required</div>
+          </div>
+          <div class="form-group">
+            <label>Phone Number <span class="required">*</span></label>
+            <input type="tel" class="form-control" id="d-phone" placeholder="10-digit number" autocomplete="tel" maxlength="10">
+            <div class="field-error" id="d-phone-error">Valid phone required</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address <span class="required">*</span></label>
+          <input type="email" class="form-control" id="d-email" placeholder="For order updates" autocomplete="email">
+          <div class="field-error" id="d-email-error">Valid email required</div>
+        </div>
+        <div class="form-group">
+          <label>Address Line 1 <span class="required">*</span></label>
+          <input type="text" class="form-control" id="d-addr1" placeholder="House/Flat number, Street name" autocomplete="address-line1">
+          <div class="field-error" id="d-addr1-error">Address is required</div>
+        </div>
+        <div class="form-group">
+          <label>Address Line 2</label>
+          <input type="text" class="form-control" id="d-addr2" placeholder="Landmark, Area (optional)" autocomplete="address-line2">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>City <span class="required">*</span></label>
+            <input type="text" class="form-control" id="d-city" placeholder="City" autocomplete="address-level2">
+            <div class="field-error" id="d-city-error">City is required</div>
+          </div>
+          <div class="form-group">
+            <label>State <span class="required">*</span></label>
+            <select class="form-control" id="d-state" autocomplete="address-level1">
+              <option value="">Select State</option>
+              <option>Andhra Pradesh</option><option>Arunachal Pradesh</option><option>Assam</option>
+              <option>Bihar</option><option>Chhattisgarh</option><option>Goa</option>
+              <option>Gujarat</option><option>Haryana</option><option>Himachal Pradesh</option>
+              <option>Jharkhand</option><option>Karnataka</option><option>Kerala</option>
+              <option>Madhya Pradesh</option><option>Maharashtra</option><option>Manipur</option>
+              <option>Meghalaya</option><option>Mizoram</option><option>Nagaland</option>
+              <option>Odisha</option><option>Punjab</option><option>Rajasthan</option>
+              <option>Sikkim</option><option>Tamil Nadu</option><option>Telangana</option>
+              <option>Tripura</option><option>Uttar Pradesh</option><option>Uttarakhand</option>
+              <option>West Bengal</option><option>Delhi</option><option>Jammu &amp; Kashmir</option>
+              <option>Ladakh</option><option>Puducherry</option><option>Chandigarh</option>
+            </select>
+            <div class="field-error" id="d-state-error">State is required</div>
+          </div>
+        </div>
+        <div class="form-group" style="max-width:200px;">
+          <label>Pincode <span class="required">*</span></label>
+          <input type="text" class="form-control" id="d-pincode" placeholder="6-digit pincode" maxlength="6" autocomplete="postal-code">
+          <div class="field-error" id="d-pincode-error">Valid 6-digit pincode required</div>
+        </div>
+
+        <!-- Delivery Options -->
+        <label style="display:block; font-size:0.82rem; font-weight:600; color:#ADB5BD; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:12px;">Delivery Method</label>
+        <div class="delivery-options">
+          <label class="delivery-option">
+            <input type="radio" name="delivery" value="standard" checked>
+            <div class="delivery-option-label">
+              <span class="del-name">🚚 Standard</span>
+              <span class="del-time">5–7 business days</span>
+              <span class="del-price" id="standard-price-label" style="color: #2ecc71;">FREE</span>
+            </div>
+          </label>
+          <label class="delivery-option">
+            <input type="radio" name="delivery" value="express">
+            <div class="delivery-option-label">
+              <span class="del-name">⚡ Express</span>
+              <span class="del-time">2–3 business days</span>
+              <span class="del-price" style="color: #ADB5BD;">₹50</span>
+            </div>
+          </label>
+        </div>
+
+        <button class="btn-primary-full" onclick="handleDeliverySubmit()" id="btn-delivery">
+          Continue to Payment →
+        </button>
+      </div>
+
+      <!-- STEP 3: Payment & Review -->
+      <div class="checkout-step" id="checkout-step-3">
+        <button class="btn-back" onclick="showStep(2)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Payment &amp; Review
+        </h2>
+
+        <!-- Order Review -->
+        <div style="margin-bottom:24px;">
+          <h3 style="font-size:0.9rem; font-weight:700; color:#ADB5BD; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 14px;">Order Items</h3>
+          <table class="order-review-table" id="order-review-table">
+            <!-- Filled by JS -->
+          </table>
+        </div>
+
+        <!-- Payment Methods -->
+        <div style="margin-bottom:8px;">
+          <h3 style="font-size:0.9rem; font-weight:700; color:#ADB5BD; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 14px;">Payment Method</h3>
+          <div class="payment-methods">
+            <!-- WhatsApp Order -->
+            <div class="payment-method">
+              <input type="radio" name="payment" id="pay-whatsapp" value="whatsapp" checked onchange="showPaymentPanel('whatsapp')">
+              <label class="payment-method-label" for="pay-whatsapp">
+                <div class="payment-icon whatsapp">💬</div>
+                <div class="payment-method-info">
+                  <div class="pay-name">WhatsApp Order</div>
+                  <div class="pay-desc">Send order via WhatsApp — quick & easy!</div>
+                </div>
+              </label>
+            </div>
+            <div class="payment-details-panel visible" id="panel-whatsapp">
+              <p style="font-size:0.85rem; color:#ADB5BD; margin:0 0 12px;">Your order details will be sent to our WhatsApp. We'll confirm and process your order manually.</p>
+              <button onclick="generateWhatsAppOrder()" style="background:rgba(37,211,102,0.15); border:1px solid rgba(37,211,102,0.3); color:#25D366; padding:10px 18px; border-radius:8px; font-size:0.88rem; font-weight:700; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                Open WhatsApp Chat
+              </button>
+            </div>
+
+
+          </div>
+        </div>
+
+        <button class="btn-primary-full" onclick="placeOrder()" id="btn-place-order">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Place Order
+        </button>
+
+        <p style="text-align:center; font-size:0.78rem; color:#ADB5BD; margin-top:12px;">
+          🔒 Your order and payment information is secure
+        </p>
+      </div>
+
+      <!-- STEP 4: Success (hidden, shown after order placed) -->
+      <div class="checkout-step" id="checkout-step-success">
+        <div class="order-success">
+          <div class="success-icon">✓</div>
+          <h2>Order Placed!</h2>
+          <p>Thank you for your order! We've received your request and will process it soon.<br>You'll get updates on WhatsApp and Email.</p>
+          <div class="order-id-tag" id="success-order-id">ET-XXXXXXXX</div>
+          <br>
+          <a href="https://wa.me/916383793890" target="_blank" rel="noopener"
+             style="display:inline-flex; align-items:center; gap:8px; background:rgba(37,211,102,0.15); border:1px solid rgba(37,211,102,0.3); color:#25D366; padding:12px 24px; border-radius:10px; text-decoration:none; font-weight:700; font-size:0.9rem; margin-bottom:14px;">
+            💬 Track on WhatsApp
+          </a>
+          <br>
+          <a href="shop.html"
+             style="display:inline-block; color:#ADB5BD; text-decoration:none; font-size:0.88rem; margin-top:6px; transition:color 0.2s;"
+             onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='#ADB5BD'">
+            Continue Shopping →
+          </a>
+        </div>
+      </div>
+
+    </div><!-- end checkout-steps-container -->
+
+    <!-- Right: Order Sidebar -->
+    <aside class="order-sidebar">
+      <div class="order-sidebar-card">
+        <h3>Your Order</h3>
+        <div class="sidebar-items" id="sidebar-items">
+          <!-- Filled by JS -->
+        </div>
+        <div id="sidebar-summary">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Secure checkout badges -->
+      <div style="margin-top:16px; background:var(--card-bg,#12151F); border-radius:12px; padding:16px; border:1px solid rgba(255,255,255,0.07);">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px; font-size:0.8rem; color:#ADB5BD;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            SSL Secured Checkout
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; font-size:0.8rem; color:#ADB5BD;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            WhatsApp Support: 6383793890
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/checkout.js"></script>
+</body>
+</html>

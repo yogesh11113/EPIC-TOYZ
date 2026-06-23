@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ | Epic Toyz</title>
+  <meta name="description" content="Frequently asked questions about Epic Toyz — RC cars, ordering, shipping, returns, payment, and more. Get instant answers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <style>
+    /* ── Page Hero ── */
+    .page-hero {
+      position: relative;
+      min-height: 340px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0D0E1A 0%, #1D3557 50%, #0D0E1A 100%);
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(230,57,70,0.18) 0%, transparent 70%);
+    }
+    .page-hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(69,123,157,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(69,123,157,0.08) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .page-hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 2rem 1rem;
+    }
+    .page-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(230,57,70,0.15);
+      border: 1px solid rgba(230,57,70,0.35);
+      color: #E63946;
+      padding: 0.4rem 1.2rem;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+    .page-hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .page-hero h1 span { color: #E63946; }
+    .page-hero p { font-size: 1.1rem; color: #ADB5BD; max-width: 500px; margin: 0 auto; }
+
+    /* ── Search ── */
+    .faq-search-section {
+      background: #12151F;
+      padding: 2.5rem 0;
+      border-bottom: 1px solid rgba(69,123,157,0.12);
+    }
+    .faq-search-wrapper {
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .faq-search-wrapper input {
+      width: 100%;
+      background: #1A1E2E;
+      border: 1.5px solid rgba(69,123,157,0.25);
+      color: #fff;
+      font-size: 1rem;
+      padding: 1rem 1.2rem 1rem 3.2rem;
+      border-radius: 50px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
+    }
+    .faq-search-wrapper input::placeholder { color: #5a6070; }
+    .faq-search-wrapper input:focus {
+      border-color: #E63946;
+      box-shadow: 0 0 0 3px rgba(230,57,70,0.12);
+    }
+    .faq-search-wrapper .search-icon {
+      position: absolute;
+      left: 1.1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #ADB5BD;
+      pointer-events: none;
+    }
+    .search-clear {
+      position: absolute;
+      right: 1.1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #ADB5BD;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: none;
+      padding: 0;
+      line-height: 1;
+    }
+    .search-count {
+      text-align: center;
+      margin-top: 0.8rem;
+      font-size: 0.85rem;
+      color: #ADB5BD;
+      min-height: 1.2em;
+    }
+
+    /* ── Container ── */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* ── FAQ Section ── */
+    .faq-section { padding: 60px 0 80px; background: #0D0E1A; }
+
+    /* ── Tabs ── */
+    .faq-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .tab-btn {
+      background: #12151F;
+      border: 1.5px solid rgba(69,123,157,0.2);
+      color: #ADB5BD;
+      font-size: 0.87rem;
+      font-weight: 600;
+      padding: 0.55rem 1.3rem;
+      border-radius: 50px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+    }
+    .tab-btn:hover {
+      border-color: rgba(230,57,70,0.3);
+      color: #fff;
+    }
+    .tab-btn.active {
+      background: #E63946;
+      border-color: #E63946;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(230,57,70,0.3);
+    }
+
+    /* ── Accordion ── */
+    .faq-list { display: flex; flex-direction: column; gap: 0.8rem; }
+    .faq-item {
+      background: #12151F;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.3s ease;
+    }
+    .faq-item.hidden { display: none; }
+    .faq-item:hover { border-color: rgba(230,57,70,0.2); }
+    .faq-item.open {
+      border-color: rgba(230,57,70,0.3);
+      box-shadow: 0 4px 20px rgba(230,57,70,0.08);
+    }
+    .faq-question {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.3rem 1.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .faq-q-num {
+      width: 32px; height: 32px;
+      background: rgba(230,57,70,0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #E63946;
+      flex-shrink: 0;
+    }
+    .faq-item.open .faq-q-num { background: #E63946; color: #fff; }
+    .faq-q-text {
+      flex: 1;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.4;
+    }
+    .faq-category-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .cat-ordering { background: rgba(230,57,70,0.12); color: #E63946; }
+    .cat-shipping { background: rgba(69,123,157,0.15); color: #457B9D; }
+    .cat-products { background: rgba(255,215,0,0.1); color: #FFD700; }
+    .cat-returns { background: rgba(46,204,113,0.1); color: #2ecc71; }
+    .cat-payment { background: rgba(155,89,182,0.12); color: #9b59b6; }
+    .faq-icon {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+      color: #ADB5BD;
+      font-size: 0.85rem;
+    }
+    .faq-item.open .faq-icon {
+      background: #E63946;
+      border-color: #E63946;
+      color: #fff;
+      transform: rotate(45deg);
+    }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .faq-answer-inner {
+      padding: 0 1.5rem 1.5rem;
+      padding-left: calc(1.5rem + 32px + 1rem);
+    }
+    .faq-answer-inner p {
+      color: #ADB5BD;
+      font-size: 0.95rem;
+      line-height: 1.8;
+      margin-bottom: 0.8rem;
+    }
+    .faq-answer-inner p:last-child { margin-bottom: 0; }
+    .faq-answer-inner ul {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0;
+    }
+    .faq-answer-inner ul li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      color: #ADB5BD;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .faq-answer-inner ul li::before {
+      content: '→';
+      color: #E63946;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .faq-answer-inner .wa-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: #25D366;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    .faq-answer-inner .wa-link:hover { text-decoration: underline; }
+
+    /* No results */
+    .no-results {
+      text-align: center;
+      padding: 3rem 1rem;
+      display: none;
+    }
+    .no-results .icon { font-size: 3rem; margin-bottom: 1rem; }
+    .no-results h3 { color: #fff; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .no-results p { color: #ADB5BD; font-size: 0.9rem; }
+
+    /* ── Still Questions CTA ── */
+    .still-section {
+      background: linear-gradient(135deg, #1D3557 0%, #12151F 100%);
+      padding: 70px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .still-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(230,57,70,0.1), transparent 65%);
+    }
+    .still-section .content { position: relative; z-index: 1; }
+    .still-section .emoji { font-size: 3rem; margin-bottom: 1rem; display: block; }
+    .still-section h2 {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.8rem;
+    }
+    .still-section p { color: #ADB5BD; font-size: 1rem; max-width: 440px; margin: 0 auto 2rem; }
+    .btn-wa-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: #25D366;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.9rem 2.2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.3);
+    }
+    .btn-wa-cta:hover {
+      background: #1ebe5b;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(37,211,102,0.45);
+    }
+
+    /* ── Reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .faq-section { padding: 40px 0 60px; }
+      .faq-answer-inner { padding-left: 1.5rem; }
+      .faq-category-tag { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <!-- ── PAGE HERO ── -->
+  <section class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-content">
+      <div class="page-hero-badge">❓ Got Questions?</div>
+      <h1>Frequently Asked <span>Questions</span></h1>
+      <p>Everything you need to know about Epic Toyz — ordering, shipping, products, and more.</p>
+    </div>
+  </section>
+
+  <!-- ── SEARCH ── -->
+  <div class="faq-search-section">
+    <div style="max-width:900px;margin:0 auto;padding:0 1.5rem;">
+      <div class="faq-search-wrapper">
+        <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="faqSearch" placeholder="Search questions — e.g. 'delivery', 'return', 'payment'..." autocomplete="off">
+        <button class="search-clear" id="searchClear" title="Clear search">✕</button>
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+  </div>
+
+  <!-- ── MAIN FAQ ── -->
+  <section class="faq-section">
+    <div class="container">
+
+      <!-- Tabs -->
+      <div class="faq-tabs" id="faqTabs">
+        <button class="tab-btn active" data-cat="all">All FAQs</button>
+        <button class="tab-btn" data-cat="ordering">Ordering</button>
+        <button class="tab-btn" data-cat="shipping">Shipping</button>
+        <button class="tab-btn" data-cat="products">Products</button>
+        <button class="tab-btn" data-cat="payment">Payment</button>
+      </div>
+
+      <!-- FAQ List -->
+      <div class="faq-list reveal" id="faqList">
+
+        <!-- 1. Beginners -->
+        <div class="faq-item" data-cat="products" data-keywords="beginner suitable start first rc car recommend entry level">
+          <div class="faq-question">
+            <div class="faq-q-num">1</div>
+            <div class="faq-q-text">What RC cars are suitable for beginners?</div>
+            <span class="faq-category-tag cat-products">Products</span>
+            <div class="faq-icon">+</div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>For beginners, we recommend starting with a ready-to-run (RTR) RC car that comes fully assembled with everything you need in the box. Great starter options include:</p>
+              <ul>
+                <li><strong>1/18 scale crawlers</strong> — perfect for indoor/outdoor beginners, durable and easy to control</li>
+                <li><strong>1/10 scale touring cars</strong> — great for on-road driving, stable and fun at moderate speeds</li>
+                <li><strong>Brushed motor cars</strong> — simpler to maintain than brushless, ideal for first-timers</li>
+              </ul>
+              <p>We also offer a beginner consultation service on WhatsApp. Just tell us your budget, preferred terrain (dirt, tarmac, off-road), and age of the user — we'll recommend the perfect car for you!</p>
+              <a href="https://wa.me/916383793890?text=Hi!%20Can%20you%20help%20me%20pick%20an%20RC%20car%20for%20a%20beginner?" class="wa-link" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Get a Free Recommendation on WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. WhatsApp Ordering -->
+        <div class="faq-item" data-cat="ordering" data-keywords="whatsapp order how ordering process buy purchase">
+          <div class="faq-question">
+            <div class="faq-q-num">2</div>
+            <div class="faq-q-text">How does WhatsApp ordering work?</div>
+            <span class="faq-category-tag cat-ordering">Ordering</span>
+            <div class="faq-icon">+</div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Our WhatsApp ordering process is designed to be simple, transparent, and personal. Here's how it works:</p>
+              <ul>
+                <li>Message us at <strong>+91 63837 93890</strong> with the product you want or describe what you're looking for</li>
+                <li>We confirm stock availability and share product details, pricing, and photos/videos if needed</li>
+                <li>You choose your payment method (UPI, bank transfer, or COD where available)</li>
+                <li>After payment confirmation, we dispatch your order and share tracking details</li>
+                <li>We stay in touch throughout delivery and even after — for setup help or any issues</li>
+              </ul>
+              <p>The entire process typically takes just 10-15 minutes from first message to confirmed order!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Delivery Time -->
+        <div class="faq-item" data-cat="shipping" data-keywords="delivery time shipping days how long take arrive">
+          <div class="faq-question">
+            <div class="faq-q-num">3</div>
+            <div class="faq-q-text">What is the delivery time?</div>
+            <span class="faq-category-tag cat-shipping">Shipping</span>
+            <div class="faq-icon">+</div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Delivery times vary by location, but here's a general guide:</p>
+              <ul>
+                <li><strong>Metro cities</strong> (Mumbai, Delhi, Bangalore, Chennai, Hyderabad, Kolkata): 2-4 business days</li>
+                <li><strong>Tier-2 cities</strong>: 4-6 business days</li>
+                <li><strong>Remote/rural areas</strong>: 6-10 business days</li>
+              </ul>
+              <p>All orders are dispatched within 24 hours of payment confirmation (excluding Sundays and public holidays). Once shipped, you'll receive a tracking number via WhatsApp so you can monitor your parcel in real-time.</p>
+              <p>We use trusted courier partners — Delhivery, BlueDart, and DTDC — to ensure safe and timely delivery of your RC car.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. COD -->
+        <div class="faq-item" data-cat="payment" data-keywords="cash on delivery cod payment method">
+          <div class="faq-question">
+            <div class="faq-q-num">4</div>
+            <div class="faq-q-text">Do you offer Cash on Delivery (COD)?</div>
+            <span class="faq-category-tag cat-payment">Payment</span>
+            <div class="faq-icon">+</div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Yes! We offer Cash on Delivery (COD) for most pin codes across India. However, COD is subject to availability based on your location and order value.</p>
+              <ul>
+                <li>COD is available for orders up to ₹15,000</li>
+                <li>A small COD handling fee of ₹50 may apply</li>
+                <li>COD availability is confirmed at the time of ordering via WhatsApp</li>
+              </ul>
+              <p>For larger orders or in areas where COD is not available, we accept UPI (Google Pay, PhonePe, Paytm), bank transfers (NEFT/IMPS), and all major debit/credit cards.</p>
+              <p>Our UPI ID is: <strong>yogesh2007.gv@oksbi</strong></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Spare Parts -->
+        <div class="faq-item" data-cat="products" data-keywords="spare parts accessories repair upgrade">
+          <div class="faq-question">
+            <div class="faq-q-num">5</div>
+            <div class="faq-q-text">Are spare parts available?</div>
+            <span class="faq-category-tag cat-products">Products</span>
+            <div class="faq-icon">+</div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Yes! We stock a wide range of spare parts and upgrades for popular RC car brands. Our parts inventory includes:</p>
+              <ul>
+                <li>Suspension arms, shock absorbers, and chassis components</li>
+                <li>Motors (brushed and brushless), ESCs, and servo motors</li>
+                <li>Tires, wheels, and body shells</li>
+                <li>Batteries (LiPo and NiMH) and chargers</li>
+                <li>Pinion gears, spur gears, and diffs</li>
+                <li>Bearings, screws, and hardware kits</li>
+              </ul>
+              <p>If we don't stock the specific part you need, we can often source it within 5-7 business days. WhatsApp us the part number or description and we'll help you find it.</p>
+              <a href="https://wa.me/916383793890?text=Hi!%20I%20need%20spare%20parts%20for%20my%20RC%20car." class="wa-link" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Inquire About Spare Parts
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Brushed vs Brushless -->
+        <div class="faq-item" data-cat="products" data-keywords="brushed brushless motor difference choose which better">
+          <div class="faq-question">
+            <div class="faq-q-num">6</div>
+            <div class="faq-q-text">How do I choose between brushed and brushless motors?</div>
+            <span class="faq-category-tag cat-products">Products</span>
+            <div class="faq-icon">+</div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>This is one of the most common questions we get. Here's a clear breakdown:</p>
+              <ul>
+                <li><strong>Brushed motors</strong> — More affordable, simpler to maintain, lower top speeds (20-40 km/h). Great for beginners, kids, and casual drivers. If your RC car wears out the brushes, they're cheap to replace.</li>
+                <li><strong>Brushless motors</strong> — Higher performance, faster speeds (50-100+ km/h), more efficient, longer lifespan. Ideal for serious hobbyists and racers. Costlier but worth it for performance enthusiasts.</li>
+              </ul>
+              <p><strong>Our recommendation:</strong> Start with brushed if you're new to the hobby or buying for a child. Upgrade to brushless once you've built experience and want more speed and performance.</p>
+              <p>Still not sure? Tell us your use case on WhatsApp and we'll recommend the perfect motor type for you!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. Shipping India -->
+        <div class="faq-item" data-cat="shipping" data-keywords="ship india all states nationwide pan india remote area">
+          <div class="faq-question">
+            <div class="faq-q-num">7</div>
+            <div class="faq-q-text">Do you ship across all of India?</div>
+            <span class="faq-category-tag cat-shipping">Shipping</span>
+            <div class="faq-icon">+</div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Yes! Epic Toyz ships to all 28 states and 8 union territories of India. Whether you're in a bustling metro or a small town, we'll get your RC car to you.</p>
+              <ul>
+                <li>Pan-India shipping coverage via Delhivery, BlueDart, and DTDC</li>
+                <li>Free standard and express shipping everywhere in India with no minimum purchase</li>
+                <li>Tracking is provided for every shipment</li>
+              </ul>
+              <p>For extremely remote or difficult-to-reach locations, additional delivery time may apply. In such cases, we'll always confirm before processing your order. Share your pin code on WhatsApp to check delivery estimates.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. UPI Payment -->
+        <div class="faq-item" data-cat="payment" data-keywords="upi payment safe secure gpay phonepe paytm">
+          <div class="faq-question">
+            <div class="faq-q-num">8</div>
+            <div class="faq-q-text">Is UPI payment safe for ordering?</div>
+            <span class="faq-category-tag cat-payment">Payment</span>
+            <div class="faq-icon">+</div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Absolutely! UPI is one of the most secure payment methods in India, regulated by the National Payments Corporation of India (NPCI) and the Reserve Bank of India (RBI).</p>
+              <p>Here are some tips to ensure a safe transaction:</p>
+              <ul>
+                <li>Always verify our UPI ID: <strong>yogesh2007.gv@oksbi</strong> before paying</li>
+                <li>We will NEVER ask for your OTP, PIN, or password</li>
+                <li>After payment, share the UPI transaction screenshot on WhatsApp for quick confirmation</li>
+                <li>We'll send an order confirmation and receipt within minutes</li>
+              </ul>
+              <p>We accept UPI payments via Google Pay, PhonePe, Paytm, BHIM, and any other UPI-enabled app. For larger orders, NEFT/IMPS bank transfers are also available.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. After Sales -->
+        <div class="faq-item" data-cat="ordering" data-keywords="after sales support contact help technical issue problem">
+          <div class="faq-question">
+            <div class="faq-q-num">9</div>
+            <div class="faq-q-text">How do I contact for after-sales support?</div>
+            <span class="faq-category-tag cat-ordering">Support</span>
+            <div class="faq-icon">+</div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>We're committed to supporting you even after your purchase. Our after-sales support includes:</p>
+              <ul>
+                <li>Setup and initial run guidance</li>
+                <li>Troubleshooting help for technical issues</li>
+                <li>Advice on upgrades, tuning, and maintenance</li>
+                <li>Spare parts sourcing</li>
+                <li>Warranty claim assistance</li>
+              </ul>
+              <p>You can reach us via:</p>
+              <ul>
+                <li><strong>WhatsApp:</strong> +91 63837 93890 (Fastest response)</li>
+                <li><strong>Email:</strong> epictoyz.in@gmail.com (For detailed documentation)</li>
+                <li><strong>Business Hours:</strong> Monday to Saturday, 9 AM – 8 PM IST</li>
+              </ul>
+              <a href="https://wa.me/916383793890?text=Hi!%20I%20need%20after-sales%20support%20for%20my%20Epic%20Toyz%20purchase." class="wa-link" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Get After-Sales Support on WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /faq-list -->
+
+      <!-- No results -->
+      <div class="no-results" id="noResults">
+        <div class="icon">🔍</div>
+        <h3>No results found</h3>
+        <p>Try different keywords or <a href="https://wa.me/916383793890" style="color:#E63946">ask us directly on WhatsApp</a>.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── STILL QUESTIONS ── -->
+  <section class="still-section">
+    <div class="container">
+      <div class="content reveal">
+        <span class="emoji">🤔</span>
+        <h2>Still Have Questions?</h2>
+        <p>Can't find what you're looking for? Our RC experts are available on WhatsApp to answer any question you might have!</p>
+        <a href="https://wa.me/916383793890?text=Hi!%20I%20have%20a%20question%20that%20wasn%27t%20answered%20in%20the%20FAQ." class="btn-wa-cta" target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Ask on WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/store.js"></script>
+  <script src="../js/ui.js"></script>
+  <script>
+    // Scroll reveal
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ── Accordion ──
+    document.querySelectorAll('.faq-question').forEach(q => {
+      q.addEventListener('click', () => {
+        const item = q.parentElement;
+        const isOpen = item.classList.contains('open');
+        // Close all
+        document.querySelectorAll('.faq-item.open').forEach(i => {
+          i.classList.remove('open');
+          i.querySelector('.faq-answer').style.maxHeight = '0';
+        });
+        if (!isOpen) {
+          item.classList.add('open');
+          const answer = item.querySelector('.faq-answer');
+          answer.style.maxHeight = answer.scrollHeight + 'px';
+        }
+      });
+    });
+
+    // ── Category Tabs ──
+    let activeCategory = 'all';
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeCategory = btn.getAttribute('data-cat');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterFAQs();
+      });
+    });
+
+    // ── Search ──
+    const searchInput = document.getElementById('faqSearch');
+    const searchClear = document.getElementById('searchClear');
+    const searchCount = document.getElementById('searchCount');
+
+    searchInput.addEventListener('input', () => {
+      searchClear.style.display = searchInput.value ? 'block' : 'none';
+      filterFAQs();
+    });
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      searchClear.style.display = 'none';
+      filterFAQs();
+      searchInput.focus();
+    });
+
+    function filterFAQs() {
+      const query = searchInput.value.toLowerCase().trim();
+      const items = document.querySelectorAll('.faq-item');
+      let visibleCount = 0;
+
+      items.forEach(item => {
+        const itemCat = item.getAttribute('data-cat');
+        const keywords = item.getAttribute('data-keywords') || '';
+        const qText = item.querySelector('.faq-q-text').textContent.toLowerCase();
+        const aText = item.querySelector('.faq-answer').textContent.toLowerCase();
+
+        const catMatch = activeCategory === 'all' || itemCat === activeCategory;
+        const searchMatch = !query || qText.includes(query) || aText.includes(query) || keywords.includes(query);
+
+        if (catMatch && searchMatch) {
+          item.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          item.classList.add('hidden');
+          // Close if hidden
+          item.classList.remove('open');
+          item.querySelector('.faq-answer').style.maxHeight = '0';
+        }
+      });
+
+      const noResults = document.getElementById('noResults');
+      noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+
+      if (query) {
+        searchCount.textContent = `${visibleCount} result${visibleCount !== 1 ? 's' : ''} found for "${searchInput.value}"`;
+      } else {
+        searchCount.textContent = '';
+      }
+    }
+  </script>
+</body>
+</html>

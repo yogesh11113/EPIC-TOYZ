@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us | Epic Toyz</title>
+  <meta name="description" content="Learn about Epic Toyz — India's premier RC car store. Founded by enthusiasts, we bring world-class RC cars to every corner of India with expert support.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <style>
+    /* ── Page Hero ── */
+    .page-hero {
+      position: relative;
+      min-height: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0D0E1A 0%, #1D3557 50%, #0D0E1A 100%);
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(230,57,70,0.18) 0%, transparent 70%);
+    }
+    .page-hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(69,123,157,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(69,123,157,0.08) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .page-hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 2rem 1rem;
+    }
+    .page-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(230,57,70,0.15);
+      border: 1px solid rgba(230,57,70,0.35);
+      color: #E63946;
+      padding: 0.4rem 1.2rem;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+    .page-hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .page-hero h1 span { color: #E63946; }
+    .page-hero p {
+      font-size: 1.15rem;
+      color: #ADB5BD;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    .hero-dots {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+    .hero-dots span {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(230,57,70,0.4);
+    }
+    .hero-dots span.active { background: #E63946; width: 24px; border-radius: 4px; }
+
+    /* ── Sections ── */
+    .about-section { padding: 80px 0; }
+    .about-section:nth-child(even) { background: #12151F; }
+
+    /* ── Story ── */
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    .story-text .section-label {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #E63946;
+      margin-bottom: 0.8rem;
+    }
+    .story-text h2 {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+    .story-text p {
+      color: #ADB5BD;
+      line-height: 1.8;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+    .story-highlights {
+      display: flex;
+      gap: 2rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    .story-highlight-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .story-highlight-item .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #E63946;
+      flex-shrink: 0;
+    }
+    .story-image-box {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .story-image-placeholder {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: linear-gradient(135deg, #1A1E2E, #1D3557);
+      border-radius: 20px;
+      border: 1px solid rgba(69,123,157,0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .story-image-placeholder::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 30%, rgba(230,57,70,0.12), transparent 60%);
+    }
+    .story-image-placeholder .img-icon {
+      font-size: 4rem;
+      position: relative;
+      z-index: 1;
+    }
+    .story-image-placeholder p {
+      color: #ADB5BD;
+      font-size: 0.9rem;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      margin: 0;
+    }
+    .story-image-badge {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 1.5rem;
+      background: rgba(13,14,26,0.9);
+      border: 1px solid rgba(230,57,70,0.3);
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .story-image-badge .badge-num {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #E63946;
+      line-height: 1;
+    }
+    .story-image-badge .badge-txt {
+      font-size: 0.78rem;
+      color: #ADB5BD;
+      line-height: 1.3;
+    }
+
+    /* ── Mission & Vision ── */
+    .mv-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    .mv-card {
+      background: #1A1E2E;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 20px;
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .mv-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(230,57,70,0.3);
+    }
+    .mv-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #E63946, #457B9D);
+    }
+    .mv-card .card-icon {
+      width: 60px; height: 60px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .mv-card.mission .card-icon { background: rgba(230,57,70,0.12); }
+    .mv-card.vision .card-icon { background: rgba(69,123,157,0.12); }
+    .mv-card h3 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    .mv-card p { color: #ADB5BD; line-height: 1.8; font-size: 0.97rem; }
+    .mv-card ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+    }
+    .mv-card ul li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      color: #ADB5BD;
+      font-size: 0.9rem;
+      margin-bottom: 0.6rem;
+    }
+    .mv-card ul li::before {
+      content: '→';
+      color: #E63946;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Why Different ── */
+    .diff-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+    .diff-card {
+      background: #1A1E2E;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .diff-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #E63946, transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .diff-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(230,57,70,0.25);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .diff-card:hover::after { opacity: 1; }
+    .diff-card .diff-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1.2rem;
+      display: block;
+    }
+    .diff-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.8rem;
+    }
+    .diff-card p { color: #ADB5BD; font-size: 0.87rem; line-height: 1.7; }
+
+    /* ── Stats ── */
+    .stats-section {
+      background: linear-gradient(135deg, #1D3557 0%, #0D0E1A 100%);
+      padding: 80px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .stats-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(230,57,70,0.12), transparent 60%);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .stat-num {
+      font-size: clamp(2.5rem, 4vw, 3.5rem);
+      font-weight: 900;
+      color: #E63946;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .stat-label {
+      font-size: 0.95rem;
+      color: #ADB5BD;
+      font-weight: 500;
+    }
+    .stat-divider {
+      width: 40px;
+      height: 3px;
+      background: linear-gradient(90deg, #E63946, transparent);
+      margin: 0.8rem auto 0;
+      border-radius: 2px;
+    }
+
+    /* ── Team ── */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+    .team-card {
+      background: #1A1E2E;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 20px;
+      overflow: hidden;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .team-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(230,57,70,0.25);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .team-card-img {
+      width: 100%;
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, #1D3557, #12151F);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .team-card-img::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 60px;
+      background: linear-gradient(to top, #1A1E2E, transparent);
+    }
+    .team-card-body { padding: 1.5rem; }
+    .team-card-body h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.3rem;
+    }
+    .team-role {
+      font-size: 0.82rem;
+      color: #E63946;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.8rem;
+    }
+    .team-card-body p { color: #ADB5BD; font-size: 0.87rem; line-height: 1.6; }
+
+    /* ── Contact CTA ── */
+    .contact-cta {
+      background: linear-gradient(135deg, #12151F 0%, #1A1E2E 100%);
+      padding: 80px 0;
+      text-align: center;
+    }
+    .contact-cta h2 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    .contact-cta p { color: #ADB5BD; font-size: 1.05rem; max-width: 500px; margin: 0 auto 2.5rem; }
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-wa {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: #25D366;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.9rem 2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.3);
+    }
+    .btn-wa:hover {
+      background: #1ebe5b;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(37,211,102,0.4);
+    }
+    .btn-email {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: transparent;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.9rem 2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      border: 2px solid rgba(255,255,255,0.2);
+      transition: all 0.3s ease;
+    }
+    .btn-email:hover {
+      border-color: #E63946;
+      color: #E63946;
+      transform: translateY(-2px);
+    }
+
+    /* ── Section header ── */
+    .section-header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+    .section-header .label {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #E63946;
+      margin-bottom: 0.8rem;
+    }
+    .section-header h2 {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    .section-header p { color: #ADB5BD; font-size: 1rem; max-width: 520px; margin: 0 auto; }
+
+    /* ── Container ── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* ── Reveal animations ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .story-grid, .mv-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .diff-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .team-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .diff-grid, .stats-grid, .team-grid { grid-template-columns: 1fr; }
+      .about-section { padding: 50px 0; }
+      .page-hero { min-height: 280px; }
+      .cta-buttons { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <!-- ── PAGE HERO ── -->
+  <section class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-content">
+      <div class="page-hero-badge">🏁 Our Story</div>
+      <h1>About <span>Epic Toyz</span></h1>
+      <p>India's Premier RC Car Destination — built by enthusiasts, for enthusiasts.</p>
+      <div class="hero-dots">
+        <span class="active"></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── OUR STORY ── -->
+  <section class="about-section">
+    <div class="container">
+      <div class="story-grid">
+        <div class="story-text reveal">
+          <span class="section-label">Our Journey</span>
+          <h2>Born from a Passion for <span style="color:#E63946">RC Cars</span></h2>
+          <p>Epic Toyz was founded in 2022 by a group of die-hard RC car enthusiasts who were tired of overpriced imports, poor after-sales support, and a lack of reliable options in the Indian market. We saw the gap — and we filled it.</p>
+          <p>What started as a small operation with a handful of curated products has grown into one of India's most trusted RC car destinations. We source directly from top global brands including Traxxas, HPI Racing, Arrma, Team Associated, and more — ensuring you always get genuine products at competitive prices.</p>
+          <p>Our mission is simple: make the world-class RC experience accessible to every Indian enthusiast, whether you're a curious beginner picking up your first car or a seasoned racer chasing podium finishes.</p>
+          <div class="story-highlights">
+            <div class="story-highlight-item"><span class="dot"></span> Founded 2022</div>
+            <div class="story-highlight-item"><span class="dot"></span> 100% Genuine Products</div>
+            <div class="story-highlight-item"><span class="dot"></span> Pan-India Shipping</div>
+            <div class="story-highlight-item"><span class="dot"></span> Expert Support</div>
+          </div>
+        </div>
+        <div class="story-image-box reveal reveal-delay-2">
+          <div class="story-image-placeholder">
+            <span class="img-icon">🏎️</span>
+            <p>Epic Toyz — Where Passion Meets Performance</p>
+            <div class="story-image-badge">
+              <div class="badge-num">4+</div>
+              <div class="badge-txt">Years of<br>Excellence</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MISSION & VISION ── -->
+  <section class="about-section" style="background:#12151F;">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="label">What Drives Us</span>
+        <h2>Our Mission & Vision</h2>
+        <p>Two guiding principles that shape every decision we make at Epic Toyz.</p>
+      </div>
+      <div class="mv-grid">
+        <div class="mv-card mission reveal reveal-delay-1">
+          <div class="card-icon">🎯</div>
+          <h3>Our Mission</h3>
+          <p>To democratize the RC car hobby in India by offering a curated selection of premium, genuine products backed by knowledgeable support and exceptional after-sales service — making world-class RC experiences accessible to everyone.</p>
+          <ul>
+            <li>Genuine products with manufacturer warranty</li>
+            <li>Transparent pricing with no hidden costs</li>
+            <li>Expert guidance for every buyer</li>
+            <li>Lightning-fast pan-India delivery</li>
+          </ul>
+        </div>
+        <div class="mv-card vision reveal reveal-delay-2">
+          <div class="card-icon">🔭</div>
+          <h3>Our Vision</h3>
+          <p>To become the undisputed #1 RC car ecosystem in India — not just a store, but a community where enthusiasts connect, learn, race, and grow together. We envision a future where RC racing is a mainstream hobby across every Indian city.</p>
+          <ul>
+            <li>Build India's largest RC community</li>
+            <li>Partner with top global RC brands</li>
+            <li>Host RC racing events across India</li>
+            <li>Empower local RC clubs and racers</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── WHY DIFFERENT ── -->
+  <section class="about-section">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="label">Our Edge</span>
+        <h2>Why We're Different</h2>
+        <p>In a market full of generic sellers, Epic Toyz stands apart in ways that matter to real enthusiasts.</p>
+      </div>
+      <div class="diff-grid">
+        <div class="diff-card reveal reveal-delay-1">
+          <span class="diff-icon">🏆</span>
+          <h3>Curated Selection</h3>
+          <p>Every product in our catalog is hand-picked by experts. We stock only genuine, high-quality RC cars — no fakes, no knockoffs. From beginner-friendly crawlers to pro-grade 1/8 bashers, we've got the right car for your level.</p>
+        </div>
+        <div class="diff-card reveal reveal-delay-2">
+          <span class="diff-icon">🧠</span>
+          <h3>Expert Knowledge</h3>
+          <p>Our team consists of actual RC hobbyists with years of hands-on experience. When you chat with us on WhatsApp, you're talking to someone who's driven, tuned, and crashed dozens of RC cars — not a call center script reader.</p>
+        </div>
+        <div class="diff-card reveal reveal-delay-3">
+          <span class="diff-icon">🔧</span>
+          <h3>After-Sales Support</h3>
+          <p>Our relationship doesn't end at checkout. We provide comprehensive after-sales support — from setup guidance and troubleshooting tips to spare parts sourcing. We're your RC partner for the long haul, not just the sale.</p>
+        </div>
+        <div class="diff-card reveal reveal-delay-4">
+          <span class="diff-icon">🇮🇳</span>
+          <h3>Indian Market Focus</h3>
+          <p>We understand Indian roads, terrain, heat, dust, and budgets. Our recommendations are tailored specifically for Indian conditions. We also offer multiple Indian payment options including UPI, COD, and bank transfers for your convenience.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STATS ── -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item reveal">
+          <span class="stat-num" data-target="500">0</span>
+          <div class="stat-label">Premium Products</div>
+          <div class="stat-divider"></div>
+        </div>
+        <div class="stat-item reveal reveal-delay-1">
+          <span class="stat-num" data-target="10000">0</span>
+          <div class="stat-label">Happy Customers</div>
+          <div class="stat-divider"></div>
+        </div>
+        <div class="stat-item reveal reveal-delay-2">
+          <span class="stat-num" data-target="50">0</span>
+          <div class="stat-label">Top Brands</div>
+          <div class="stat-divider"></div>
+        </div>
+        <div class="stat-item reveal reveal-delay-3">
+          <span class="stat-num">5 ★</span>
+          <div class="stat-label">Average Rating</div>
+          <div class="stat-divider"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TEAM ── -->
+  <section class="about-section" style="background:#12151F;">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="label">The People Behind It</span>
+        <h2>Meet Our Team</h2>
+        <p>RC enthusiasts, tech nerds, and customer champions — united by a love for remote-controlled speed.</p>
+      </div>
+      <div class="team-grid">
+        <div class="team-card reveal reveal-delay-1">
+          <div class="team-card-img">👨‍💼</div>
+          <div class="team-card-body">
+            <h3>Yogesh G V</h3>
+            <div class="team-role">Founder & CEO</div>
+            <p>RC racer turned entrepreneur. Yogesh founded Epic Toyz in 2022 after struggling to find quality RC cars in India. He oversees product curation and business strategy.</p>
+          </div>
+        </div>
+        <div class="team-card reveal reveal-delay-2">
+          <div class="team-card-img">👨‍🔧</div>
+          <div class="team-card-body">
+            <h3>Arjun Mehta</h3>
+            <div class="team-role">Head of Technical Support</div>
+            <p>With 8+ years of RC experience, Arjun leads our technical support team. He's the go-to guy for tuning advice, motor upgrades, and helping customers get the most from their RC cars.</p>
+          </div>
+        </div>
+        <div class="team-card reveal reveal-delay-3">
+          <div class="team-card-img">👩‍💻</div>
+          <div class="team-card-body">
+            <h3>Priya Sharma</h3>
+            <div class="team-role">Customer Experience Manager</div>
+            <p>Priya ensures every customer interaction is exceptional. From WhatsApp ordering to after-delivery follow-ups, she's dedicated to making your Epic Toyz experience smooth and enjoyable.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CONTACT CTA ── -->
+  <section class="contact-cta">
+    <div class="container">
+      <div class="reveal">
+        <div class="page-hero-badge" style="justify-content:center;">💬 Let's Connect</div>
+        <h2>Want to Know More?</h2>
+        <p>Have questions about our products, story, or anything RC-related? We'd love to hear from you!</p>
+        <div class="cta-buttons">
+          <a href="https://wa.me/916383793890?text=Hi%20Epic%20Toyz!%20I%20visited%20your%20About%20page%20and%20have%20a%20question." class="btn-wa" target="_blank" rel="noopener">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Chat on WhatsApp
+          </a>
+          <a href="mailto:epictoyz.in@gmail.com" class="btn-email">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Send Email
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/store.js"></script>
+  <script src="../js/ui.js"></script>
+  <script>
+    // Scroll reveal
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // Stat counter animation
+    function animateCounter(el) {
+      const target = parseInt(el.getAttribute('data-target'));
+      if (!target) return;
+      const duration = 2000;
+      const step = target / (duration / 16);
+      let current = 0;
+      const suffix = target >= 1000 ? '+' : '+';
+      const timer = setInterval(() => {
+        current += step;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        el.textContent = (target >= 1000
+          ? Math.floor(current / 1000) + 'K'
+          : Math.floor(current)) + suffix;
+      }, 16);
+    }
+
+    const statObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounter(entry.target);
+          statObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.stat-num[data-target]').forEach(el => statObserver.observe(el));
+  </script>
+</body>
+</html>

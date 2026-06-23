@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In / Sign Up | Epic Toyz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #E63946;
+      --red-dark: #c1121f;
+      --blue: #1D3557;
+      --blue-accent: #457B9D;
+      --dark-bg: #0D0E1A;
+      --card-bg: #12151F;
+      --surface: #1A1E2E;
+      --border: rgba(255,255,255,0.08);
+      --text: #FFFFFF;
+      --text-muted: #ADB5BD;
+      --gold: #FFD700;
+      --success: #2ecc71;
+      --error: #e74c3c;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--dark-bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 20%, rgba(230,57,70,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 80%, rgba(29,53,87,0.3) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(69,123,157,0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floating particles */
+    .particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.15;
+      animation: float-particle linear infinite;
+    }
+    @keyframes float-particle {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.15; }
+      90% { opacity: 0.15; }
+      100% { transform: translateY(-100px) rotate(720deg); opacity: 0; }
+    }
+
+    /* Login container */
+    .login-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+
+    /* Logo area */
+    .logo-area {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, var(--red), var(--red-dark));
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 36px;
+      box-shadow: 0 8px 32px rgba(230,57,70,0.4), 0 0 0 1px rgba(230,57,70,0.2);
+      position: relative;
+    }
+
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 21px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+      pointer-events: none;
+    }
+
+    .logo-name {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff 0%, #ADB5BD 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-name span {
+      background: linear-gradient(135deg, var(--red), #ff6b6b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    /* Card */
+    .login-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow:
+        0 32px 64px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(255,255,255,0.04),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--red), transparent);
+    }
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Admin badge */
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(230,57,70,0.12);
+      border: 1px solid rgba(230,57,70,0.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--red);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+
+    .admin-badge::before {
+      content: '🔐';
+      font-size: 12px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: var(--text-muted);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 14px 13px 44px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(230,57,70,0.15);
+      background: rgba(26,30,46,0.8);
+    }
+
+    .form-input::placeholder {
+      color: rgba(173,181,189,0.5);
+    }
+
+    /* Password toggle */
+    .pw-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .pw-toggle:hover { color: var(--text); }
+
+    /* Error message */
+    .error-msg {
+      display: none;
+      background: rgba(231,76,60,0.1);
+      border: 1px solid rgba(231,76,60,0.3);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #ff6b6b;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .error-msg.hidden { display: none !important; }
+    .error-msg.visible { display: flex !important; }
+
+    /* Login button */
+    .btn-login {
+      width: 100%;
+      padding: 14px 24px;
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.3px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(230,57,70,0.35);
+    }
+
+    .btn-login::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn-login:hover::before { left: 100%; }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(230,57,70,0.5);
+    }
+
+    .btn-login:active { transform: translateY(0); }
+
+    .btn-login:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-login .btn-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider-text {
+      font-size: 11px;
+      color: rgba(173,181,189,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Back link */
+    .back-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: color 0.2s;
+      padding: 8px;
+      border-radius: 8px;
+    }
+
+    .back-link:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+    }
+
+    /* Security note */
+    .security-note {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 11px;
+      color: rgba(173,181,189,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--dark-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(230,57,70,0.2);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    /* Auth tabs */
+    .auth-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+    }
+    .auth-tab.active {
+      color: var(--red);
+      border-bottom-color: var(--red);
+    }
+    .auth-tab:hover {
+      color: var(--text);
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 24px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading overlay (shown while checking auth) -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Animated particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Login container -->
+  <div class="login-container" id="login-container" style="display:none;">
+    <!-- Logo -->
+    <div class="logo-area">
+      <div class="logo-icon">🏎️</div>
+      <div class="logo-name">Epic<span>Toyz</span></div>
+      <div class="logo-subtitle">India's Premium RC Car Store</div>
+    </div>
+
+    <!-- Card -->
+    <div class="login-card">
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="tab-login">Sign In</button>
+        <button type="button" class="auth-tab" id="tab-register">Create Account</button>
+      </div>
+
+      <!-- Sign In Form Container -->
+      <div id="login-form-container">
+        <div class="card-header" style="margin-bottom: 20px;">
+          <div class="card-title">Welcome Back</div>
+          <div class="card-desc">Sign in to your Epic Toyz account</div>
+        </div>
+
+        <!-- Error message -->
+        <div class="error-msg hidden" id="login-error">
+          <span>⚠️</span>
+          <span id="login-error-text">Invalid email or password.</span>
+        </div>
+
+        <!-- Form -->
+        <form id="admin-login-form" autocomplete="off">
+          <div class="form-group">
+            <label class="form-label" for="admin-email">Email Address</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📧</span>
+              <input
+                type="email"
+                id="admin-email"
+                class="form-input"
+                placeholder="name@email.com"
+                required
+                autocomplete="username"
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="admin-password">Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔑</span>
+              <input
+                type="password"
+                id="admin-password"
+                class="form-input"
+                placeholder="••••••••••"
+                required
+                autocomplete="current-password"
+                style="padding-right: 48px;"
+              >
+              <button type="button" class="pw-toggle" id="pw-toggle" title="Toggle password visibility">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-login" id="login-btn">
+            Sign In
+          </button>
+        </form>
+      </div>
+
+      <!-- Register Form Container -->
+      <div id="register-form-container" style="display: none;">
+        <div class="card-header" style="margin-bottom: 20px;">
+          <div class="card-title">Create Account</div>
+          <div class="card-desc">Register a new customer account</div>
+        </div>
+
+        <!-- Error message -->
+        <div class="error-msg hidden" id="register-error">
+          <span>⚠️</span>
+          <span id="register-error-text">Registration failed.</span>
+        </div>
+
+        <!-- Form -->
+        <form id="register-form" autocomplete="off">
+          <div class="form-group">
+            <label class="form-label" for="register-name">Full Name</label>
+            <div class="input-wrapper">
+              <span class="input-icon">👤</span>
+              <input
+                type="text"
+                id="register-name"
+                class="form-input"
+                placeholder="John Doe"
+                required
+                autocomplete="name"
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-email">Email Address</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📧</span>
+              <input
+                type="email"
+                id="register-email"
+                class="form-input"
+                placeholder="name@email.com"
+                required
+                autocomplete="email"
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-phone">Phone Number</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📞</span>
+              <input
+                type="tel"
+                id="register-phone"
+                class="form-input"
+                placeholder="+91 99999 99999"
+                required
+                autocomplete="tel"
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-password">Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔑</span>
+              <input
+                type="password"
+                id="register-password"
+                class="form-input"
+                placeholder="••••••••••"
+                required
+                autocomplete="new-password"
+                style="padding-right: 48px;"
+              >
+              <button type="button" class="pw-toggle" id="register-pw-toggle" title="Toggle password visibility">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-confirm-password">Confirm Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔑</span>
+              <input
+                type="password"
+                id="register-confirm-password"
+                class="form-input"
+                placeholder="••••••••••"
+                required
+                autocomplete="new-password"
+                style="padding-right: 48px;"
+              >
+              <button type="button" class="pw-toggle" id="register-confirm-pw-toggle" title="Toggle password visibility">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-login" id="register-btn">
+            Create Account
+          </button>
+        </form>
+      </div>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-text">or</div>
+        <div class="divider-line"></div>
+      </div>
+
+      <a href="../index.html" class="back-link">
+        ← Back to Store
+      </a>
+    </div>
+
+    <div class="security-note">
+      🔒 Secured User Portal — Epic Toyz
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/admin.js"></script>
+
+  <script>
+    // Particles
+    (function() {
+      const container = document.getElementById('particles');
+      const colors = ['#E63946', '#1D3557', '#457B9D', '#FFD700'];
+      for (let i = 0; i < 18; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 12 + 4;
+        p.style.cssText = `
+          width: ${size}px;
+          height: ${size}px;
+          left: ${Math.random() * 100}%;
+          background: ${colors[Math.floor(Math.random() * colors.length)]};
+          animation-duration: ${Math.random() * 12 + 8}s;
+          animation-delay: ${Math.random() * 8}s;
+        `;
+        container.appendChild(p);
+      }
+    })();
+
+    // Password toggle
+    document.getElementById('pw-toggle').addEventListener('click', function() {
+      const input = document.getElementById('admin-password');
+      if (input.type === 'password') {
+        input.type = 'text';
+        this.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        this.textContent = '👁️';
+      }
+    });
+
+    document.getElementById('register-pw-toggle').addEventListener('click', function() {
+      const input = document.getElementById('register-password');
+      if (input.type === 'password') {
+        input.type = 'text';
+        this.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        this.textContent = '👁️';
+      }
+    });
+
+    document.getElementById('register-confirm-pw-toggle').addEventListener('click', function() {
+      const input = document.getElementById('register-confirm-password');
+      if (input.type === 'password') {
+        input.type = 'text';
+        this.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        this.textContent = '👁️';
+      }
+    });
+
+    // Tab switching
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    const loginFormContainer = document.getElementById('login-form-container');
+    const registerFormContainer = document.getElementById('register-form-container');
+
+    tabLogin.addEventListener('click', () => {
+      tabLogin.classList.add('active');
+      tabRegister.classList.remove('active');
+      loginFormContainer.style.display = 'block';
+      registerFormContainer.style.display = 'none';
+      if (document.getElementById('login-error')) {
+        document.getElementById('login-error').classList.add('hidden');
+      }
+    });
+
+    tabRegister.addEventListener('click', () => {
+      tabRegister.classList.add('active');
+      tabLogin.classList.remove('active');
+      registerFormContainer.style.display = 'block';
+      loginFormContainer.style.display = 'none';
+      if (document.getElementById('register-error')) {
+        document.getElementById('register-error').classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

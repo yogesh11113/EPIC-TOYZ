@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy | Epic Toyz</title>
+  <meta name="description" content="Epic Toyz Privacy Policy — learn how we collect, use, and protect your personal information when you shop at India's premier RC car store.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/animations.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <style>
+    /* ── Page Hero ── */
+    .page-hero {
+      position: relative;
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0D0E1A 0%, #1D3557 50%, #0D0E1A 100%);
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(230,57,70,0.15) 0%, transparent 70%);
+    }
+    .page-hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(69,123,157,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(69,123,157,0.08) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .page-hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 2rem 1rem;
+    }
+    .page-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(230,57,70,0.15);
+      border: 1px solid rgba(230,57,70,0.35);
+      color: #E63946;
+      padding: 0.4rem 1.2rem;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+    .page-hero h1 {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.8rem;
+    }
+    .page-hero p { font-size: 1rem; color: #ADB5BD; }
+    .page-hero .updated {
+      display: inline-block;
+      margin-top: 0.8rem;
+      font-size: 0.82rem;
+      color: #5a6070;
+      background: rgba(255,255,255,0.05);
+      padding: 0.3rem 0.8rem;
+      border-radius: 4px;
+    }
+
+    /* ── Layout ── */
+    .legal-section { padding: 60px 0 80px; background: #0D0E1A; }
+    .container { max-width: 860px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* ── ToC Sidebar Layout ── */
+    .legal-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 3rem;
+      align-items: flex-start;
+    }
+    .legal-toc {
+      position: sticky;
+      top: 90px;
+      background: #12151F;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+    .legal-toc h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #ADB5BD;
+      margin-bottom: 1rem;
+    }
+    .legal-toc ul { list-style: none; padding: 0; margin: 0; }
+    .legal-toc ul li { margin-bottom: 0.4rem; }
+    .legal-toc ul li a {
+      display: block;
+      font-size: 0.85rem;
+      color: #ADB5BD;
+      text-decoration: none;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      line-height: 1.4;
+    }
+    .legal-toc ul li a:hover {
+      color: #E63946;
+      background: rgba(230,57,70,0.08);
+    }
+
+    /* ── Doc Content ── */
+    .legal-doc {
+      background: #12151F;
+      border: 1px solid rgba(69,123,157,0.15);
+      border-radius: 20px;
+      padding: 2.5rem;
+    }
+    .legal-section-block {
+      margin-bottom: 2.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(69,123,157,0.1);
+    }
+    .legal-section-block:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px; height: 30px;
+      background: rgba(230,57,70,0.12);
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #E63946;
+      margin-right: 0.7rem;
+      flex-shrink: 0;
+    }
+    .legal-section-block h2 {
+      display: flex;
+      align-items: center;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 1.2rem;
+    }
+    .legal-section-block p {
+      color: #ADB5BD;
+      font-size: 0.95rem;
+      line-height: 1.85;
+      margin-bottom: 1rem;
+    }
+    .legal-section-block p:last-child { margin-bottom: 0; }
+    .legal-section-block ul {
+      list-style: none;
+      padding: 0;
+      margin: 0.8rem 0;
+    }
+    .legal-section-block ul li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      color: #ADB5BD;
+      font-size: 0.93rem;
+      line-height: 1.7;
+      margin-bottom: 0.6rem;
+      padding-left: 0.2rem;
+    }
+    .legal-section-block ul li::before {
+      content: '›';
+      color: #E63946;
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      line-height: 1.5;
+    }
+    .legal-section-block strong { color: #fff; font-weight: 600; }
+    .legal-section-block a { color: #E63946; text-decoration: none; }
+    .legal-section-block a:hover { text-decoration: underline; }
+    .info-box {
+      background: rgba(69,123,157,0.08);
+      border: 1px solid rgba(69,123,157,0.2);
+      border-left: 3px solid #457B9D;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+      color: #ADB5BD;
+      line-height: 1.7;
+    }
+    .info-box strong { color: #fff; }
+    .contact-highlight {
+      background: rgba(230,57,70,0.08);
+      border: 1px solid rgba(230,57,70,0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .contact-highlight .icon { font-size: 2rem; }
+    .contact-highlight .text h4 { color: #fff; font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .contact-highlight .text p { color: #ADB5BD; font-size: 0.87rem; margin: 0; }
+    .contact-highlight .text a { color: #E63946; }
+
+    /* ── Reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Responsive ── */
+    @media (max-width: 800px) {
+      .legal-layout { grid-template-columns: 1fr; }
+      .legal-toc { display: none; }
+      .legal-doc { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <!-- ── PAGE HERO ── -->
+  <section class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-content">
+      <div class="page-hero-badge">🔒 Legal</div>
+      <h1>Privacy Policy</h1>
+      <p>How Epic Toyz collects, uses, and protects your information.</p>
+      <span class="updated">Last Updated: January 2025</span>
+    </div>
+  </section>
+
+  <!-- ── LEGAL CONTENT ── -->
+  <section class="legal-section">
+    <div style="max-width:1100px;margin:0 auto;padding:0 1.5rem;">
+      <div class="legal-layout">
+
+        <!-- Table of Contents -->
+        <aside class="legal-toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#info-collect">1. Information We Collect</a></li>
+            <li><a href="#how-use">2. How We Use Information</a></li>
+            <li><a href="#sharing">3. Information Sharing</a></li>
+            <li><a href="#security">4. Data Security</a></li>
+            <li><a href="#cookies">5. Cookies & Tracking</a></li>
+            <li><a href="#rights">6. Your Rights</a></li>
+            <li><a href="#children">7. Children's Privacy</a></li>
+            <li><a href="#changes">8. Policy Changes</a></li>
+            <li><a href="#contact-us">9. Contact Us</a></li>
+          </ul>
+        </aside>
+
+        <!-- Document -->
+        <div class="legal-doc reveal">
+          <div class="info-box" style="margin-bottom:2rem;">
+            <strong>Welcome to Epic Toyz.</strong> This Privacy Policy explains how Epic Toyz ("we", "us", or "our") collects, uses, discloses, and safeguards your information when you visit our website, place orders, or interact with us via WhatsApp, email, or other communication channels. By using our services, you consent to the practices described in this policy.
+          </div>
+
+          <!-- 1 -->
+          <div class="legal-section-block" id="info-collect">
+            <h2><span class="section-num">1</span>Information We Collect</h2>
+            <p>We collect various types of information to provide and improve our services to you. This information falls into two categories:</p>
+            <p><strong>Information You Provide Directly:</strong></p>
+            <ul>
+              <li><strong>Personal Identification:</strong> Name, email address, phone number, and WhatsApp number when you place an order, create an account, or contact us.</li>
+              <li><strong>Delivery Information:</strong> Shipping address, city, state, and pin code required to fulfill your orders.</li>
+              <li><strong>Payment Information:</strong> UPI transaction references, bank transfer details (we do NOT store complete card or bank account numbers).</li>
+              <li><strong>Communications:</strong> Messages, queries, and feedback you share with us via WhatsApp, email, or our contact form.</li>
+              <li><strong>Account Information:</strong> Username and password if you create an account on our website.</li>
+            </ul>
+            <p><strong>Information Collected Automatically:</strong></p>
+            <ul>
+              <li><strong>Usage Data:</strong> Pages visited, time spent on site, links clicked, browser type, device type, and operating system.</li>
+              <li><strong>IP Address:</strong> Approximate geographic location, and internet service provider information.</li>
+              <li><strong>Cookies & Local Storage:</strong> Session data, shopping cart contents, and user preferences stored locally.</li>
+            </ul>
+          </div>
+
+          <!-- 2 -->
+          <div class="legal-section-block" id="how-use">
+            <h2><span class="section-num">2</span>How We Use Your Information</h2>
+            <p>We use the information we collect solely for legitimate business purposes, including:</p>
+            <ul>
+              <li><strong>Order Processing:</strong> To process, confirm, and fulfill your orders, and to arrange shipping and delivery.</li>
+              <li><strong>Customer Communication:</strong> To respond to your inquiries, provide order updates, and offer after-sales support via WhatsApp, phone, and email.</li>
+              <li><strong>Account Management:</strong> To create and manage your user account, and to provide personalized shopping experiences.</li>
+              <li><strong>Fraud Prevention:</strong> To detect, investigate, and prevent fraudulent transactions and other illegal activities.</li>
+              <li><strong>Service Improvement:</strong> To analyze usage patterns, identify popular products, and improve our website and services.</li>
+              <li><strong>Marketing (with consent):</strong> To send you promotional offers, new product announcements, and exclusive deals — only if you have opted in. You can opt out at any time.</li>
+              <li><strong>Legal Compliance:</strong> To comply with applicable Indian laws and regulations, including those related to e-commerce and consumer protection.</li>
+            </ul>
+          </div>
+
+          <!-- 3 -->
+          <div class="legal-section-block" id="sharing">
+            <h2><span class="section-num">3</span>Information Sharing</h2>
+            <p>We value your privacy and do not sell, rent, or trade your personal information to third parties. However, we may share your information in the following limited circumstances:</p>
+            <ul>
+              <li><strong>Shipping & Logistics Partners:</strong> We share your name, address, and phone number with courier partners (Delhivery, BlueDart, DTDC) solely for delivery purposes.</li>
+              <li><strong>Payment Processors:</strong> Payment transactions are processed through secure UPI infrastructure (NPCI). We may share minimal details as required by payment processors.</li>
+              <li><strong>Legal Requirements:</strong> We may disclose your information if required by law, court order, or government authority in India.</li>
+              <li><strong>Business Transfers:</strong> In the event of a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction.</li>
+            </ul>
+            <div class="info-box">
+              <strong>We will never sell your personal data</strong> to third-party advertisers, data brokers, or marketing companies. Your information is used exclusively to serve you better.
+            </div>
+          </div>
+
+          <!-- 4 -->
+          <div class="legal-section-block" id="security">
+            <h2><span class="section-num">4</span>Data Security</h2>
+            <p>We implement industry-standard security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction:</p>
+            <ul>
+              <li>HTTPS encryption for all data transmitted through our website</li>
+              <li>Secure cloud database storage with access controls and authentication</li>
+              <li>Regular security audits and vulnerability assessments</li>
+              <li>Limited employee access to personal information on a need-to-know basis</li>
+              <li>No storage of complete payment card or bank account numbers on our servers</li>
+            </ul>
+            <p>While we strive to protect your personal information, no method of transmission over the internet or electronic storage is 100% secure. We encourage you to use strong passwords and to contact us immediately if you suspect any unauthorized use of your account.</p>
+          </div>
+
+          <!-- 5 -->
+          <div class="legal-section-block" id="cookies">
+            <h2><span class="section-num">5</span>Cookies & Tracking Technologies</h2>
+            <p>Our website uses cookies and similar technologies to enhance your browsing experience:</p>
+            <ul>
+              <li><strong>Essential Cookies:</strong> Required for core website functionality, including maintaining your login session and shopping cart.</li>
+              <li><strong>Preference Cookies:</strong> Remember your settings and preferences for a personalized experience.</li>
+              <li><strong>Analytics Cookies:</strong> Help us understand how visitors interact with our site so we can improve it.</li>
+              <li><strong>Local Storage:</strong> We use browser local storage to save your cart items and wishlist between sessions.</li>
+            </ul>
+            <p>You can control cookie settings through your browser preferences. Note that disabling certain cookies may affect the functionality of our website. We do not use third-party advertising or tracking cookies.</p>
+          </div>
+
+          <!-- 6 -->
+          <div class="legal-section-block" id="rights">
+            <h2><span class="section-num">6</span>Your Rights</h2>
+            <p>As a user of Epic Toyz, you have the following rights regarding your personal information:</p>
+            <ul>
+              <li><strong>Right to Access:</strong> Request a copy of the personal information we hold about you.</li>
+              <li><strong>Right to Correction:</strong> Request correction of inaccurate or incomplete personal information.</li>
+              <li><strong>Right to Deletion:</strong> Request deletion of your personal information, subject to legal retention requirements.</li>
+              <li><strong>Right to Opt-Out:</strong> Opt out of marketing communications at any time by replying "STOP" or contacting us directly.</li>
+              <li><strong>Right to Data Portability:</strong> Request your data in a machine-readable format where technically feasible.</li>
+              <li><strong>Right to Withdraw Consent:</strong> Withdraw consent for data processing where consent is the legal basis.</li>
+            </ul>
+            <p>To exercise any of these rights, please contact us at <a href="mailto:epictoyz.in@gmail.com">epictoyz.in@gmail.com</a>. We will respond to your request within 30 days.</p>
+          </div>
+
+          <!-- 7 -->
+          <div class="legal-section-block" id="children">
+            <h2><span class="section-num">7</span>Children's Privacy</h2>
+            <p>Our website is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately at <a href="mailto:epictoyz.in@gmail.com">epictoyz.in@gmail.com</a> and we will delete such information promptly.</p>
+            <p>For RC car purchases intended for children (which is perfectly fine!), orders should be placed by a parent or adult guardian who provides their own contact information for the transaction.</p>
+          </div>
+
+          <!-- 8 -->
+          <div class="legal-section-block" id="changes">
+            <h2><span class="section-num">8</span>Changes to This Policy</h2>
+            <p>We may update this Privacy Policy periodically to reflect changes in our practices, technology, legal requirements, or for other reasons. When we make changes, we will:</p>
+            <ul>
+              <li>Update the "Last Updated" date at the top of this policy</li>
+              <li>Notify registered users via email for significant changes</li>
+              <li>Post a notice on our website for material changes</li>
+            </ul>
+            <p>We encourage you to review this policy periodically. Your continued use of our services after any changes constitutes your acceptance of the updated policy.</p>
+          </div>
+
+          <!-- 9 -->
+          <div class="legal-section-block" id="contact-us">
+            <h2><span class="section-num">9</span>Contact Us</h2>
+            <p>If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact our Privacy team:</p>
+            <div class="contact-highlight">
+              <div class="icon">🔒</div>
+              <div class="text">
+                <h4>Epic Toyz — Privacy Team</h4>
+                <p>Email: <a href="mailto:epictoyz.in@gmail.com">epictoyz.in@gmail.com</a></p>
+                <p>WhatsApp: <a href="https://wa.me/916383793890" target="_blank" rel="noopener">+91 63837 93890</a></p>
+                <p>Business Hours: Monday – Saturday, 9 AM – 8 PM IST</p>
+              </div>
+            </div>
+            <p style="margin-top:1.5rem;">This Privacy Policy is governed by the laws of India. By using Epic Toyz, you consent to the jurisdiction of Indian courts for any disputes arising from this policy.</p>
+          </div>
+
+        </div><!-- /legal-doc -->
+      </div><!-- /legal-layout -->
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/store.js"></script>
+  <script src="../js/ui.js"></script>
+  <script>
+    // Scroll reveal
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.05 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // Smooth scroll for ToC links
+    document.querySelectorAll('.legal-toc a[href^="#"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

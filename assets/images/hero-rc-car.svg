@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%" height="100%">
+  <!-- Dark futuristic gradient background -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F1020" />
+      <stop offset="40%" stop-color="#0D0E1A" />
+      <stop offset="100%" stop-color="#1D3557" stop-opacity="0.7" />
+    </linearGradient>
+    <radialGradient id="carGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E63946" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#0D0E1A" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ADB5BD" />
+      <stop offset="50%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#495057" />
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FF5A6A" />
+      <stop offset="100%" stop-color="#CC1122" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="1000" height="700" fill="url(#bgGrad)"/>
+  
+  <!-- Speed Lines / Tech grid in background -->
+  <g stroke="rgba(255, 255, 255, 0.05)" stroke-width="1">
+    <line x1="50" y1="100" x2="950" y2="100" />
+    <line x1="50" y1="200" x2="950" y2="200" />
+    <line x1="50" y1="300" x2="950" y2="300" />
+    <line x1="50" y1="400" x2="950" y2="400" />
+    <line x1="50" y1="500" x2="950" y2="500" />
+    
+    <line x1="200" y1="50" x2="200" y2="650" />
+    <line x1="400" y1="50" x2="400" y2="650" />
+    <line x1="600" y1="50" x2="600" y2="650" />
+    <line x1="800" y1="50" x2="800" y2="650" />
+  </g>
+  
+  <!-- Glowing back lights -->
+  <circle cx="500" cy="350" r="300" fill="url(#carGlow)"/>
+
+  <!-- High-end RC Car Silhouette -->
+  <g transform="translate(150, 150)">
+    <!-- Speed streaks -->
+    <path d="M -80 200 L 0 200 M -120 230 L -20 230 M -60 260 L 20 260" stroke="#E63946" stroke-width="4" opacity="0.6" stroke-dasharray="10 15" />
+    <path d="M 700 200 L 780 200 M 680 230 L 750 230" stroke="#457B9D" stroke-width="3" opacity="0.4" stroke-dasharray="8 12" />
+    
+    <!-- Remote Control Antenna Signal Rings -->
+    <circle cx="200" cy="0" r="10" stroke="#E63946" stroke-width="1" opacity="0.8" fill="none"/>
+    <circle cx="200" cy="0" r="25" stroke="#E63946" stroke-width="2" opacity="0.5" fill="none"/>
+    <circle cx="200" cy="0" r="45" stroke="#E63946" stroke-width="1.5" opacity="0.2" fill="none"/>
+
+    <!-- Antenna -->
+    <line x1="260" y1="120" x2="200" y2="0" stroke="url(#metalGrad)" stroke-width="4" stroke-linecap="round" />
+    <circle cx="200" cy="0" r="6" fill="#E63946" />
+
+    <!-- Chassis Base shadow -->
+    <path d="M 50 310 Q 350 330 650 310 L 600 340 L 100 340 Z" fill="rgba(0, 0, 0, 0.6)" filter="blur(8px)" />
+
+    <!-- Main Body Shape (Drift/Racer Profile) -->
+    <!-- Front to Back -->
+    <path d="M 680 280 
+             Q 710 270 700 240 
+             Q 660 200 620 195 
+             Q 590 190 570 170
+             Q 530 110 400 110 
+             Q 280 110 250 160 
+             Q 230 180 190 185 
+             Q 130 190 100 220 
+             Q 70 240 70 275
+             L 60 275
+             Q 50 245 40 245
+             L 30 260
+             Q 25 290 50 295
+             L 680 280 Z" 
+          fill="url(#redGrad)" stroke="#FFFFFF" stroke-width="4" />
+
+    <!-- Rear Spoiler/Wing -->
+    <path d="M 90 220 L 5 130 L 70 125 L 115 190 Z" fill="#1D3557" stroke="#FFFFFF" stroke-width="3" />
+    <path d="M 5 130 L 45 130 L 65 150 L 5 150 Z" fill="#E63946" />
+
+    <!-- Cockpit / Windows -->
+    <path d="M 300 125 L 430 125 Q 500 125 530 165 L 270 165 Q 280 135 300 125 Z" fill="#0D0E1A" stroke="#457B9D" stroke-width="3" />
+    <path d="M 330 135 L 420 135 L 470 160 L 310 160 Z" fill="rgba(168, 218, 220, 0.2)" />
+
+    <!-- Side Graphics / Decals -->
+    <path d="M 230 200 Q 350 195 480 240 L 430 260 Q 320 220 220 215 Z" fill="#1D3557" opacity="0.8" />
+    <path d="M 270 208 Q 350 205 440 238 L 415 250 Q 330 222 260 218 Z" fill="#A8DADC" opacity="0.9" />
+
+    <!-- Front Headlight (Glow effect) -->
+    <path d="M 685 242 L 700 240 L 690 260 Z" fill="#FFD700" />
+    <path d="M 700 240 L 800 220 L 790 280 Z" fill="rgba(255, 215, 0, 0.15)" />
+
+    <!-- Wheels (Premium tires + rims) -->
+    <!-- Rear Wheel -->
+    <g transform="translate(190, 280)">
+      <circle cx="0" cy="0" r="75" fill="#12151F" stroke="#E63946" stroke-width="8" />
+      <circle cx="0" cy="0" r="60" fill="#0D0E1A" stroke="rgba(255,255,255,0.1)" stroke-width="4" />
+      <!-- Alloy Spokes -->
+      <circle cx="0" cy="0" r="40" fill="#1D3557" />
+      <path d="M 0 -40 L 0 40 M -40 0 L 40 0 M -28 -28 L 28 28 M -28 28 L 28 -28" stroke="url(#metalGrad)" stroke-width="6" />
+      <circle cx="0" cy="0" r="15" fill="#E63946" stroke="#FFFFFF" stroke-width="2" />
+    </g>
+
+    <!-- Front Wheel -->
+    <g transform="translate(560, 280)">
+      <circle cx="0" cy="0" r="75" fill="#12151F" stroke="#E63946" stroke-width="8" />
+      <circle cx="0" cy="0" r="60" fill="#0D0E1A" stroke="rgba(255,255,255,0.1)" stroke-width="4" />
+      <!-- Alloy Spokes -->
+      <circle cx="0" cy="0" r="40" fill="#1D3557" />
+      <path d="M 0 -40 L 0 40 M -40 0 L 40 0 M -28 -28 L 28 28 M -28 28 L 28 -28" stroke="url(#metalGrad)" stroke-width="6" />
+      <circle cx="0" cy="0" r="15" fill="#E63946" stroke="#FFFFFF" stroke-width="2" />
+    </g>
+
+    <!-- Front Bumper Guard -->
+    <path d="M 685 278 L 730 278 L 720 295 L 675 295 Z" fill="#0D0E1A" stroke="url(#metalGrad)" stroke-width="3" />
+  </g>
+  
+  <!-- Overlay text for graphic premium feel -->
+  <text x="50" y="650" font-family="'Inter', sans-serif" font-size="12" font-weight="800" fill="rgba(255,255,255,0.15)" letter-spacing="4">
+    EPIC TOYZ / RC-RACING / DESIGN SYSTEM 2.0
+  </text>
+</svg>
