@@ -8,8 +8,8 @@
 
 /** @type {{ url: string, anonKey: string }} */
 const SUPABASE_CONFIG = {
-  url: 'YOUR_SUPABASE_URL',
-  anonKey: 'YOUR_SUPABASE_ANON_KEY'
+  url: window.process?.env?.SUPABASE_URL || window.ENV?.SUPABASE_URL || 'https://wzqaawfqcjxztiyfsmof.supabase.co',
+  anonKey: window.process?.env?.SUPABASE_ANON_KEY || window.ENV?.SUPABASE_ANON_KEY || 'sb_publishable_bu2DUkhTlL2dLtQFLxnogw_nS0Dj8B9'
 };
 
 /**

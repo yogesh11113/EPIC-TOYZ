@@ -59,6 +59,55 @@ function uid() {
   });
 }
 
+/**
+ * Maps a Supabase product database object (snake_case) to client-side naming (camelCase).
+ * @param {object} p - Supabase product
+ * @returns {object} - Client product
+ */
+function mapSupabaseProduct(p) {
+  if (!p) return null;
+  return {
+    ...p,
+    originalPrice: p.original_price != null ? Number(p.original_price) : null,
+    price: p.price != null ? Number(p.price) : 0,
+    shortDescription: p.short_description || '',
+    isFeatured: !!p.is_featured,
+    isNew: p.badge === 'new',
+    stock: p.stock_quantity ?? 0,
+    stockQuantity: p.stock_quantity ?? 0,
+    reviewsCount: p.review_count ?? 0,
+    image: (p.images && p.images.length > 0) ? p.images[0] : 'assets/images/placeholder.jpg',
+    specs: p.specifications || {},
+    specifications: p.specifications || {},
+    category: p.categories?.slug || p.category_id || '',
+    categoryId: p.category_id || '',
+  };
+}
+
+/**
+ * Maps a Supabase review database object (snake_case) to client-side naming (camelCase/expected keys).
+ * @param {object} r - Supabase review
+ * @returns {object} - Client review
+ */
+function mapSupabaseReview(r) {
+  if (!r) return null;
+  return {
+    ...r,
+    productId: r.product_id,
+    name: r.reviewer_name,
+    userName: r.reviewer_name,
+    user_name: r.reviewer_name,
+    text: r.review_text,
+    comment: r.review_text,
+    verifiedPurchase: r.is_verified,
+    verified_purchase: r.is_verified,
+    approved: r.is_approved,
+    is_approved: r.is_approved,
+    createdAt: r.created_at,
+    date: r.created_at,
+  };
+}
+
 /* ─── local-storage helpers ─────────────────────────────────────────────── */
 
 /**
@@ -124,8 +173,16 @@ const DB = {
   async getProducts(filters = {}) {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        let query = window.EpicSupabase.from('products').select('*');
-        if (filters.category) query = query.eq('category', filters.category);
+        let query = window.EpicSupabase.from('products').select('*, categories(id, name, slug)');
+        if (filters.category) {
+          const categories = await DB.getCategories();
+          const cat = categories.find(c => c.slug === filters.category || c.id === filters.category);
+          if (cat) {
+            query = query.eq('category_id', cat.id);
+          } else {
+            return [];
+          }
+        }
         if (filters.badge)    query = query.eq('badge', filters.badge);
         if (filters.featured) query = query.eq('is_featured', true);
         if (filters.search)   query = query.ilike('name', `%${filters.search}%`);
@@ -139,14 +196,22 @@ const DB = {
         else if (sort === 'newest') query = query.order('created_at', { ascending: false });
         else query = query.order('is_featured', { ascending: false });
 
+        if (filters.limit) {
+          query = query.limit(filters.limit);
+        }
+
         const { data, error } = await query;
         if (error) throw error;
-        return data || [];
+        return (data || []).map(mapSupabaseProduct);
       } catch (err) {
         console.warn('[DB] Supabase getProducts failed, using localStorage:', err.message);
       }
     }
-    return applyFilters(lsProducts(), filters);
+    let products = applyFilters(lsProducts(), filters);
+    if (filters.limit) {
+      products = products.slice(0, filters.limit);
+    }
+    return products;
   },
 
   /**
@@ -158,9 +223,9 @@ const DB = {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
         const { data, error } = await window.EpicSupabase
-          .from('products').select('*').eq('id', id).single();
+          .from('products').select('*, categories(id, name, slug)').eq('id', id).single();
         if (error) throw error;
-        return data;
+        return mapSupabaseProduct(data);
       } catch (err) {
         console.warn('[DB] Supabase getProductById failed:', err.message);
       }
@@ -177,14 +242,36 @@ const DB = {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
         const { data, error } = await window.EpicSupabase
-          .from('products').select('*').eq('slug', slug).single();
+          .from('products').select('*, categories(id, name, slug)').eq('slug', slug).single();
         if (error) throw error;
-        return data;
+        return mapSupabaseProduct(data);
       } catch (err) {
         console.warn('[DB] Supabase getProductBySlug failed:', err.message);
       }
     }
     return lsProducts().find(p => p.slug === slug) || null;
+  },
+
+  /**
+   * Fetch multiple products by their numeric/string IDs.
+   * @param {string[]|number[]} ids
+   * @returns {Promise<object[]>}
+   */
+  async getProductsByIds(ids) {
+    if (!ids || ids.length === 0) return [];
+    if (isSupabaseConfigured() && window.EpicSupabase) {
+      try {
+        const { data, error } = await window.EpicSupabase
+          .from('products')
+          .select('*, categories(id, name, slug)')
+          .in('id', ids);
+        if (error) throw error;
+        return (data || []).map(mapSupabaseProduct);
+      } catch (err) {
+        console.warn('[DB] Supabase getProductsByIds failed:', err.message);
+      }
+    }
+    return lsProducts().filter(p => ids.map(String).includes(String(p.id)));
   },
 
   /**
@@ -507,51 +594,93 @@ const DB = {
    * @returns {Promise<object[]>}
    */
   async getProductReviews(productId) {
+    return this.getReviews(productId);
+  },
+
+  /**
+   * Get reviews (optionally filtered by product ID).
+   * @param {string|number|null} [productId]
+   * @returns {Promise<object[]>}
+   */
+  async getReviews(productId = null) {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const { data, error } = await window.EpicSupabase
-          .from('reviews')
-          .select('*')
-          .eq('product_id', productId)
-          .eq('approved', true)
-          .order('created_at', { ascending: false });
+        let query = window.EpicSupabase.from('reviews').select('*');
+        if (productId) {
+          query = query.eq('product_id', productId).eq('is_approved', true);
+        }
+        const { data, error } = await query.order('created_at', { ascending: false });
         if (error) throw error;
-        return data || [];
+        return (data || []).map(mapSupabaseReview);
       } catch (err) {
-        console.warn('[DB] Supabase getProductReviews failed:', err.message);
+        console.warn('[DB] Supabase getReviews failed:', err.message);
       }
     }
-    return lsReviews()
-      .filter(r => String(r.productId) === String(productId) && r.approved !== false)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const reviews = lsReviews();
+    if (productId) {
+      return reviews
+        .filter(r => String(r.productId) === String(productId) && r.approved !== false)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+    return reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   },
 
   /**
    * Submit a customer review (pending approval).
-   * @param {object} reviewData - { productId, authorName, location, rating, text }
+   * @param {object} reviewData - { productId, rating, title, text }
    * @returns {Promise<object>}
    */
-  async createReview(reviewData) {
+  async submitReview(reviewData) {
+    if (isSupabaseConfigured() && window.EpicSupabase) {
+      try {
+        const user = window.Auth?.getCurrentUser?.();
+        const reviewer_name = user?.name || 'Anonymous';
+        const reviewer_email = user?.email || null;
+        const user_id = user?.id || null;
+
+        const { data, error } = await window.EpicSupabase
+          .from('reviews')
+          .insert([{
+            product_id: reviewData.product_id || reviewData.productId,
+            user_id: user_id,
+            reviewer_name: reviewer_name,
+            reviewer_email: reviewer_email,
+            rating: reviewData.rating,
+            title: reviewData.title || '',
+            review_text: reviewData.text || reviewData.comment || '',
+            is_verified: false,
+            is_approved: false
+          }])
+          .select()
+          .single();
+        if (error) throw error;
+        return mapSupabaseReview(data);
+      } catch (err) {
+        console.warn('[DB] Supabase submitReview failed:', err.message);
+        throw err;
+      }
+    }
+
+    // localStorage fallback
     const newReview = {
       ...reviewData,
       id:        uid(),
       approved:  false,
       createdAt: new Date().toISOString(),
+      userName:  'You',
+      user_name: 'You'
     };
-    if (isSupabaseConfigured() && window.EpicSupabase) {
-      try {
-        const { data, error } = await window.EpicSupabase
-          .from('reviews').insert([newReview]).select().single();
-        if (error) throw error;
-        return data;
-      } catch (err) {
-        console.warn('[DB] Supabase createReview failed:', err.message);
-      }
-    }
     const reviews = lsReviews();
     reviews.push(newReview);
     LS.set(KEYS.REVIEWS, reviews);
     return newReview;
+  },
+
+  /**
+   * Alias for submitReview (for backwards compatibility/admin CRUD).
+   */
+  async createReview(reviewData) {
+    return this.submitReview(reviewData);
   },
 
   /**
@@ -563,9 +692,9 @@ const DB = {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
         const { data, error } = await window.EpicSupabase
-          .from('reviews').update({ approved: true }).eq('id', id).select().single();
+          .from('reviews').update({ is_approved: true }).eq('id', id).select().single();
         if (error) throw error;
-        return data;
+        return mapSupabaseReview(data);
       } catch (err) {
         console.warn('[DB] Supabase approveReview failed:', err.message);
       }
@@ -588,15 +717,36 @@ const DB = {
         const { data, error } = await window.EpicSupabase
           .from('reviews')
           .select('*')
-          .eq('approved', false)
+          .eq('is_approved', false)
           .order('created_at', { ascending: false });
         if (error) throw error;
-        return data || [];
+        return (data || []).map(mapSupabaseReview);
       } catch (err) {
         console.warn('[DB] Supabase getPendingReviews failed:', err.message);
       }
     }
     return lsReviews().filter(r => r.approved === false);
+  },
+
+  /**
+   * Delete a review (admin).
+   * @param {string} id
+   * @returns {Promise<boolean>}
+   */
+  async deleteReview(id) {
+    if (isSupabaseConfigured() && window.EpicSupabase) {
+      try {
+        const { error } = await window.EpicSupabase
+          .from('reviews').delete().eq('id', id);
+        if (error) throw error;
+        return true;
+      } catch (err) {
+        console.warn('[DB] Supabase deleteReview failed:', err.message);
+      }
+    }
+    const reviews = lsReviews().filter(r => String(r.id) !== String(id));
+    LS.set(KEYS.REVIEWS, reviews);
+    return true;
   },
 
   /* ══════════════════════════════════════════════════════════
