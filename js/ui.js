@@ -534,7 +534,17 @@ function initPageTransitions() {
       e.preventDefault();
       overlay.classList.add('active');
       setTimeout(() => {
-        window.location.href = href;
+        try {
+          const targetUrl = new URL(href, window.location.origin);
+          if (targetUrl.pathname === window.location.pathname) {
+            window.location.href = href;
+            window.location.reload();
+          } else {
+            window.location.href = href;
+          }
+        } catch (err) {
+          window.location.href = href;
+        }
       }, 300);
     });
   });

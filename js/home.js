@@ -349,7 +349,7 @@ function renderProductCard(product) {
         <div class="product-card-category">${escapeHtml(getCategoryLabel(category))}</div>
         <h3 class="product-card-title">${escapeHtml(name)}</h3>
         <div class="product-card-rating">
-          <div class="stars">${starsHtml}</div>
+          <div class="stars" style="display: none !important;">${starsHtml}</div>
           <span class="rating-count">(${reviewCount > 0 ? reviewCount.toLocaleString('en-IN') : '—'})</span>
         </div>
         <div class="product-card-footer">

@@ -167,7 +167,7 @@ function renderWishlistCard(item, idx) {
           <a href="product.html?slug=${item.slug || item.id}" style="color:inherit; text-decoration:none;">${escapeHtml(item.name || '')}</a>
         </h3>
         <div class="wish-rating">
-          <span class="wish-stars">${renderStars(rating)}</span>
+          <span class="wish-stars" style="display: none !important;">${renderStars(rating)}</span>
           <span class="wish-review-count">(${reviewCount})</span>
         </div>
         <div class="wish-price-row">

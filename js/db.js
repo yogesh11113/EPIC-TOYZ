@@ -66,6 +66,16 @@ function uid() {
  */
 function mapSupabaseProduct(p) {
   if (!p) return null;
+  let resolvedCategory = p.categories?.slug;
+  if (!resolvedCategory && p.category_id) {
+    try {
+      const cats = LS.get('et_categories') || [];
+      const found = cats.find(c => String(c.id) === String(p.category_id));
+      if (found) resolvedCategory = found.slug;
+    } catch (e) {
+      console.warn('[DB] mapSupabaseProduct local category resolve failed:', e);
+    }
+  }
   return {
     ...p,
     originalPrice: p.original_price != null ? Number(p.original_price) : null,
@@ -79,9 +89,39 @@ function mapSupabaseProduct(p) {
     image: (p.images && p.images.length > 0) ? p.images[0] : 'assets/images/placeholder.jpg',
     specs: p.specifications || {},
     specifications: p.specifications || {},
-    category: p.categories?.slug || p.category_id || '',
+    category: resolvedCategory || p.category_id || p.category || '',
     categoryId: p.category_id || '',
   };
+}
+
+/**
+ * Executes a Supabase products query, safely retrying without the categories relation join if it fails.
+ * @param {function} buildQueryFn - Function that constructs query builder with select string
+ * @param {boolean} [isSingle=false]
+ * @returns {Promise<{data: any, error: any}>}
+ */
+async function queryProductsSafe(buildQueryFn, isSingle = false) {
+  try {
+    const qJoin = buildQueryFn('*, categories(id, name, slug)');
+    const result = isSingle ? await qJoin.single() : await qJoin;
+    if (!result.error) return result;
+
+    const err = result.error;
+    if (err.code === 'PGRST205' || err.status === 404 || err.message?.includes('categories') || err.message?.includes('relationship')) {
+      console.warn('[DB] Supabase categories join failed, retrying without join:', err.message);
+      const qPlain = buildQueryFn('*');
+      return isSingle ? await qPlain.single() : await qPlain;
+    }
+    return result;
+  } catch (e) {
+    console.warn('[DB] queryProductsSafe caught exception:', e);
+    try {
+      const qPlain = buildQueryFn('*');
+      return isSingle ? await qPlain.single() : await qPlain;
+    } catch (err2) {
+      return { data: null, error: err2 };
+    }
+  }
 }
 
 /**
@@ -173,34 +213,37 @@ const DB = {
   async getProducts(filters = {}) {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        let query = window.EpicSupabase.from('products').select('*, categories(id, name, slug)');
-        if (filters.category) {
-          const categories = await DB.getCategories();
-          const cat = categories.find(c => c.slug === filters.category || c.id === filters.category);
-          if (cat) {
-            query = query.eq('category_id', cat.id);
-          } else {
-            return [];
+        const categories = await DB.getCategories();
+        
+        const buildQuery = (selectStr) => {
+          let query = window.EpicSupabase.from('products').select(selectStr);
+          
+          if (filters.category) {
+            const cat = categories.find(c => c.slug === filters.category || c.id === filters.category);
+            if (cat) {
+              query = query.eq('category_id', cat.id);
+            }
           }
-        }
-        if (filters.badge)    query = query.eq('badge', filters.badge);
-        if (filters.featured) query = query.eq('is_featured', true);
-        if (filters.search)   query = query.ilike('name', `%${filters.search}%`);
-        if (filters.minPrice != null) query = query.gte('price', filters.minPrice);
-        if (filters.maxPrice != null) query = query.lte('price', filters.maxPrice);
+          if (filters.badge)    query = query.eq('badge', filters.badge);
+          if (filters.featured) query = query.eq('is_featured', true);
+          if (filters.search)   query = query.ilike('name', `%${filters.search}%`);
+          if (filters.minPrice != null) query = query.gte('price', filters.minPrice);
+          if (filters.maxPrice != null) query = query.lte('price', filters.maxPrice);
 
-        const sort = filters.sort || 'featured';
-        if (sort === 'price-asc')  query = query.order('price', { ascending: true });
-        else if (sort === 'price-desc') query = query.order('price', { ascending: false });
-        else if (sort === 'rating') query = query.order('rating', { ascending: false });
-        else if (sort === 'newest') query = query.order('created_at', { ascending: false });
-        else query = query.order('is_featured', { ascending: false });
+          const sort = filters.sort || 'featured';
+          if (sort === 'price-asc')  query = query.order('price', { ascending: true });
+          else if (sort === 'price-desc') query = query.order('price', { ascending: false });
+          else if (sort === 'rating') query = query.order('rating', { ascending: false });
+          else if (sort === 'newest') query = query.order('created_at', { ascending: false });
+          else query = query.order('is_featured', { ascending: false });
 
-        if (filters.limit) {
-          query = query.limit(filters.limit);
-        }
+          if (filters.limit) {
+            query = query.limit(filters.limit);
+          }
+          return query;
+        };
 
-        const { data, error } = await query;
+        const { data, error } = await queryProductsSafe(buildQuery);
         if (error) throw error;
         return (data || []).map(mapSupabaseProduct);
       } catch (err) {
@@ -222,8 +265,10 @@ const DB = {
   async getProductById(id) {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const { data, error } = await window.EpicSupabase
-          .from('products').select('*, categories(id, name, slug)').eq('id', id).single();
+        const buildQuery = (selectStr) => {
+          return window.EpicSupabase.from('products').select(selectStr).eq('id', id);
+        };
+        const { data, error } = await queryProductsSafe(buildQuery, true);
         if (error) throw error;
         return mapSupabaseProduct(data);
       } catch (err) {
@@ -241,8 +286,10 @@ const DB = {
   async getProductBySlug(slug) {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const { data, error } = await window.EpicSupabase
-          .from('products').select('*, categories(id, name, slug)').eq('slug', slug).single();
+        const buildQuery = (selectStr) => {
+          return window.EpicSupabase.from('products').select(selectStr).eq('slug', slug);
+        };
+        const { data, error } = await queryProductsSafe(buildQuery, true);
         if (error) throw error;
         return mapSupabaseProduct(data);
       } catch (err) {
@@ -261,10 +308,10 @@ const DB = {
     if (!ids || ids.length === 0) return [];
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const { data, error } = await window.EpicSupabase
-          .from('products')
-          .select('*, categories(id, name, slug)')
-          .in('id', ids);
+        const buildQuery = (selectStr) => {
+          return window.EpicSupabase.from('products').select(selectStr).in('id', ids);
+        };
+        const { data, error } = await queryProductsSafe(buildQuery);
         if (error) throw error;
         return (data || []).map(mapSupabaseProduct);
       } catch (err) {

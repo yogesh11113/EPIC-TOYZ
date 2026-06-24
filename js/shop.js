@@ -430,7 +430,7 @@ function renderProductCard(product) {
         ${stockHtml}
         <h3 class="product-name" onclick="window.location.href='product.html?slug=${slug}'">${name}</h3>
         <div class="product-card-rating">
-          <span class="stars">${starsHtml}</span>
+          <span class="stars" style="display: none !important;">${starsHtml}</span>
           <span class="rating-count">${rating.toFixed(1)} (${reviewCount})</span>
         </div>
         <div class="product-card-price">
