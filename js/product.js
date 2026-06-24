@@ -419,20 +419,7 @@ function buyNow() {
   window.location.href = 'checkout.html';
 }
 
-function orderViaWhatsApp() {
-  if (!currentProduct) return;
-  const total = (currentProduct.price || 0) * selectedQuantity;
-  const totalFormatted = total.toLocaleString('en-IN');
-  const msg = encodeURIComponent(
-    `Hi! I want to order:\n\n` +
-    `🛒 *${currentProduct.name}*\n` +
-    `Quantity: ${selectedQuantity}\n` +
-    `Price: ₹${(currentProduct.price || 0).toLocaleString('en-IN')} each\n` +
-    `Total: ₹${totalFormatted}\n\n` +
-    `Please confirm availability and delivery details. Thank you! 🙏`
-  );
-  window.open(`https://wa.me/916383793890?text=${msg}`, '_blank', 'noopener,noreferrer');
-}
+
 
 /* =====================================================================
    WISHLIST
