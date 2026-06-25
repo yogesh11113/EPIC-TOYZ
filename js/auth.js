@@ -49,45 +49,45 @@ const Auth = {
    * @returns {Promise<{ user: object, error: string|null }>}
    */
   async login(email, password) {
+    console.log('[Auth] login() called with email:', email);
+
     // ── Supabase path ──────────────────────────────────────────────────
     if (isSupabaseConfigured() && window.EpicSupabase) {
+      console.log('[Auth] Supabase is configured — attempting Supabase login...');
       try {
         const { data, error } = await window.EpicSupabase.auth.signInWithPassword({
           email: email.trim().toLowerCase(),
           password,
         });
         if (error) {
-          // If credentials are simply wrong in Supabase (user not yet created),
-          // fall through to the local admin fallback below instead of failing hard.
-          const isCredErr = error.message?.toLowerCase().includes('invalid') ||
-                            error.message?.toLowerCase().includes('credentials') ||
-                            error.status === 400;
-          if (!isCredErr) {
-            // Only hard-fail for non-credential errors (network, server, etc.)
-            console.error('[Auth] Supabase login error (non-credential):', error.message);
-            return { user: null, error: error.message || 'Login failed. Please try again.' };
-          }
-          console.warn('[Auth] Supabase login failed (credential error) — trying local fallback:', error.message);
-          // Fall through to local credential check below
-        } else {
+          // ALL Supabase errors now fall through to local fallback.
+          // This prevents hard-fails from invalid API keys, network errors, etc.
+          console.warn('[Auth] Supabase login error — falling through to local fallback:', error.message, '(status:', error.status, ')');
+        } else if (data && data.user) {
+          console.log('[Auth] ✅ Supabase login succeeded for:', data.user.email);
           const user = this._normaliseUser(data.user);
           this._storeSession(user, data.session?.access_token);
           this.updateNavbarAuth();
           return { user, error: null };
+        } else {
+          console.warn('[Auth] Supabase login returned no error but no user — falling through to local fallback');
         }
       } catch (err) {
-        console.warn('[Auth] Supabase signInWithPassword threw — trying local fallback:', err.message);
-        // Fall through to local credential check below
+        console.warn('[Auth] Supabase signInWithPassword threw — falling through to local fallback:', err.message);
       }
+    } else {
+      console.log('[Auth] Supabase not configured or client not available — using local auth');
     }
 
     // ── localStorage / admin fallback ──────────────────────────────────
     const normalEmail = email.trim().toLowerCase();
+    console.log('[Auth] Trying local credential check for:', normalEmail);
 
     if (
       normalEmail === this.ADMIN_EMAIL.toLowerCase() &&
       password    === this.ADMIN_PASSWORD
     ) {
+      console.log('[Auth] ✅ Admin credentials matched (local fallback)');
       const user = {
         id:        'admin-001',
         email:     this.ADMIN_EMAIL,
@@ -104,12 +104,14 @@ const Auth = {
     const users = JSON.parse(localStorage.getItem('et_users') || '[]');
     const found = users.find(u => u.email.toLowerCase() === normalEmail && u.password === password);
     if (found) {
-      const { password: _pw, ...safeUser } = found; // never expose password
+      console.log('[Auth] ✅ Local user matched:', found.email);
+      const { password: _pw, ...safeUser } = found;
       this._storeSession(safeUser, `local-token-${safeUser.id}`);
       this.updateNavbarAuth();
       return { user: safeUser, error: null };
     }
 
+    console.warn('[Auth] ❌ Login failed — no matching credentials found');
     return { user: null, error: 'Invalid email or password.' };
   },
 
@@ -207,22 +209,39 @@ const Auth = {
     // Try Supabase session first
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        // For synchronous access we rely on the cached localStorage copy
-        // (Supabase persists its session there automatically).
-        const raw = localStorage.getItem('sb-' + (window.SUPABASE_CONFIG?.url?.split('//')[1]?.split('.')[0]) + '-auth-token');
+        const sbKey = 'sb-' + (window.SUPABASE_CONFIG?.url?.split('//')[1]?.split('.')[0]) + '-auth-token';
+        const raw = localStorage.getItem(sbKey);
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (parsed?.user) return this._normaliseUser(parsed.user);
+          if (parsed?.user) {
+            console.log('[Auth] getCurrentUser: found Supabase session for:', parsed.user.email);
+            return this._normaliseUser(parsed.user);
+          }
         }
-      } catch { /* fall through */ }
+      } catch (e) {
+        console.warn('[Auth] getCurrentUser: error reading Supabase session:', e.message);
+      }
     }
 
     // Local session fallback
     try {
       const session = JSON.parse(localStorage.getItem(this.SESSION_KEY));
-      if (session && session.user) return session.user;
-    } catch { /* fall through */ }
+      if (session && session.user) {
+        // Check if session has expired
+        if (session.expiresAt && Date.now() > session.expiresAt) {
+          console.warn('[Auth] getCurrentUser: local session expired, clearing');
+          localStorage.removeItem(this.SESSION_KEY);
+          localStorage.removeItem(this.USER_KEY);
+          return null;
+        }
+        console.log('[Auth] getCurrentUser: found local session for:', session.user.email, '(role:', session.user.role, ')');
+        return session.user;
+      }
+    } catch (e) {
+      console.warn('[Auth] getCurrentUser: error reading local session:', e.message);
+    }
 
+    console.log('[Auth] getCurrentUser: no session found');
     return null;
   },
 
@@ -257,15 +276,19 @@ const Auth = {
    * @returns {boolean} true if allowed to continue
    */
   requireAdmin() {
+    console.log('[Auth] requireAdmin() check...');
     const user = this.getCurrentUser();
     if (!user) {
+      console.warn('[Auth] requireAdmin: no user found — redirecting to admin login');
       window.location.href = this._getPath('admin-login');
       return false;
     }
     if (!this.isAdmin(user.email)) {
+      console.warn('[Auth] requireAdmin: user is not admin — redirecting to home');
       window.location.href = this._getPath('home');
       return false;
     }
+    console.log('[Auth] requireAdmin: ✅ admin access granted for:', user.email);
     return true;
   },
 
@@ -376,9 +399,11 @@ const Auth = {
    * @param {string} token
    */
   _storeSession(user, token) {
+    console.log('[Auth] _storeSession: storing session for:', user.email, '(role:', user.role, ')');
     const session = { user, token, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 };
     localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
     localStorage.setItem(this.USER_KEY,    JSON.stringify(user));
+    console.log('[Auth] _storeSession: ✅ session stored in', this.SESSION_KEY);
   },
 };
 

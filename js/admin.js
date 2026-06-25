@@ -272,38 +272,87 @@ async function safeGetReviews() {
 // ─────────────────────────────────────────────────────────
 
 function checkAdminAuth() {
-  // Try Auth module first
-  if (window.Auth) {
-    if (typeof Auth.requireAdmin === 'function') {
-      try { return Auth.requireAdmin(); } catch (e) {}
-    }
-    if (typeof Auth.isAdmin === 'function') {
-      const email = localStorage.getItem('et_admin_email') || '';
-      if (!email || !Auth.isAdmin(email)) {
-        window.location.href = 'login.html';
-        return false;
+  console.log('[Admin] checkAdminAuth() running...');
+
+  // ── Strategy: check ALL session sources before redirecting. ──
+  // This prevents redirect loops caused by one store having a session
+  // while the other doesn't.
+
+  const ADMIN_EMAIL_ADDR = 'epictoyz.in@gmail.com';
+  let authenticatedAdmin = false;
+
+  // 1. Check Auth module session (et_session)
+  if (window.Auth && typeof Auth.getCurrentUser === 'function') {
+    try {
+      const user = Auth.getCurrentUser();
+      if (user) {
+        console.log('[Admin] checkAdminAuth: Auth module found user:', user.email);
+        if (Auth.isAdmin(user.email)) {
+          authenticatedAdmin = true;
+          console.log('[Admin] checkAdminAuth: ✅ Auth module confirms admin');
+        } else {
+          console.warn('[Admin] checkAdminAuth: user is not admin — redirecting home');
+          window.location.href = '../index.html';
+          return false;
+        }
       }
-      return true;
+    } catch (e) {
+      console.warn('[Admin] checkAdminAuth: Auth module threw:', e.message);
     }
   }
-  // Fallback: check localStorage
-  const adminSession = localStorage.getItem('et_admin_session');
-  if (!adminSession) {
-    window.location.href = 'login.html';
-    return false;
-  }
-  try {
-    const session = JSON.parse(adminSession);
-    if (session.email !== 'epictoyz.in@gmail.com' || Date.now() > session.expires) {
-      localStorage.removeItem('et_admin_session');
-      window.location.href = 'login.html';
-      return false;
+
+  // 2. Check et_admin_session (admin.js's own session)
+  if (!authenticatedAdmin) {
+    try {
+      const raw = localStorage.getItem('et_admin_session');
+      if (raw) {
+        const session = JSON.parse(raw);
+        if (session.email && session.email.toLowerCase() === ADMIN_EMAIL_ADDR && Date.now() < session.expires) {
+          authenticatedAdmin = true;
+          console.log('[Admin] checkAdminAuth: ✅ et_admin_session is valid');
+
+          // Synchronize: also store in Auth module's session so Auth.getCurrentUser works
+          if (window.Auth && typeof Auth._storeSession === 'function') {
+            const existingAuthSession = localStorage.getItem('et_session');
+            if (!existingAuthSession) {
+              console.log('[Admin] checkAdminAuth: syncing et_admin_session → et_session');
+              Auth._storeSession({
+                id: 'admin-001',
+                email: ADMIN_EMAIL_ADDR,
+                name: 'Admin',
+                role: 'admin',
+                createdAt: session.loginTime || new Date().toISOString(),
+              }, 'local-admin-token');
+            }
+          }
+        } else {
+          console.warn('[Admin] checkAdminAuth: et_admin_session expired or invalid, clearing');
+          localStorage.removeItem('et_admin_session');
+        }
+      }
+    } catch (e) {
+      console.warn('[Admin] checkAdminAuth: error reading et_admin_session:', e.message);
     }
+  }
+
+  // 3. Check et_admin_email fallback
+  if (!authenticatedAdmin) {
+    const email = localStorage.getItem('et_admin_email') || '';
+    if (email && email.toLowerCase() === ADMIN_EMAIL_ADDR) {
+      console.log('[Admin] checkAdminAuth: ✅ et_admin_email found, granting access');
+      authenticatedAdmin = true;
+    }
+  }
+
+  // ── Final verdict ──
+  if (authenticatedAdmin) {
+    console.log('[Admin] checkAdminAuth: ✅ Admin authenticated successfully');
     return true;
-  } catch {
-    window.location.href = 'login.html';
-    return false;
   }
+
+  console.warn('[Admin] checkAdminAuth: ❌ No valid admin session — redirecting to login');
+  window.location.href = 'login.html';
+  return false;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -327,8 +376,14 @@ const Admin = {
   // ══════════════════════════════════════════
 
   async init() {
+    console.log('[Admin] Admin.init() starting...');
     // Auth guard
-    if (!checkAdminAuth()) return;
+    if (!checkAdminAuth()) {
+      console.warn('[Admin] Auth guard failed — stopping init');
+      return;
+    }
+
+    console.log('[Admin] ✅ Auth guard passed — loading dashboard');
 
     // Hide page loader
     setTimeout(() => {
@@ -341,6 +396,7 @@ const Admin = {
     this.initNav();
     this.startClock();
     await this.loadSection('dashboard');
+    console.log('[Admin] ✅ Dashboard fully loaded');
   },
 
   // ══════════════════════════════════════════
@@ -1860,38 +1916,55 @@ const ADMIN_PASSWORD = 'yogesh123*';
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 function initAdminLogin() {
-  // Check if already logged in → redirect
-  const session = localStorage.getItem('et_admin_session');
-  if (session) {
-    try {
-      const parsed = JSON.parse(session);
-      if (parsed.email === ADMIN_EMAIL && Date.now() < parsed.expires) {
-        window.location.href = 'dashboard.html';
-        return;
-      }
-    } catch (e) {}
-    localStorage.removeItem('et_admin_session');
-  }
+  console.log('[Login] initAdminLogin() starting...');
 
-  // Check Auth module session
-  if (window.Auth) {
-    try {
-      if (typeof Auth.getCurrentUser === 'function') {
+  // Check if already logged in → redirect to dashboard
+  // But prevent redirect loops: if we just came from dashboard, don't redirect back
+  const cameFromDashboard = document.referrer && document.referrer.includes('dashboard');
+
+  if (!cameFromDashboard) {
+    // Check et_admin_session
+    const session = localStorage.getItem('et_admin_session');
+    if (session) {
+      try {
+        const parsed = JSON.parse(session);
+        if (parsed.email && parsed.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && Date.now() < parsed.expires) {
+          console.log('[Login] Valid et_admin_session found — redirecting to dashboard');
+          window.location.href = 'dashboard.html';
+          return;
+        }
+      } catch (e) {
+        console.warn('[Login] Error parsing et_admin_session:', e.message);
+      }
+      localStorage.removeItem('et_admin_session');
+    }
+
+    // Check Auth module session
+    if (window.Auth && typeof Auth.getCurrentUser === 'function') {
+      try {
         const user = Auth.getCurrentUser();
         if (user) {
-          if (Auth.isAdmin(user.email)) {
+          console.log('[Login] Auth module found existing user:', user.email);
+          if (typeof Auth.isAdmin === 'function' && Auth.isAdmin(user.email)) {
+            console.log('[Login] User is admin — redirecting to dashboard');
             window.location.href = 'dashboard.html';
             return;
           } else {
+            console.log('[Login] User is not admin — redirecting to home');
             window.location.href = '../index.html';
             return;
           }
         }
+      } catch (e) {
+        console.warn('[Login] Error checking Auth module:', e.message);
       }
-    } catch (e) {}
+    }
+  } else {
+    console.log('[Login] Came from dashboard — skipping auto-redirect to prevent loop');
   }
 
   // Hide loader, show form
+  console.log('[Login] Showing login form');
   const loader = document.getElementById('loading-overlay');
   const container = document.getElementById('login-container');
   if (loader) {
@@ -1905,6 +1978,7 @@ function initAdminLogin() {
   if (loginForm) {
     loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
+      console.log('[Login] Form submitted');
 
       const emailInput = document.getElementById('admin-email');
       const passwordInput = document.getElementById('admin-password');
@@ -1916,7 +1990,10 @@ function initAdminLogin() {
       const password = passwordInput.value;
 
       // Hide error
-      if (errorEl) errorEl.classList.add('hidden');
+      if (errorEl) {
+        errorEl.classList.remove('visible');
+        errorEl.classList.add('hidden');
+      }
 
       // Disable button, show spinner
       if (btn) {
@@ -1924,55 +2001,88 @@ function initAdminLogin() {
         btn.innerHTML = '<span class="btn-spinner"></span> Signing in...';
       }
 
-      // Simulate brief loading
-      await new Promise(r => setTimeout(r, 600));
+      // Brief loading indicator
+      await new Promise(r => setTimeout(r, 500));
 
-      let isAdmin = false;
+      let isAdminUser = false;
       let loginOk = false;
+      let loginError = null;
 
+      // ── Try Auth module login ──
       try {
-        // Try Auth module
         if (window.Auth && typeof Auth.login === 'function') {
+          console.log('[Login] Calling Auth.login()...');
           const result = await Auth.login(email, password);
+          console.log('[Login] Auth.login() result:', result.user ? 'success' : 'failed', result.error || '');
           if (result && result.user) {
             loginOk = true;
-            isAdmin = Auth.isAdmin(email);
+            isAdminUser = (typeof Auth.isAdmin === 'function') ? Auth.isAdmin(email) : false;
+            console.log('[Login] Auth.login succeeded, isAdmin:', isAdminUser);
+          } else {
+            loginError = result?.error || 'Login failed.';
           }
         }
       } catch (authErr) {
-        console.warn('Auth module failed, using local credential check', authErr);
+        console.warn('[Login] Auth.login() threw:', authErr.message);
+        loginError = authErr.message;
       }
 
-      // Fallback: local credential check
+      // ── Fallback: local credential check ──
       if (!loginOk) {
-        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        console.log('[Login] Trying direct credential check...');
+        const normalEmail = email.toLowerCase();
+        if (normalEmail === ADMIN_EMAIL.toLowerCase() && password === ADMIN_PASSWORD) {
           loginOk = true;
-          isAdmin = true;
+          isAdminUser = true;
+          loginError = null;
+          console.log('[Login] ✅ Direct credential match succeeded');
+
+          // CRITICAL: also store in Auth module's session to prevent redirect loop
+          if (window.Auth && typeof Auth._storeSession === 'function') {
+            Auth._storeSession({
+              id: 'admin-001',
+              email: ADMIN_EMAIL,
+              name: 'Admin',
+              role: 'admin',
+              createdAt: new Date().toISOString(),
+            }, 'local-admin-token');
+            console.log('[Login] Synced session to Auth module (et_session)');
+          }
         }
       }
 
+      // ── Handle result ──
       if (loginOk) {
-        if (isAdmin) {
-          // Store session
+        console.log('[Login] ✅ Login successful! isAdmin:', isAdminUser);
+
+        // Always store et_admin_session for admin users
+        if (isAdminUser) {
           const sessionData = {
-            email,
+            email: email.toLowerCase(),
             expires: Date.now() + SESSION_DURATION_MS,
             loginTime: new Date().toISOString(),
           };
           localStorage.setItem('et_admin_session', JSON.stringify(sessionData));
-          localStorage.setItem('et_admin_email', email);
+          localStorage.setItem('et_admin_email', email.toLowerCase());
+          console.log('[Login] Stored et_admin_session and et_admin_email');
 
-          if (btn) btn.innerHTML = '✅ Redirecting...';
+          if (btn) btn.innerHTML = '✅ Redirecting to dashboard...';
+          console.log('[Login] Redirecting to dashboard.html...');
           setTimeout(() => { window.location.href = 'dashboard.html'; }, 400);
         } else {
           if (btn) btn.innerHTML = '✅ Redirecting...';
+          console.log('[Login] Non-admin user — redirecting to home');
           setTimeout(() => { window.location.href = '../index.html'; }, 400);
         }
       } else {
         // Show error
-        const msg = 'Invalid email or password. Please try again.';
+        console.warn('[Login] ❌ Login failed:', loginError);
+        const msg = loginError || 'Invalid email or password. Please try again.';
         if (errorText) errorText.textContent = msg;
-        if (errorEl) errorEl.classList.remove('hidden');
+        if (errorEl) {
+          errorEl.classList.remove('hidden');
+          errorEl.classList.add('visible');
+        }
 
         if (btn) {
           btn.disabled = false;
@@ -2067,11 +2177,16 @@ function initAdminLogin() {
 
 document.addEventListener('DOMContentLoaded', () => {
   const path = window.location.pathname;
+  console.log('[Admin] DOMContentLoaded — pathname:', path);
 
   if (path.includes('dashboard')) {
+    console.log('[Admin] Detected dashboard page — calling Admin.init()');
     Admin.init();
   } else if (path.includes('login')) {
+    console.log('[Admin] Detected login page — calling initAdminLogin()');
     initAdminLogin();
+  } else {
+    console.log('[Admin] admin.js loaded on non-admin page — no init needed');
   }
 });
 
