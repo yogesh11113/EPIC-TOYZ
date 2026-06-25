@@ -1068,11 +1068,11 @@ const Admin = {
     let successCount = 0;
     try {
       for (const product of queue) {
-        let success = false;
-        if (window.DB && typeof DB.createProduct === 'function') {
-          try { await DB.createProduct(product); success = true; } catch (e) {}
+        if (isSupabaseConfigured()) {
+          await DB.createProduct(product);
+        } else {
+          LocalDB.createProduct(product);
         }
-        if (!success) LocalDB.createProduct(product);
         successCount++;
       }
       Toast.success(`Successfully posted all ${successCount} products!`);
@@ -1080,7 +1080,8 @@ const Admin = {
       this.updateQueueButton();
       await this.renderProducts(this._productSearch, this._productPage);
     } catch (e) {
-      Toast.error('Failed to post some queued products: ' + (e.message || 'Unknown error'));
+      console.error('[Admin] postQueuedProducts failed:', e);
+      Toast.error('Failed to post queued products: ' + (e.message || 'Unknown error'));
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -1190,25 +1191,25 @@ const Admin = {
 
     try {
       if (isEdit) {
-        // Try DB module
-        let success = false;
-        if (window.DB && typeof DB.updateProduct === 'function') {
-          try { await DB.updateProduct(id, data); success = true; } catch (e) {}
+        if (isSupabaseConfigured()) {
+          await DB.updateProduct(id, data);
+        } else {
+          LocalDB.updateProduct(id, data);
         }
-        if (!success) LocalDB.updateProduct(id, data);
         Toast.success('Product updated successfully!');
       } else {
-        let success = false;
-        if (window.DB && typeof DB.createProduct === 'function') {
-          try { await DB.createProduct(data); success = true; } catch (e) {}
+        if (isSupabaseConfigured()) {
+          await DB.createProduct(data);
+        } else {
+          LocalDB.createProduct(data);
         }
-        if (!success) LocalDB.createProduct(data);
         Toast.success('Product added successfully!');
       }
 
       this.closeModal('product-modal-backdrop');
       await this.renderProducts(this._productSearch, this._productPage);
     } catch (e) {
+      console.error('[Admin] saveProduct failed:', e);
       Toast.error('Failed to save product: ' + (e.message || 'Unknown error'));
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = isEdit ? '💾 Update Product' : '💾 Save Product'; }
@@ -1218,15 +1219,16 @@ const Admin = {
   async deleteProduct(id) {
     this.confirm('Delete this product? This action cannot be undone.', 'Delete Product', async () => {
       try {
-        let success = false;
-        if (window.DB && typeof DB.deleteProduct === 'function') {
-          try { await DB.deleteProduct(id); success = true; } catch (e) {}
+        if (isSupabaseConfigured()) {
+          await DB.deleteProduct(id);
+        } else {
+          LocalDB.deleteProduct(id);
         }
-        if (!success) LocalDB.deleteProduct(id);
-        Toast.success('Product deleted');
+        Toast.success('Product deleted successfully!');
         await this.renderProducts(this._productSearch, this._productPage);
       } catch (e) {
-        Toast.error('Failed to delete product');
+        console.error('[Admin] deleteProduct failed:', e);
+        Toast.error('Failed to delete product: ' + (e.message || 'Unknown error'));
       }
     });
   },

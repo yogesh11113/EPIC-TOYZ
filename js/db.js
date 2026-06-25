@@ -258,6 +258,7 @@ const DB = {
 
         const { data, error } = await queryProductsSafe(buildQuery);
         if (error) throw error;
+        console.log('[DB] Supabase getProducts returned count:', data ? data.length : 0);
         return (data || []).map(mapSupabaseProduct);
       } catch (err) {
         console.warn('[DB] Supabase getProducts failed, using localStorage:', err.message);
@@ -355,13 +356,98 @@ const DB = {
   },
 
   /**
-   * Fetch bestsellers.
-   * @param {number} [limit=8]
-   * @returns {Promise<object[]>}
+   * Helper to convert a string to a URL-friendly slug.
    */
-  async getBestSellers(limit = 8) {
-    const products = await this.getProducts({ badge: 'bestseller', sort: 'rating' });
-    return products.slice(0, limit);
+  _slugify(str) {
+    return (str || '')
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-');
+  },
+
+  /**
+   * Maps a camelCase client product object to a snake_case database columns object.
+   */
+  _mapClientToSupabaseProduct(data) {
+    if (!data) return null;
+    const p = {};
+
+    if (data.id) p.id = data.id;
+    if (data.name) {
+      p.name = data.name;
+      p.slug = data.slug || this._slugify(data.name);
+    } else if (data.slug) {
+      p.slug = data.slug;
+    }
+
+    if (data.description !== undefined) p.description = data.description;
+    
+    if (data.shortDescription !== undefined) p.short_description = data.shortDescription;
+    else if (data.short_description !== undefined) p.short_description = data.short_description;
+
+    if (data.price !== undefined) {
+      p.price = isNaN(Number(data.price)) ? 0 : Number(data.price);
+    }
+    
+    if (data.originalPrice !== undefined) {
+      p.original_price = (data.originalPrice !== null && !isNaN(Number(data.originalPrice))) ? Number(data.originalPrice) : null;
+    } else if (data.original_price !== undefined) {
+      p.original_price = (data.original_price !== null && !isNaN(Number(data.original_price))) ? Number(data.original_price) : null;
+    }
+
+    const rawCat = data.categoryId || data.category_id || data.category;
+    if (rawCat) {
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(rawCat).trim());
+      if (isUUID) {
+        p.category_id = String(rawCat).trim();
+      } else {
+        try {
+          const cats = LS.get('et_categories') || [];
+          const found = cats.find(c => c.slug === rawCat || c.name === rawCat);
+          if (found) p.category_id = found.id;
+        } catch (e) {
+          console.warn('[DB] Failed to resolve category UUID for:', rawCat, e);
+        }
+      }
+    }
+
+    if (Array.isArray(data.images)) {
+      p.images = data.images;
+    } else if (data.image) {
+      p.images = [data.image];
+    } else if (data.images) {
+      p.images = typeof data.images === 'string' ? [data.images] : [];
+    }
+
+    if (data.specifications !== undefined) p.specifications = data.specifications;
+    else if (data.specs !== undefined) p.specifications = data.specs;
+
+    if (data.features !== undefined) p.features = data.features;
+    if (data.badge !== undefined) p.badge = data.badge;
+
+    if (data.isFeatured !== undefined) p.is_featured = !!data.isFeatured;
+    else if (data.featured !== undefined) p.is_featured = !!data.featured;
+    else if (data.is_featured !== undefined) p.is_featured = !!data.is_featured;
+
+    if (data.isActive !== undefined) p.is_active = !!data.isActive;
+    else if (data.is_active !== undefined) p.is_active = !!data.is_active;
+
+    let stockVal = 0;
+    if (data.stockQuantity !== undefined) stockVal = Number(data.stockQuantity);
+    else if (data.stock !== undefined) stockVal = Number(data.stock);
+    else if (data.stock_quantity !== undefined) stockVal = Number(data.stock_quantity);
+    p.stock_quantity = isNaN(stockVal) ? 0 : stockVal;
+
+    if (data.rating !== undefined) p.rating = isNaN(Number(data.rating)) ? 0 : Number(data.rating);
+    
+    let revCount = 0;
+    if (data.reviewsCount !== undefined) revCount = Number(data.reviewsCount);
+    else if (data.review_count !== undefined) revCount = Number(data.review_count);
+    p.review_count = isNaN(revCount) ? 0 : revCount;
+
+    return p;
   },
 
   /**
@@ -372,15 +458,42 @@ const DB = {
   async createProduct(data) {
     const newProduct = { ...data, id: data.id || uid(), createdAt: new Date().toISOString() };
     if (isSupabaseConfigured() && window.EpicSupabase) {
-      try {
-        const { data: result, error } = await window.EpicSupabase
-          .from('products').insert([newProduct]).select().single();
-        if (error) throw error;
-        return result;
-      } catch (err) {
-        console.warn('[DB] Supabase createProduct failed:', err.message);
+      const dbProduct = this._mapClientToSupabaseProduct(newProduct);
+      console.log('[DB] Supabase product insert request payload:', dbProduct);
+
+      const { data: result, error } = await window.EpicSupabase
+        .from('products')
+        .insert([dbProduct])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[DB] Supabase product insert failed:', error);
+        throw new Error(error.message || JSON.stringify(error));
       }
+
+      console.log('[DB] Supabase product insert succeeded. Record:', result, 'ID:', result.id);
+
+      // Also upsert inventory row to keep the inventory table in sync
+      const stockQty = dbProduct.stock_quantity ?? 0;
+      try {
+        const { error: invErr } = await window.EpicSupabase
+          .from('inventory')
+          .upsert({ product_id: result.id, quantity: stockQty }, { onConflict: 'product_id' });
+        if (invErr) {
+          console.warn('[DB] Supabase inventory auto-upsert failed for product:', result.id, invErr);
+        } else {
+          console.log('[DB] Supabase inventory auto-upsert succeeded for product:', result.id, 'quantity:', stockQty);
+        }
+      } catch (invEx) {
+        console.warn('[DB] Supabase inventory auto-upsert threw exception:', invEx);
+      }
+
+      return mapSupabaseProduct(result);
     }
+
+    // Local fallback when Supabase is not configured
+    console.log('[DB] Supabase not configured — falling back to localStorage');
     const products = lsProducts();
     products.push(newProduct);
     LS.set(KEYS.PRODUCTS, products);
@@ -396,15 +509,44 @@ const DB = {
   async updateProduct(id, data) {
     const updated = { ...data, updatedAt: new Date().toISOString() };
     if (isSupabaseConfigured() && window.EpicSupabase) {
-      try {
-        const { data: result, error } = await window.EpicSupabase
-          .from('products').update(updated).eq('id', id).select().single();
-        if (error) throw error;
-        return result;
-      } catch (err) {
-        console.warn('[DB] Supabase updateProduct failed:', err.message);
+      const dbProduct = this._mapClientToSupabaseProduct(updated);
+      console.log('[DB] Supabase product update request payload for ID:', id, dbProduct);
+
+      const { data: result, error } = await window.EpicSupabase
+        .from('products')
+        .update(dbProduct)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[DB] Supabase product update failed:', error);
+        throw new Error(error.message || JSON.stringify(error));
       }
+
+      console.log('[DB] Supabase product update succeeded. Record:', result);
+
+      // Keep inventory table in sync on stock update
+      if (dbProduct.stock_quantity !== undefined) {
+        try {
+          const { error: invErr } = await window.EpicSupabase
+            .from('inventory')
+            .upsert({ product_id: id, quantity: dbProduct.stock_quantity }, { onConflict: 'product_id' });
+          if (invErr) {
+            console.warn('[DB] Supabase inventory auto-update failed for product:', id, invErr);
+          } else {
+            console.log('[DB] Supabase inventory auto-update succeeded for product:', id, 'quantity:', dbProduct.stock_quantity);
+          }
+        } catch (invEx) {
+          console.warn('[DB] Supabase inventory auto-update threw exception:', invEx);
+        }
+      }
+
+      return mapSupabaseProduct(result);
     }
+
+    // Local fallback when Supabase is not configured
+    console.log('[DB] Supabase not configured — falling back to localStorage');
     const products = lsProducts();
     const idx = products.findIndex(p => String(p.id) === String(id));
     if (idx === -1) return null;
@@ -420,15 +562,24 @@ const DB = {
    */
   async deleteProduct(id) {
     if (isSupabaseConfigured() && window.EpicSupabase) {
-      try {
-        const { error } = await window.EpicSupabase
-          .from('products').delete().eq('id', id);
-        if (error) throw error;
-        return true;
-      } catch (err) {
-        console.warn('[DB] Supabase deleteProduct failed:', err.message);
+      console.log('[DB] Supabase product delete request for ID:', id);
+
+      const { error } = await window.EpicSupabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('[DB] Supabase product delete failed:', error);
+        throw new Error(error.message || JSON.stringify(error));
       }
+
+      console.log('[DB] Supabase product delete succeeded for ID:', id);
+      return true;
     }
+
+    // Local fallback when Supabase is not configured
+    console.log('[DB] Supabase not configured — falling back to localStorage');
     const products = lsProducts().filter(p => String(p.id) !== String(id));
     LS.set(KEYS.PRODUCTS, products);
     return true;
