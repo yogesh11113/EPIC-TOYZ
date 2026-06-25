@@ -32,19 +32,26 @@
 
   /* Compact Categories cards for mobile */
   .category-card {
-    padding: 16px 12px !important;
-    gap: 8px !important;
+    /* no extra padding needed — cover image handles spacing */
   }
   .category-card-icon {
-    width: 50px !important;
-    height: 50px !important;
+    width: 56px !important;
+    height: 56px !important;
     font-size: 22px !important;
+    margin: 18px auto 8px !important;
+  }
+  .category-card-img-cover {
+    aspect-ratio: 4/3 !important;
   }
   .category-card-name {
-    font-size: 13px !important;
+    font-size: 12px !important;
+  }
+  .category-card-body {
+    padding: 10px 10px 14px !important;
+    gap: 4px !important;
   }
   .category-card-desc {
-    display: none !important; /* Hide description on mobile to keep layout clean and compact */
+    display: none !important; /* Hide description on mobile to keep layout clean */
   }
 
   /* Navbar */
@@ -509,3 +516,64 @@
     min-height: auto !important;
   }
 }
+
+/* ============================================================
+   CART PAGE MOBILE RESPONSIVENESS
+   ============================================================ */
+@media (max-width: 767px) {
+  .cart-layout {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  .cart-items-header {
+    display: none !important;
+  }
+  .cart-item {
+    grid-template-columns: 72px 1fr !important;
+    gap: 12px !important;
+    padding: 16px 12px !important;
+    position: relative;
+    align-items: flex-start !important;
+  }
+  .cart-item-details {
+    grid-column: 2 / 3;
+    padding-right: 32px;
+  }
+  .qty-control {
+    grid-column: 2 / 3;
+    margin-top: 8px;
+  }
+  .cart-item-price {
+    grid-column: 2 / 3;
+    margin-top: 8px;
+    font-size: 0.95rem !important;
+  }
+  .btn-remove {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+}
+
+/* ============================================================
+   CHECKOUT PAGE MOBILE RESPONSIVENESS
+   ============================================================ */
+@media (max-width: 1023px) {
+  .checkout-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+@media (max-width: 767px) {
+  .checkout-step {
+    padding: 20px 16px !important;
+  }
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .steps-bar {
+    gap: 8px !important;
+  }
+}
+

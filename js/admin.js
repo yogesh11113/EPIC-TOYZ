@@ -773,11 +773,17 @@ const Admin = {
     this.addSpecRow(); // Start with one empty row
     this.addFeatureRow();
 
-    // Populate category dropdown
+    // Populate category checkboxes
     const categories = await safeGetCategories();
-    const catSelect = document.getElementById('product-category');
-    catSelect.innerHTML = '<option value="">Select Category</option>' +
-      categories.map(c => `<option value="${esc(String(c.id))}">${esc(c.name)}</option>`).join('');
+    const catContainer = document.getElementById('product-categories-container');
+    if (catContainer) {
+      catContainer.innerHTML = categories.map(c => `
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#fff; margin-bottom:4px;">
+          <input type="checkbox" name="product-categories" value="${esc(String(c.id))}">
+          <span>${esc(c.name)}</span>
+        </label>
+      `).join('');
+    }
 
     if (isEdit) {
       // Load product data
@@ -792,7 +798,19 @@ const Admin = {
 
       document.getElementById('product-id').value = product.id;
       document.getElementById('product-name').value = product.name || '';
-      document.getElementById('product-category').value = product.categoryId || product.category || '';
+
+      // Select the active checkboxes
+      const categoriesArray = product.categories || (product.categoryId ? [product.categoryId] : (product.category ? [product.category] : []));
+      const mappedCatsArray = categoriesArray.map(catVal => {
+        const found = categories.find(c => String(c.id) === String(catVal) || c.slug === String(catVal));
+        return found ? String(found.id) : String(catVal);
+      });
+      document.querySelectorAll('#product-categories-container input[type="checkbox"]').forEach(cb => {
+        cb.checked = mappedCatsArray.includes(cb.value);
+      });
+      // Update hidden fallback
+      document.getElementById('product-category').value = mappedCatsArray[0] || '';
+
       document.getElementById('product-badge').value = product.badge || '';
       document.getElementById('product-price').value = product.price || '';
       document.getElementById('product-original-price').value = product.originalPrice || '';
@@ -981,7 +999,8 @@ const Admin = {
 
   queueProduct() {
     const name = document.getElementById('product-name').value.trim();
-    const category = document.getElementById('product-category').value;
+    const selectedCategories = this.getSelectedCategoriesFromForm();
+    const category = selectedCategories[0] || '';
     const badge = document.getElementById('product-badge').value;
     const price = parseFloat(document.getElementById('product-price').value);
     const originalPrice = parseFloat(document.getElementById('product-original-price').value) || null;
@@ -995,7 +1014,7 @@ const Admin = {
     const features = this.getFeaturesFromForm();
 
     if (!name) { Toast.error('Product name is required'); return; }
-    if (!category) { Toast.error('Please select a category'); return; }
+    if (!category) { Toast.error('Please select at least one category'); return; }
     if (isNaN(price) || price < 0) { Toast.error('Please enter a valid price'); return; }
     if (isNaN(stock) || stock < 0) { Toast.error('Please enter a valid stock quantity'); return; }
 
@@ -1003,6 +1022,7 @@ const Admin = {
       name,
       categoryId: category,
       category,
+      categories: selectedCategories,
       badge: badge || null,
       price,
       originalPrice,
@@ -1143,12 +1163,18 @@ const Admin = {
     return features;
   },
 
+  getSelectedCategoriesFromForm() {
+    const checkboxes = document.querySelectorAll('#product-categories-container input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+  },
+
   async saveProduct() {
     const id = document.getElementById('product-id').value;
     const isEdit = !!id;
 
     const name = document.getElementById('product-name').value.trim();
-    const category = document.getElementById('product-category').value;
+    const selectedCategories = this.getSelectedCategoriesFromForm();
+    const category = selectedCategories[0] || '';
     const badge = document.getElementById('product-badge').value;
     const price = parseFloat(document.getElementById('product-price').value);
     const originalPrice = parseFloat(document.getElementById('product-original-price').value) || null;
@@ -1162,7 +1188,7 @@ const Admin = {
     const features = this.getFeaturesFromForm();
 
     if (!name) { Toast.error('Product name is required'); return; }
-    if (!category) { Toast.error('Please select a category'); return; }
+    if (!category) { Toast.error('Please select at least one category'); return; }
     if (isNaN(price) || price < 0) { Toast.error('Please enter a valid price'); return; }
     if (isNaN(stock) || stock < 0) { Toast.error('Please enter a valid stock quantity'); return; }
 
@@ -1170,6 +1196,7 @@ const Admin = {
       name,
       categoryId: category,
       category,
+      categories: selectedCategories,
       badge: badge || null,
       price,
       originalPrice,

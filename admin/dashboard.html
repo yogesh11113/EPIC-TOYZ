@@ -1825,11 +1825,12 @@
           </div>
 
           <div class="form-row">
-            <div class="form-group">
-              <label class="form-label required">Category</label>
-              <select class="form-control" id="product-category" required>
-                <option value="">Select Category</option>
-              </select>
+            <div class="form-group full">
+              <label class="form-label required">Categories (Select one or more)</label>
+              <div id="product-categories-container" class="categories-checkbox-group" style="max-height: 150px; overflow-y: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                <!-- Checkboxes populated dynamically by JS -->
+              </div>
+              <input type="hidden" id="product-category" value="">
             </div>
             <div class="form-group">
               <label class="form-label">Badge</label>

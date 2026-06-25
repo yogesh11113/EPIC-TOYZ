@@ -76,6 +76,12 @@ function mapSupabaseProduct(p) {
       console.warn('[DB] mapSupabaseProduct local category resolve failed:', e);
     }
   }
+
+  const specArray = p.specifications && p.specifications._categories_array;
+  const categoriesList = Array.isArray(specArray)
+    ? specArray
+    : (resolvedCategory ? [resolvedCategory] : (p.category_id ? [p.category_id] : (p.category ? [p.category] : [])));
+
   return {
     ...p,
     originalPrice: p.original_price != null ? Number(p.original_price) : null,
@@ -91,6 +97,7 @@ function mapSupabaseProduct(p) {
     specifications: p.specifications || {},
     category: resolvedCategory || p.category_id || p.category || '',
     categoryId: p.category_id || '',
+    categories: categoriesList,
   };
 }
 
@@ -421,8 +428,14 @@ const DB = {
       p.images = typeof data.images === 'string' ? [data.images] : [];
     }
 
-    if (data.specifications !== undefined) p.specifications = data.specifications;
-    else if (data.specs !== undefined) p.specifications = data.specs;
+    let specificationsObject = {};
+    if (data.specifications !== undefined) specificationsObject = { ...data.specifications };
+    else if (data.specs !== undefined) specificationsObject = { ...data.specs };
+
+    if (Array.isArray(data.categories)) {
+      specificationsObject._categories_array = data.categories;
+    }
+    p.specifications = specificationsObject;
 
     if (data.features !== undefined) p.features = data.features;
     if (data.badge !== undefined) p.badge = data.badge;

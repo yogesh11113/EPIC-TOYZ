@@ -257,6 +257,13 @@ function renderGallery(product) {
   // Set main image
   changeMainImage(0);
 
+  // Make main image wrap clickable for lightbox
+  const galleryMainWrap = document.getElementById('gallery-main-wrap');
+  if (galleryMainWrap) {
+    galleryMainWrap.style.cursor = 'zoom-in';
+    galleryMainWrap.onclick = () => openLightbox(currentImageIndex);
+  }
+
   // Render thumbnails
   const thumbsContainer = document.getElementById('gallery-thumbs');
   if (!thumbsContainer) return;
@@ -1021,4 +1028,125 @@ function generateWhatsAppMessage(items, notes) {
   if (notes) msg += `\n\nNotes: ${notes}`;
   msg += '\n\nPlease confirm availability. Thank you! 🙏';
   return encodeURIComponent(msg);
+}
+
+/* =====================================================================
+   LIGHTBOX / GALLERY VIEWER
+   ===================================================================== */
+let isLightboxOpen = false;
+
+function openLightbox(index) {
+  const modal = document.getElementById('lightbox-modal');
+  if (!modal) return;
+
+  isLightboxOpen = true;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+
+  updateLightboxImage(index);
+  initLightboxEvents();
+}
+
+function closeLightbox() {
+  const modal = document.getElementById('lightbox-modal');
+  if (!modal) return;
+
+  isLightboxOpen = false;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  removeLightboxEvents();
+}
+
+function updateLightboxImage(index) {
+  if (index < 0 || index >= galleryImages.length) return;
+  currentImageIndex = index;
+
+  const lightboxImg = document.getElementById('lightbox-img');
+  const counter = document.getElementById('lightbox-counter');
+  
+  if (lightboxImg) {
+    lightboxImg.src = galleryImages[index];
+  }
+  if (counter) {
+    counter.textContent = `${index + 1} / ${galleryImages.length}`;
+  }
+
+  // Update main gallery too, so they stay in sync
+  changeMainImage(index);
+}
+
+function navigateLightbox(direction) {
+  let nextIndex = currentImageIndex + direction;
+  if (nextIndex < 0) nextIndex = galleryImages.length - 1;
+  if (nextIndex >= galleryImages.length) nextIndex = 0;
+  updateLightboxImage(nextIndex);
+}
+
+// Touch swipe variables
+let touchStartX = 0;
+let touchEndX = 0;
+
+function handleLightboxTouchStart(e) {
+  touchStartX = e.changedTouches[0].screenX;
+}
+
+function handleLightboxTouchEnd(e) {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+}
+
+function handleSwipe() {
+  const threshold = 50; // minimum distance for swipe
+  if (touchEndX < touchStartX - threshold) {
+    navigateLightbox(1);
+  } else if (touchEndX > touchStartX + threshold) {
+    navigateLightbox(-1);
+  }
+}
+
+function handleLightboxKeyDown(e) {
+  if (!isLightboxOpen) return;
+  if (e.key === 'Escape') {
+    closeLightbox();
+  } else if (e.key === 'ArrowRight') {
+    navigateLightbox(1);
+  } else if (e.key === 'ArrowLeft') {
+    navigateLightbox(-1);
+  }
+}
+
+function initLightboxEvents() {
+  const modal = document.getElementById('lightbox-modal');
+  const closeBtn = document.getElementById('lightbox-close');
+  const prevBtn = document.getElementById('lightbox-prev');
+  const nextBtn = document.getElementById('lightbox-next');
+
+  if (closeBtn) closeBtn.onclick = closeLightbox;
+  if (prevBtn) prevBtn.onclick = (e) => { e.stopPropagation(); navigateLightbox(-1); };
+  if (nextBtn) nextBtn.onclick = (e) => { e.stopPropagation(); navigateLightbox(1); };
+
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target === modal || e.target.id === 'lightbox-content' || e.target.classList.contains('lightbox-content')) {
+        closeLightbox();
+      }
+    };
+  }
+
+  window.addEventListener('keydown', handleLightboxKeyDown);
+  if (modal) {
+    modal.addEventListener('touchstart', handleLightboxTouchStart, { passive: true });
+    modal.addEventListener('touchend', handleLightboxTouchEnd, { passive: true });
+  }
+}
+
+function removeLightboxEvents() {
+  const modal = document.getElementById('lightbox-modal');
+  window.removeEventListener('keydown', handleLightboxKeyDown);
+  if (modal) {
+    modal.removeEventListener('touchstart', handleLightboxTouchStart);
+    modal.removeEventListener('touchend', handleLightboxTouchEnd);
+  }
 }

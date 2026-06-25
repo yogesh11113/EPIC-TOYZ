@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Epic Toyz - India's Premium RC Car Store | Best RC Cars Online</title>
   <meta name="description" content="Shop India's largest collection of RC cars, drift cars, crawlers, and hobby-grade RC vehicles. Fast delivery, genuine products, expert support. Order via WhatsApp!">
   <meta name="keywords" content="RC cars India, remote control cars, hobby grade RC, drift cars, RC crawlers, best RC cars online India">
@@ -629,29 +629,24 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 28px 20px;
-      text-align: center;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
       cursor: pointer;
       transition: var(--transition);
       position: relative;
       overflow: hidden;
-      text-decoration: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
     }
 
-    .category-card::before {
+    .category-card::after {
       content: '';
       position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       height: 3px;
       background: var(--cat-color, var(--red));
       transform: scaleX(0);
-      transition: transform 0.3s ease;
+      transition: transform 0.35s ease;
     }
 
     .category-card:hover {
@@ -660,11 +655,29 @@
       box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 30px color-mix(in srgb, var(--cat-color, var(--red)) 20%, transparent);
     }
 
-    .category-card:hover::before { transform: scaleX(1); }
+    .category-card:hover::after { transform: scaleX(1); }
 
+    /* Cover image variant */
+    .category-card-img-cover {
+      width: 100%;
+      aspect-ratio: 16/10;
+      overflow: hidden;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .category-card-img-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.45s ease;
+    }
+    .category-card:hover .category-card-img-cover img { transform: scale(1.08); }
+
+    /* Emoji icon variant */
     .category-card-icon {
-      width: 68px;
-      height: 68px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
       background: rgba(255,255,255,0.06);
       display: flex;
@@ -673,12 +686,21 @@
       font-size: 30px;
       transition: var(--transition);
       border: 2px solid rgba(255,255,255,0.05);
+      margin: 28px auto 12px;
+      flex-shrink: 0;
     }
-
     .category-card:hover .category-card-icon {
       background: color-mix(in srgb, var(--cat-color, var(--red)) 15%, transparent);
       border-color: color-mix(in srgb, var(--cat-color, var(--red)) 40%, transparent);
       transform: scale(1.1) rotate(5deg);
+    }
+
+    .category-card-body {
+      padding: 16px 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
     }
 
     .category-card-name {
@@ -703,6 +725,7 @@
       font-size: 11px;
       color: var(--text-muted);
       font-weight: 600;
+      align-self: center;
     }
 
     /* ====== PRODUCTS GRID ====== */

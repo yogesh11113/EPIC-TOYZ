@@ -219,16 +219,32 @@ function renderCategoryCard(cat) {
   const slug = cat.slug || cat.id || slugify(cat.name);
 
   const isImg = isImageUrl(icon);
-  const iconHtml = isImg 
-    ? `<img src="${icon}" alt="${escapeHtml(cat.name)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">` 
-    : icon;
 
+  // Image-based: show as card cover photo
+  if (isImg) {
+    return `
+      <a class="category-card reveal" href="shop.html?category=${slug}" style="--cat-color:${color}">
+        <div class="category-card-img-cover">
+          <img src="${icon}" alt="${escapeHtml(cat.name)}" loading="lazy" onerror="this.parentElement.style.background='var(--dark-700)'">
+        </div>
+        <div class="category-card-body">
+          <div class="category-card-name">${escapeHtml(cat.name)}</div>
+          ${cat.description ? `<div class="category-card-desc">${escapeHtml(cat.description)}</div>` : ''}
+          ${count > 0 ? `<span class="category-count">${count} Products</span>` : ''}
+        </div>
+      </a>
+    `;
+  }
+
+  // Emoji-based: classic icon layout
   return `
     <a class="category-card reveal" href="shop.html?category=${slug}" style="--cat-color:${color}">
-      <div class="category-card-icon">${iconHtml}</div>
-      <div class="category-card-name">${escapeHtml(cat.name)}</div>
-      <div class="category-card-desc">${escapeHtml(cat.description || '')}</div>
-      ${count > 0 ? `<span class="category-count">${count} Products</span>` : ''}
+      <div class="category-card-icon">${icon}</div>
+      <div class="category-card-body">
+        <div class="category-card-name">${escapeHtml(cat.name)}</div>
+        ${cat.description ? `<div class="category-card-desc">${escapeHtml(cat.description)}</div>` : ''}
+        ${count > 0 ? `<span class="category-count">${count} Products</span>` : ''}
+      </div>
     </a>
   `;
 }
@@ -261,18 +277,18 @@ function renderProductCard(product) {
   const {
     id,
     name = 'RC Car',
-    category = '',
     price = 0,
     stock = 10,
   } = product;
 
   // Support both snake_case (data.js) and camelCase
+  const category = product.categories && product.categories.length > 0
+    ? product.categories[0]
+    : (product.category || '');
   const originalPrice = product.originalPrice || product.original_price || 0;
   const images = product.images || [];
   const image = product.image || product.image_url || '';
   const badge = product.badge || '';
-  const rating = product.rating || 4.5;
-  const reviewCount = product.reviewCount || product.review_count || 0;
   const isBestseller = product.isBestseller || product.is_bestseller || badge === 'bestseller';
   const isNew = product.isNew || product.is_new || badge === 'new';
   const isHot = product.isHot || product.is_hot || badge === 'hot';
@@ -302,9 +318,6 @@ function renderProductCard(product) {
     badgeLabel = labelMap[badgeType] || badgeType;
   }
 
-  // Stars
-  const starsHtml = renderStars(rating);
-
   // Discount
   let discountHtml = '';
   if (originalPrice && originalPrice > price) {
@@ -317,9 +330,6 @@ function renderProductCard(product) {
 
   // Out of stock overlay
   const outOfStock = stock === 0;
-
-  // Product link
-  const slug = product.slug || id;
 
   return `
     <div class="product-card hover-lift reveal" onclick="viewProduct('${id}')">
@@ -348,10 +358,6 @@ function renderProductCard(product) {
       <div class="product-card-body">
         <div class="product-card-category">${escapeHtml(getCategoryLabel(category))}</div>
         <h3 class="product-card-title">${escapeHtml(name)}</h3>
-        <div class="product-card-rating">
-          <div class="stars" style="display: none !important;">${starsHtml}</div>
-          <span class="rating-count">(${reviewCount > 0 ? reviewCount.toLocaleString('en-IN') : '—'})</span>
-        </div>
         <div class="product-card-footer">
           <div class="price-group">
             <span class="product-price">₹${formatPrice(price)}</span>
