@@ -1,32 +1,23 @@
-const dns = require('dns');
-dns.setServers(['8.8.8.8', '1.1.1.1']);
-
 const { Client } = require('pg');
 
 const host = 'aws-0-ap-south-1.pooler.supabase.com';
+const ip = '65.0.195.55'; // Hardcoded IP address from previous successful resolution
 const user = 'postgres.wzqaawfqcjxztiyfsmof';
 const password = 'yogesh123*';
 
 async function run() {
   try {
-    console.log(`Resolving IP for ${host} using custom DNS...`);
-    const ips = await new Promise((resolve, reject) => {
-      dns.resolve4(host, (err, addresses) => {
-        if (err) reject(err);
-        else resolve(addresses);
-      });
-    });
-    const ip = ips[0];
-    console.log(`Resolved to IP: ${ip}. Connecting to pooler...`);
+    console.log(`Connecting to pooler IP ${ip} with SNI servername ${host}...`);
 
     const client = new Client({
       host: ip,
-      port: 5432,
+      port: 6543, // Transaction mode port
       database: 'postgres',
       user: user,
       password: password,
       ssl: {
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
+        servername: host // Pass the SNI host
       }
     });
 

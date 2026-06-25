@@ -56,13 +56,28 @@ const Auth = {
           email: email.trim().toLowerCase(),
           password,
         });
-        if (error) throw error;
-        const user = this._normaliseUser(data.user);
-        this._storeSession(user, data.session?.access_token);
-        this.updateNavbarAuth();
-        return { user, error: null };
+        if (error) {
+          // If credentials are simply wrong in Supabase (user not yet created),
+          // fall through to the local admin fallback below instead of failing hard.
+          const isCredErr = error.message?.toLowerCase().includes('invalid') ||
+                            error.message?.toLowerCase().includes('credentials') ||
+                            error.status === 400;
+          if (!isCredErr) {
+            // Only hard-fail for non-credential errors (network, server, etc.)
+            console.error('[Auth] Supabase login error (non-credential):', error.message);
+            return { user: null, error: error.message || 'Login failed. Please try again.' };
+          }
+          console.warn('[Auth] Supabase login failed (credential error) — trying local fallback:', error.message);
+          // Fall through to local credential check below
+        } else {
+          const user = this._normaliseUser(data.user);
+          this._storeSession(user, data.session?.access_token);
+          this.updateNavbarAuth();
+          return { user, error: null };
+        }
       } catch (err) {
-        return { user: null, error: err.message || 'Login failed. Please check your credentials.' };
+        console.warn('[Auth] Supabase signInWithPassword threw — trying local fallback:', err.message);
+        // Fall through to local credential check below
       }
     }
 

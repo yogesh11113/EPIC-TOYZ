@@ -102,25 +102,38 @@ function mapSupabaseProduct(p) {
  */
 async function queryProductsSafe(buildQueryFn, isSingle = false) {
   try {
+    // First try with the categories join
     const qJoin = buildQueryFn('*, categories(id, name, slug)');
     const result = isSingle ? await qJoin.single() : await qJoin;
     if (!result.error) return result;
 
     const err = result.error;
-    if (err.code === 'PGRST205' || err.status === 404 || err.message?.includes('categories') || err.message?.includes('relationship')) {
-      console.warn('[DB] Supabase categories join failed, retrying without join:', err.message);
+    const errMsg = err.message || '';
+
+    // If the products table itself doesn't exist (PGRST205), throw to trigger localStorage fallback
+    if ((err.code === 'PGRST205' || err.status === 404) && !errMsg.includes('categories')) {
+      console.error('[DB] Supabase table not found (schema not set up?):', errMsg);
+      throw err;
+    }
+
+    // If join to categories failed, retry without the join
+    if (err.code === 'PGRST205' || err.status === 404 || errMsg.includes('categories') || errMsg.includes('relationship')) {
+      console.warn('[DB] Supabase categories join failed, retrying without join:', errMsg);
       const qPlain = buildQueryFn('*');
-      return isSingle ? await qPlain.single() : await qPlain;
+      const retryResult = isSingle ? await qPlain.single() : await qPlain;
+      if (retryResult.error) {
+        const retryErr = retryResult.error;
+        if (retryErr.code === 'PGRST205' || retryErr.status === 404) {
+          console.error('[DB] Supabase products table not found (schema not set up?):', retryErr.message);
+          throw retryErr;
+        }
+      }
+      return retryResult;
     }
     return result;
   } catch (e) {
-    console.warn('[DB] queryProductsSafe caught exception:', e);
-    try {
-      const qPlain = buildQueryFn('*');
-      return isSingle ? await qPlain.single() : await qPlain;
-    } catch (err2) {
-      return { data: null, error: err2 };
-    }
+    console.error('[DB] queryProductsSafe caught exception — falling back to localStorage:', e.message || e);
+    throw e; // Re-throw so getProducts() catch block uses localStorage
   }
 }
 
@@ -811,7 +824,7 @@ const DB = {
         const user = window.Auth?.getCurrentUser?.();
         if (user) {
           const { data, error } = await window.EpicSupabase
-            .from('wishlists')
+            .from('wishlist')
             .select('*, product:products(*)')
             .eq('user_id', user.id);
           if (!error && data) {
@@ -846,7 +859,7 @@ const DB = {
         const user = window.Auth?.getCurrentUser?.();
         if (user) {
           await window.EpicSupabase
-            .from('wishlists')
+            .from('wishlist')
             .upsert([{ user_id: user.id, product_id: productId }]);
         }
       } catch (err) {
@@ -868,7 +881,7 @@ const DB = {
         const user = window.Auth?.getCurrentUser?.();
         if (user) {
           await window.EpicSupabase
-            .from('wishlists')
+            .from('wishlist')
             .delete()
             .eq('user_id', user.id)
             .eq('product_id', productId);
