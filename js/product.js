@@ -518,10 +518,15 @@ function addToCart() {
 
 function buyNow() {
   if (!currentProduct) return;
-  if (typeof Store !== 'undefined' && Store.addToCart) {
-    Store.addToCart(currentProduct, selectedQuantity);
-  }
-  window.location.href = 'checkout.html';
+  const buyNowItem = {
+    id: currentProduct.id,
+    name: currentProduct.name,
+    price: currentProduct.price,
+    image: currentProduct.image || (currentProduct.images && currentProduct.images[0]) || 'assets/images/placeholder.svg',
+    quantity: selectedQuantity
+  };
+  localStorage.setItem('et_buy_now', JSON.stringify(buyNowItem));
+  window.location.href = 'checkout.html?buynow=true';
 }
 
 

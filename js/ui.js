@@ -170,6 +170,41 @@ function injectNavbar() {
   `;
   navbarPlaceholder.innerHTML = navbarHTML;
 
+  // Inject Global Search Overlay if not present
+  if (!document.getElementById('globalSearchOverlay')) {
+    const overlayHTML = `
+      <div class="search-overlay" id="globalSearchOverlay" style="display: none; position: fixed; inset: 0; z-index: 9999; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 80px; font-family: 'Inter', sans-serif;">
+        <div class="search-overlay-backdrop" style="position: absolute; inset: 0; background: rgba(13, 14, 26, 0.95); backdrop-filter: blur(12px);"></div>
+        <div class="search-overlay-container" style="position: relative; width: 90%; max-width: 700px; background: #12151F; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(230, 57, 70, 0.1); display: flex; flex-direction: column; max-height: 80vh; overflow: hidden;">
+          <div class="search-overlay-header" style="display: flex; align-items: center; gap: 16px; padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+            <div class="search-input-wrap" style="flex: 1; display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px 16px; position: relative;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E63946" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="globalSearchInput" placeholder="Search remote control cars, drift, crawlers..." autocomplete="off" style="flex: 1; background: transparent; border: none; color: #fff; font-family: inherit; font-size: 1.05rem; font-weight: 500; outline: none;">
+              <button class="search-clear-btn" id="globalSearchClear" style="display: none; background: transparent; border: none; color: #ADB5BD; font-size: 1.1rem; cursor: pointer; padding: 0 4px;">✕</button>
+            </div>
+            <button class="search-close-btn" id="globalSearchClose" style="background: transparent; border: 1.5px solid rgba(255, 255, 255, 0.2); color: #fff; font-family: inherit; font-size: 0.9rem; font-weight: 600; padding: 10px 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s;">Close</button>
+          </div>
+          <div class="search-results-container" id="globalSearchResults" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+            <p style="text-align: center; color: #ADB5BD; font-size: 0.95rem; margin: 20px 0;">Type to search for RC cars...</p>
+          </div>
+        </div>
+      </div>
+    `;
+    const container = document.createElement('div');
+    container.innerHTML = overlayHTML;
+    document.body.appendChild(container.firstElementChild);
+    if (typeof initGlobalSearchLogic === 'function') initGlobalSearchLogic();
+  }
+
+  // Intercept Search Button click to open overlay
+  const searchBtn = navbarPlaceholder.querySelector('a[aria-label="Search"]');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof openGlobalSearchOverlay === 'function') openGlobalSearchOverlay();
+    });
+  }
+
   // --- NAVBAR INTERACTIVE BEHAVIOR ---
   
   // Categories Dropdown Toggle
@@ -711,3 +746,180 @@ window.UI = {
   updateWishlistBadge: () => { if (typeof Store !== 'undefined') Store.syncWishlistBadge(); },
   updateCartBadge: () => { if (typeof Store !== 'undefined') Store.syncCartBadge(); }
 };
+
+// --- GLOBAL SEARCH OVERLAY ---
+let searchProductsList = [];
+let searchOverlayInitialized = false;
+
+function openGlobalSearchOverlay() {
+  const overlay = document.getElementById('globalSearchOverlay');
+  if (!overlay) return;
+  
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  
+  const input = document.getElementById('globalSearchInput');
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+  
+  const resultsContainer = document.getElementById('globalSearchResults');
+  if (resultsContainer) {
+    resultsContainer.innerHTML = '<p style="text-align: center; color: #ADB5BD; font-size: 0.95rem; margin: 20px 0;">Type to search for RC cars...</p>';
+  }
+  
+  const clearBtn = document.getElementById('globalSearchClear');
+  if (clearBtn) clearBtn.style.display = 'none';
+
+  // Load products dynamically on open to ensure it's always real-time
+  loadSearchProducts();
+}
+
+function closeGlobalSearchOverlay() {
+  const overlay = document.getElementById('globalSearchOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+}
+
+async function loadSearchProducts() {
+  try {
+    if (typeof DB !== 'undefined' && DB.getProducts) {
+      searchProductsList = await DB.getProducts();
+    } else {
+      searchProductsList = JSON.parse(localStorage.getItem('et_products') || '[]');
+    }
+  } catch (e) {
+    console.warn('[Search] Failed to fetch products from DB, using local fallback:', e);
+    searchProductsList = JSON.parse(localStorage.getItem('et_products') || '[]');
+  }
+}
+
+function initGlobalSearchLogic() {
+  if (searchOverlayInitialized) return;
+  
+  const input = document.getElementById('globalSearchInput');
+  const closeBtn = document.getElementById('globalSearchClose');
+  const backdrop = document.querySelector('.search-overlay-backdrop');
+  const clearBtn = document.getElementById('globalSearchClear');
+  const resultsContainer = document.getElementById('globalSearchResults');
+  
+  if (input) {
+    input.addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+      
+      if (!q) {
+        resultsContainer.innerHTML = '<p style="text-align: center; color: #ADB5BD; font-size: 0.95rem; margin: 20px 0;">Type to search for RC cars...</p>';
+        return;
+      }
+      
+      // Perform Search (case-insensitive, partial matching)
+      const matches = searchProductsList.filter(p => 
+        (p.name || '').toLowerCase().includes(q) ||
+        (p.category || '').toLowerCase().includes(q) ||
+        (p.brand || '').toLowerCase().includes(q) ||
+        (p.description || '').toLowerCase().includes(q)
+      );
+      
+      renderSearchResults(matches, q);
+    });
+    
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeGlobalSearchOverlay();
+      }
+    });
+  }
+  
+  if (clearBtn && input) {
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      clearBtn.style.display = 'none';
+      input.focus();
+      resultsContainer.innerHTML = '<p style="text-align: center; color: #ADB5BD; font-size: 0.95rem; margin: 20px 0;">Type to search for RC cars...</p>';
+    });
+  }
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeGlobalSearchOverlay);
+  }
+  
+  if (backdrop) {
+    backdrop.addEventListener('click', closeGlobalSearchOverlay);
+  }
+  
+  searchOverlayInitialized = true;
+}
+
+function renderSearchResults(products, query) {
+  const container = document.getElementById('globalSearchResults');
+  if (!container) return;
+  
+  if (products.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; color: #ADB5BD;">
+        <div style="font-size: 2.5rem; margin-bottom: 12px;">🔍</div>
+        <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 6px;">No products found for "${escapeHtml(query)}"</h3>
+        <p style="font-size: 0.9rem;">Try searching for "drift", "crawler", or "hyper go"</p>
+      </div>
+    `;
+    return;
+  }
+  
+  const prefix = getPathPrefix();
+  
+  container.innerHTML = products.map(p => {
+    const img = p.image || (p.images && p.images[0]) || 'assets/images/placeholder.svg';
+    const price = typeof p.price === 'number' ? p.price.toLocaleString('en-IN') : p.price;
+    const catName = p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1).replace('-', ' ') : 'RC Car';
+    
+    return `
+      <a href="${prefix}product.html?id=${p.id}" class="search-result-item" style="display: flex; align-items: center; gap: 16px; padding: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 12px; text-decoration: none; transition: all 0.25s ease;">
+        <img src="${prefix}${img}" alt="" class="search-result-img" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: rgba(255, 255, 255, 0.05);" onerror="this.src='${prefix}assets/images/placeholder.svg'">
+        <div class="search-result-info" style="flex: 1;">
+          <div class="search-result-name" style="font-weight: 600; color: #fff; font-size: 0.95rem; margin-bottom: 2px;">${escapeHtml(p.name)}</div>
+          <div class="search-result-meta" style="font-size: 0.78rem; color: #ADB5BD; display: flex; gap: 8px;">
+            <span>Category: <strong>${escapeHtml(catName)}</strong></span>
+            ${p.brand ? `<span>Brand: <strong>${escapeHtml(p.brand)}</strong></span>` : ''}
+          </div>
+        </div>
+        <div class="search-result-price" style="font-weight: 700; color: #E63946; font-size: 1rem;">₹${price}</div>
+      </a>
+    `;
+  }).join('');
+
+  // Add hover effect dynamically via JS
+  const items = container.querySelectorAll('.search-result-item');
+  items.forEach(item => {
+    item.addEventListener('mouseenter', () => {
+      item.style.background = 'rgba(230, 57, 70, 0.08)';
+      item.style.borderColor = 'rgba(230, 57, 70, 0.3)';
+      item.style.transform = 'translateY(-2px)';
+    });
+    item.addEventListener('mouseleave', () => {
+      item.style.background = 'rgba(255, 255, 255, 0.02)';
+      item.style.borderColor = 'rgba(255, 255, 255, 0.04)';
+      item.style.transform = 'none';
+    });
+  });
+}
+
+// Expose functions globally
+window.openGlobalSearchOverlay = openGlobalSearchOverlay;
+window.closeGlobalSearchOverlay = closeGlobalSearchOverlay;
+window.initGlobalSearchLogic = initGlobalSearchLogic;
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+window.escapeHtml = escapeHtml;

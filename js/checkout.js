@@ -18,6 +18,22 @@ const CheckoutState = {
   orderId: null,
 };
 
+function getCheckoutItems() {
+  const params = new URLSearchParams(window.location.search);
+  const isBuyNow = params.get('buynow') === 'true';
+  if (isBuyNow) {
+    const buyNowData = localStorage.getItem('et_buy_now');
+    if (buyNowData) {
+      try {
+        return [JSON.parse(buyNowData)];
+      } catch (e) {
+        console.error('[Checkout] Failed to parse Buy Now data:', e);
+      }
+    }
+  }
+  return typeof Store !== 'undefined' ? Store.getCart() : [];
+}
+
 /* ============================================================
    INIT
    ============================================================ */
@@ -27,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function initCheckoutPage() {
   // Guard: redirect to cart if empty
-  const cart = Store.getCart();
+  const cart = getCheckoutItems();
   if (!cart || cart.length === 0) {
     window.location.href = 'cart.html';
     return;
@@ -223,42 +239,30 @@ function continueAsGuest() {
    STEP 2: DELIVERY FORM
    ============================================================ */
 function handleDeliverySubmit() {
-  const fields = {
-    'd-name':    'd-name-error',
-    'd-phone':   'd-phone-error',
-    'd-email':   'd-email-error',
-    'd-addr1':   'd-addr1-error',
-    'd-city':    'd-city-error',
-    'd-state':   'd-state-error',
-    'd-pincode': 'd-pincode-error',
-  };
-  clearFieldErrors(Object.keys(fields));
+  clearFieldErrors(['d-name', 'd-phone', 'd-address']);
 
   const getValue = id => document.getElementById(id)?.value?.trim() || '';
   const name    = getValue('d-name');
   const phone   = getValue('d-phone');
-  const email   = getValue('d-email');
-  const addr1   = getValue('d-addr1');
-  const addr2   = getValue('d-addr2');
-  const city    = getValue('d-city');
-  const state   = getValue('d-state');
-  const pincode = getValue('d-pincode');
+  const address = getValue('d-address');
 
   let valid = true;
-  if (!name)             { showFieldError('d-name',    'd-name-error');    valid = false; }
-  if (!isValidPhone(phone)){ showFieldError('d-phone',  'd-phone-error');  valid = false; }
-  if (!isValidEmail(email)){ showFieldError('d-email',  'd-email-error');  valid = false; }
-  if (!addr1)            { showFieldError('d-addr1',   'd-addr1-error');   valid = false; }
-  if (!city)             { showFieldError('d-city',    'd-city-error');    valid = false; }
-  if (!state)            { showFieldError('d-state',   'd-state-error');   valid = false; }
-  if (!isValidPincode(pincode)){ showFieldError('d-pincode','d-pincode-error'); valid = false; }
+  if (!name) { showFieldError('d-name', 'd-name-error'); valid = false; }
+  if (!isValidPhone(phone)) { showFieldError('d-phone', 'd-phone-error'); valid = false; }
+  if (!address) { showFieldError('d-address', 'd-address-error'); valid = false; }
   if (!valid) return;
 
-  // Determine delivery method
-  const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
-  CheckoutState.deliveryMethod = deliveryRadio ? deliveryRadio.value : 'standard';
+  CheckoutState.delivery = { name, phone, address };
 
-  CheckoutState.delivery = { name, phone, email, addr1, addr2, city, state, pincode };
+  // Populate address review box
+  const reviewDiv = document.getElementById('review-delivery-info');
+  if (reviewDiv) {
+    reviewDiv.innerHTML = `
+      <strong>${escapeHtml(name)}</strong><br>
+      📞 ${escapeHtml(phone)}<br>
+      📍 ${escapeHtml(address).replace(/\n/g, '<br>')}
+    `;
+  }
 
   // Populate order review table
   populateOrderReview();
@@ -267,7 +271,7 @@ function handleDeliverySubmit() {
 }
 
 function populateOrderReview() {
-  const cart = Store.getCart();
+  const cart = getCheckoutItems();
   const table = document.getElementById('order-review-table');
   if (!table) return;
 
@@ -297,92 +301,49 @@ function populateOrderReview() {
 }
 
 /* ============================================================
-   PAYMENT PANEL TOGGLE
-   ============================================================ */
-function showPaymentPanel(method) {
-  CheckoutState.paymentMethod = method;
-  document.querySelectorAll('.payment-details-panel').forEach(p => p.classList.remove('visible'));
-  const panel = document.getElementById(`panel-${method}`);
-  if (panel) panel.classList.add('visible');
-  renderSidebar();
-}
-
-/* ============================================================
-   COPY UPI ID
-   ============================================================ */
-function copyUpiId() {
-  const upiId = 'yogesh2007.gv@oksbi';
-  navigator.clipboard.writeText(upiId).then(() => {
-    showToast('UPI ID copied!', 'success');
-  }).catch(() => {
-    // Fallback
-    const el = document.createElement('textarea');
-    el.value = upiId;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-    showToast('UPI ID copied!', 'success');
-  });
-}
-
-/* ============================================================
    WHATSAPP ORDER
    ============================================================ */
 function generateWhatsAppOrder() {
-  const cart = Store.getCart();
-  const { delivery, deliveryMethod, paymentMethod } = CheckoutState;
+  const cart = getCheckoutItems();
+  const { delivery } = CheckoutState;
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
   const shipping = 50;
-  const codFee = paymentMethod === 'cod' ? 50 : 0;
-  const total = subtotal + shipping + codFee;
+  const total = subtotal + shipping;
 
   const itemLines = cart.map(item =>
     `  • ${item.name} ×${item.quantity} = ₹${(item.price * item.quantity).toLocaleString('en-IN')}`
   ).join('\n');
 
-  const fullAddress = [delivery.addr1, delivery.addr2, delivery.city, delivery.state, delivery.pincode]
-    .filter(Boolean).join(', ');
-
   const message = `🛒 *New Order Request - Epic Toyz*
 
 👤 *Customer Name:* ${delivery.name || '—'}
 📞 *Phone Number:* ${delivery.phone || '—'}
-📍 *Address:* ${fullAddress || '—'}
+📍 *Address:* ${delivery.address || '—'}
 
 📦 *ORDERED PRODUCTS:*
 ${itemLines}
 
-💰 *Total Amount:* ₹${total.toLocaleString('en-IN')} (including shipping${codFee ? ' and COD fee' : ''})
-💳 *Preferred Payment Method:* ${paymentMethodLabel(paymentMethod)}
+💰 *Total Amount:* ₹${total.toLocaleString('en-IN')} (including flat ₹50 shipping)
 
-💳 *Payment Details:*
+💳 *Payment Details (Direct UPI):*
 UPI ID: 9363114113@sbi
 
-Please complete the payment (if applicable) and send the payment screenshot along with this order message for faster confirmation.`;
+Please complete the payment and send the payment screenshot along with this order message for faster confirmation.`;
 
   const encoded = encodeURIComponent(message);
   return `https://wa.me/916383793890?text=${encoded}`;
-}
-
-function paymentMethodLabel(method) {
-  return { whatsapp: 'WhatsApp Order', upi: 'UPI Payment', cod: 'Cash on Delivery' }[method] || method;
 }
 
 /* ============================================================
    PLACE ORDER
    ============================================================ */
 async function placeOrder() {
-  const cart = Store.getCart();
+  const cart = getCheckoutItems();
   if (!cart || cart.length === 0) {
     showToast('Your cart is empty!', 'error');
     return;
   }
-
-  const paymentRadio = document.querySelector('input[name="payment"]:checked');
-  const paymentMethod = paymentRadio ? paymentRadio.value : 'whatsapp';
-  CheckoutState.paymentMethod = paymentMethod;
 
   const btn = document.getElementById('btn-place-order');
   setLoading(btn, true);
@@ -390,46 +351,29 @@ async function placeOrder() {
   // Generate WhatsApp link
   const whatsappUrl = generateWhatsAppOrder();
 
-  // Open WhatsApp chat in a new tab
-  window.open(whatsappUrl, '_blank');
-
-  // Clear cart
-  Store.clearCart();
-  if (typeof UI !== 'undefined' && UI.updateCartBadge) UI.updateCartBadge();
-
-  setLoading(btn, false, 'Continue Order on WhatsApp');
-
-  // Update retry button link in success step
-  const successWaBtn = document.getElementById('success-whatsapp-btn');
-  if (successWaBtn) {
-    successWaBtn.href = whatsappUrl;
-  }
-
-  // Show transition step (checkout-step-success)
-  document.querySelectorAll('.checkout-step').forEach(el => el.classList.remove('active'));
-  const successStep = document.getElementById('checkout-step-success');
-  if (successStep) {
-    successStep.classList.add('active');
-    successStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  // Update progress bar to show completed
-  for (let i = 1; i <= 3; i++) {
-    const ind = document.getElementById(`step-indicator-${i}`);
-    const circle = document.getElementById(`step-circle-${i}`);
-    if (ind && circle) {
-      ind.classList.remove('active');
-      ind.classList.add('completed');
-      circle.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
+  // Clear the appropriate cart
+  const params = new URLSearchParams(window.location.search);
+  const isBuyNow = params.get('buynow') === 'true';
+  if (isBuyNow) {
+    localStorage.removeItem('et_buy_now');
+  } else {
+    if (typeof Store !== 'undefined') {
+      Store.clearCart();
+      if (Store.syncCartBadge) Store.syncCartBadge();
     }
   }
+
+  if (typeof UI !== 'undefined' && UI.updateCartBadge) UI.updateCartBadge();
+
+  // Redirect the browser immediately
+  window.location.href = whatsappUrl;
 }
 
 /* ============================================================
    SIDEBAR RENDER
    ============================================================ */
 function renderSidebar() {
-  const cart = Store.getCart();
+  const cart = getCheckoutItems();
   const sidebarItems = document.getElementById('sidebar-items');
   const sidebarSummary = document.getElementById('sidebar-summary');
   if (!sidebarItems || !sidebarSummary) return;
@@ -451,11 +395,8 @@ function renderSidebar() {
 
   // Summary
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const deliveryMethod = CheckoutState.deliveryMethod || 'standard';
   const shipping = 50;
-  const paymentMethod = CheckoutState.paymentMethod || 'whatsapp';
-  const codFee = paymentMethod === 'cod' ? 50 : 0;
-  const total = subtotal + shipping + codFee;
+  const total = subtotal + shipping;
 
   sidebarSummary.innerHTML = `
     <div class="sidebar-summary-row">
@@ -466,7 +407,6 @@ function renderSidebar() {
       <span class="lbl">Shipping</span>
       <span class="val">₹${shipping}</span>
     </div>
-    ${codFee ? `<div class="sidebar-summary-row"><span class="lbl">COD Fee</span><span class="val">₹${codFee}</span></div>` : ''}
     <div class="sidebar-total">
       <span class="lbl">Total</span>
       <span class="val">₹${total.toLocaleString('en-IN')}</span>
@@ -481,7 +421,6 @@ function prefillDeliveryFromUser(user) {
   if (!user) return;
   const safe = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
   safe('d-name',  user.name || user.user_metadata?.name || user.user_metadata?.full_name);
-  safe('d-email', user.email);
   safe('d-phone', user.phone || user.user_metadata?.phone);
 }
 

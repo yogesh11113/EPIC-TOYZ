@@ -453,10 +453,27 @@ const Admin = {
         const section = item.dataset.section;
         this.loadSection(section);
         // Close mobile sidebar
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('sidebar-overlay').classList.remove('open');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
       });
     });
+
+    // Mobile sidebar toggle buttons wire-up
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    const overlay = document.getElementById('sidebar-overlay');
+    const sidebar = document.getElementById('sidebar');
+    if (toggleBtn && sidebar && overlay) {
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+      });
+      overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+      });
+    }
 
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
@@ -499,6 +516,8 @@ const Admin = {
       orders: ['Orders', 'Manage Orders'],
       reviews: ['Reviews', 'Manage Reviews'],
       inventory: ['Inventory', 'Stock Management'],
+      users: ['Users', 'Registered Users'],
+      settings: ['Settings', 'Store Settings'],
     };
     const [title, bc] = titles[section] || [section, section];
     this.setPageHeader(title, bc);
@@ -511,6 +530,8 @@ const Admin = {
       case 'orders':     await this.renderOrders();      break;
       case 'reviews':    await this.renderReviews();     break;
       case 'inventory':  await this.renderInventory();   break;
+      case 'users':      await this.renderUsers();       break;
+      case 'settings':   await this.renderSettings();    break;
     }
   },
 
@@ -636,6 +657,108 @@ const Admin = {
           </div>
         `).join('');
       }
+    }
+  },
+
+  async renderUsers() {
+    const tbody = document.getElementById('users-tbody');
+    const countLabel = document.getElementById('users-count-label');
+    if (!tbody) return;
+
+    let users = [];
+    try {
+      const rawUsers = localStorage.getItem('et_users');
+      if (rawUsers) {
+        users = JSON.parse(rawUsers);
+      }
+      if (users.length === 0) {
+        const rawUser = localStorage.getItem('et_user');
+        if (rawUser) {
+          users = [JSON.parse(rawUser)];
+        }
+      }
+      if (users.length === 0) {
+        users = [
+          { name: 'Yogesh Kumar', email: 'yogesh2007.gv@gmail.com', phone: '9363114113', role: 'user', createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
+          { name: 'Admin', email: 'epictoyz.in@gmail.com', phone: '6383793890', role: 'admin', createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString() },
+          { name: 'Karan Sharma', email: 'karan.sharma@gmail.com', phone: '9876543210', role: 'user', createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }
+        ];
+        localStorage.setItem('et_users', JSON.stringify(users));
+      }
+    } catch (e) {
+      console.warn('[Admin] Failed to fetch users:', e);
+    }
+
+    if (countLabel) {
+      countLabel.textContent = `${users.length} registered user account${users.length !== 1 ? 's' : ''}`;
+    }
+
+    if (users.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="table-empty"><div class="empty-icon">👥</div><div>No registered users found</div></div></td></tr>`;
+    } else {
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td><strong>${esc(u.name || '—')}</strong></td>
+          <td>${esc(u.email || '—')}</td>
+          <td>${esc(u.phone || '—')}</td>
+          <td><span class="badge ${u.role === 'admin' ? 'badge-featured' : 'badge-none'}">${esc(u.role || 'user')}</span></td>
+          <td>${formatDate(u.createdAt || u.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+  },
+
+  async renderSettings() {
+    let settings = {
+      shopName: 'Epic Toyz',
+      whatsapp: '916383793890',
+      upi: '9363114113@sbi',
+      shipping: 50
+    };
+
+    try {
+      const saved = localStorage.getItem('et_shop_settings');
+      if (saved) {
+        settings = { ...settings, ...JSON.parse(saved) };
+      } else {
+        localStorage.setItem('et_shop_settings', JSON.stringify(settings));
+      }
+    } catch (e) {
+      console.warn('[Admin] Failed to read settings:', e);
+    }
+
+    const nameInput = document.getElementById('settings-shop-name');
+    const waInput = document.getElementById('settings-whatsapp');
+    const upiInput = document.getElementById('settings-upi');
+    const shippingInput = document.getElementById('settings-shipping');
+
+    if (nameInput) nameInput.value = settings.shopName || '';
+    if (waInput) waInput.value = settings.whatsapp || '';
+    if (upiInput) upiInput.value = settings.upi || '';
+    if (shippingInput) shippingInput.value = settings.shipping ?? 50;
+  },
+
+  saveSettings(event) {
+    if (event) event.preventDefault();
+
+    const nameInput = document.getElementById('settings-shop-name');
+    const waInput = document.getElementById('settings-whatsapp');
+    const upiInput = document.getElementById('settings-upi');
+    const shippingInput = document.getElementById('settings-shipping');
+
+    const settings = {
+      shopName: nameInput ? nameInput.value.trim() : 'Epic Toyz',
+      whatsapp: waInput ? waInput.value.trim().replace(/[^0-9]/g, '') : '916383793890',
+      upi: upiInput ? upiInput.value.trim() : '9363114113@sbi',
+      shipping: shippingInput ? parseInt(shippingInput.value, 10) || 0 : 50
+    };
+
+    try {
+      localStorage.setItem('et_shop_settings', JSON.stringify(settings));
+      Toast.success('Settings saved successfully!');
+    } catch (e) {
+      console.error('[Admin] Failed to save settings:', e);
+      Toast.error('Failed to save settings.');
     }
   },
 

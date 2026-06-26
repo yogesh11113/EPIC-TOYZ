@@ -723,6 +723,7 @@ function initFilters() {
   // Price range sliders
   const rangeMin = document.getElementById('range-min');
   const rangeMax = document.getElementById('range-max');
+  let priceTimer = null;
 
   rangeMin?.addEventListener('input', () => {
     let minVal = parseInt(rangeMin.value, 10);
@@ -735,7 +736,8 @@ function initFilters() {
     activeFilters.minPrice = minVal;
     updatePriceRangeTrack();
     syncPriceInputsFromSliders();
-    debounce(applyShopFilters, 400)();
+    clearTimeout(priceTimer);
+    priceTimer = setTimeout(applyShopFilters, 400);
   });
 
   rangeMax?.addEventListener('input', () => {
@@ -750,38 +752,51 @@ function initFilters() {
     activeFilters.maxPrice = maxVal;
     updatePriceRangeTrack();
     syncPriceInputsFromSliders();
-    debounce(applyShopFilters, 400)();
+    clearTimeout(priceTimer);
+    priceTimer = setTimeout(applyShopFilters, 400);
   });
 
   // Price number inputs
   document.getElementById('min-price-input')?.addEventListener('input', e => {
-    debounce(() => {
+    clearTimeout(priceTimer);
+    priceTimer = setTimeout(() => {
       const val = parseInt(e.target.value, 10) || 0;
       activeFilters.minPrice = Math.max(0, val);
       const rangeMinEl = document.getElementById('range-min');
       if (rangeMinEl) rangeMinEl.value = activeFilters.minPrice;
       updatePriceRangeTrack();
       applyShopFilters();
-    }, 500)();
+    }, 500);
   });
 
   document.getElementById('max-price-input')?.addEventListener('input', e => {
-    debounce(() => {
+    clearTimeout(priceTimer);
+    priceTimer = setTimeout(() => {
       const val = parseInt(e.target.value, 10) || MAX_PRICE_DEFAULT;
       activeFilters.maxPrice = Math.max(0, val);
       const rangeMaxEl = document.getElementById('range-max');
       if (rangeMaxEl) rangeMaxEl.value = activeFilters.maxPrice;
       updatePriceRangeTrack();
       applyShopFilters();
-    }, 500)();
+    }, 500);
   });
 
   // Search input (debounced 300ms)
+  let searchTimer = null;
   document.getElementById('sidebar-search')?.addEventListener('input', e => {
-    debounce(() => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
       activeFilters.search = e.target.value.trim();
       applyShopFilters();
-    }, 300)();
+    }, 300);
+  });
+
+  document.getElementById('sidebar-search')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      clearTimeout(searchTimer);
+      activeFilters.search = e.target.value.trim();
+      applyShopFilters();
+    }
   });
 
   // Sort dropdown
