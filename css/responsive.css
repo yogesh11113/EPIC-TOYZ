@@ -577,3 +577,355 @@
   }
 }
 
+/* ============================================================
+   GLOBAL OVERFLOW PREVENTION
+   Prevent any page from scrolling horizontally
+   ============================================================ */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Ensure all containers respect viewport width */
+* {
+  min-width: 0;
+}
+
+/* ============================================================
+   CHECKOUT PAGE — ORDER REVIEW TABLE MOBILE
+   ============================================================ */
+@media (max-width: 575px) {
+  .order-review-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .order-review-table {
+    min-width: 420px;
+  }
+  .checkout-header {
+    padding: 0 16px;
+    margin: 20px auto 16px;
+  }
+  .checkout-header h1 {
+    font-size: 1.4rem !important;
+  }
+  .steps-progress {
+    padding: 0 16px;
+    margin-bottom: 20px;
+  }
+  .checkout-layout {
+    padding: 0 16px;
+  }
+  .upi-id-box {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .payment-method-label {
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .delivery-options {
+    grid-template-columns: 1fr !important;
+  }
+  .order-success {
+    padding: 36px 20px !important;
+  }
+}
+
+/* ============================================================
+   WHY CHOOSE US — COMPACT ON MOBILE
+   ============================================================ */
+@media (max-width: 767px) {
+  .why-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .why-card {
+    padding: 20px 18px !important;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .why-icon-circle {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 20px !important;
+    margin-bottom: 0 !important;
+    flex-shrink: 0;
+  }
+  .why-card-content {
+    flex: 1;
+  }
+  .why-card-title {
+    font-size: 15px !important;
+    margin-bottom: 4px !important;
+  }
+  .why-card-desc {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+}
+
+@media (max-width: 575px) {
+  .why-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .why-card {
+    padding: 16px 14px !important;
+    gap: 12px;
+  }
+  .why-icon-circle {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 18px !important;
+  }
+  .why-card-title {
+    font-size: 14px !important;
+  }
+  .why-card-desc {
+    font-size: 12px !important;
+  }
+}
+
+/* ============================================================
+   ADMIN DASHBOARD — MOBILE IMPROVEMENTS
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Ensure admin body scrolls properly */
+  body.admin-body-page {
+    overflow: auto !important;
+    height: auto !important;
+  }
+  .main-content {
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100vh;
+  }
+  /* Filter bar wraps on mobile */
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-bar .search-input-wrapper {
+    min-width: unset;
+    width: 100%;
+  }
+  .filter-bar .filter-select {
+    width: 100%;
+  }
+  /* Section header wraps */
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  /* Table overflow */
+  .table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .data-table {
+    min-width: 560px;
+  }
+  /* Stat cards 2-col on mobile */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  /* Dashboard row stacks */
+  .dashboard-row {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  /* Modal full width */
+  .modal-backdrop {
+    padding: 12px !important;
+    align-items: flex-start;
+  }
+  .modal {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-body {
+    padding: 16px !important;
+  }
+  /* Form rows stack */
+  .form-row {
+    grid-template-columns: 1fr !important;
+  }
+  .form-row.three {
+    grid-template-columns: 1fr !important;
+  }
+  /* Top header layout */
+  .top-header {
+    padding: 12px 16px 12px 62px !important;
+  }
+  .header-time, .header-date {
+    display: none;
+  }
+  /* Page content padding */
+  .page-content {
+    padding: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .stat-card {
+    padding: 14px !important;
+  }
+  .stat-value {
+    font-size: 22px !important;
+  }
+  .stat-icon {
+    font-size: 22px !important;
+    margin-bottom: 8px !important;
+  }
+  /* Cards grid for categories */
+  .cards-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  /* Buttons wrap in header */
+  .section-header > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .btn {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+/* ============================================================
+   PRODUCT PAGE — GALLERY DOTS
+   ============================================================ */
+.gallery-dots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 12px;
+}
+.gallery-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  border: none;
+  padding: 0;
+}
+.gallery-dot.active {
+  background: #E63946;
+  transform: scale(1.2);
+}
+
+/* Hide dots on desktop (thumbnail strip is better) */
+@media (min-width: 601px) {
+  .gallery-dots {
+    display: none;
+  }
+}
+
+/* ============================================================
+   MULTIPLE BADGES — FLEX CONTAINER
+   ============================================================ */
+.product-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.product-card-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ============================================================
+   ADMIN — BADGE CHECKBOX GROUP
+   ============================================================ */
+.badge-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 12px;
+}
+.badge-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted, #ADB5BD);
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.15s;
+  user-select: none;
+}
+.badge-checkbox-item:hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+.badge-checkbox-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #E63946;
+  cursor: pointer;
+}
+.badge-checkbox-item input:checked + span {
+  color: #fff;
+  font-weight: 600;
+}
+.badge-checkbox-item:has(input:checked) {
+  border-color: rgba(230,57,70,0.4);
+  background: rgba(230,57,70,0.08);
+}
+
+/* ============================================================
+   MOBILE NAV — ENSURE HAMBURGER IS ALWAYS VISIBLE
+   ============================================================ */
+@media (max-width: 1023px) {
+  .hamburger {
+    display: flex !important;
+    z-index: 1100;
+  }
+  .navbar-nav {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   GENERAL MOBILE CLEANUP
+   ============================================================ */
+@media (max-width: 575px) {
+  /* Container padding safety */
+  .container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  /* Section spacing reduction */
+  .section {
+    padding: 48px 0 !important;
+  }
+  /* Admin login card */
+  .login-container {
+    padding: 12px !important;
+  }
+  .login-card {
+    padding: 24px 20px !important;
+  }
+}
+

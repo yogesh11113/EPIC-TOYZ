@@ -128,16 +128,35 @@ function renderBreadcrumb(product) {
    PRODUCT DETAILS
    ===================================================================== */
 function renderProductDetails(product) {
-  // Badge pill
+  // Badge pills — support multiple badges
   const badgePill = document.getElementById('product-badge-pill');
-  if (badgePill && product.badge) {
-    const badgeClass = product.badge.toLowerCase().replace(/\s+/g, '');
-    const badgeLabel = product.badge === 'bestseller' ? '🔥 Best Seller' :
-                       product.badge === 'new' ? '🆕 New Arrival' :
-                       product.badge === 'featured' ? '⭐ Featured' :
-                       product.badge === 'sale' ? '🏷️ On Sale' :
-                       product.badge.charAt(0).toUpperCase() + product.badge.slice(1);
-    badgePill.innerHTML = `<span class="product-badge-pill badge-${badgeClass}">${badgeLabel}</span>`;
+  if (badgePill) {
+    const badgesArr = (product.badges && product.badges.length > 0)
+      ? product.badges
+      : (product.badge ? [product.badge] : []);
+    if (badgesArr.length > 0) {
+      const pillMap = {
+        bestseller: '🔥 Best Seller',
+        new: '🆕 New Arrival',
+        featured: '⭐ Featured',
+        sale: '🏷️ On Sale',
+        hot: '🌶️ Hot',
+        limited: '⏳ Limited Stock',
+      };
+      const pillClassMap = {
+        hot: 'badge-sale',
+        limited: 'badge-none',
+      };
+      badgePill.innerHTML = `<div class="product-badges-row">${
+        badgesArr.map(b => {
+          const label = pillMap[b] || (b.charAt(0).toUpperCase() + b.slice(1));
+          const cls = pillClassMap[b] || `badge-${b}`;
+          return `<span class="product-badge-pill ${cls}">${label}</span>`;
+        }).join('')
+      }</div>`;
+    } else {
+      badgePill.innerHTML = '';
+    }
   }
 
   // Name
@@ -246,12 +265,25 @@ function renderGallery(product) {
   // Always ensure at least one image
   if (!galleryImages.length) galleryImages = ['assets/images/placeholder.svg'];
 
-  // Set gallery badge
+  // Set gallery badge — support multiple badges
   const badgeOverlay = document.getElementById('gallery-badge-overlay');
-  if (badgeOverlay && product.badge) {
-    const badgeClass = product.badge.toLowerCase().replace(/\s+/g, '');
-    const badgeLabel = product.badge === 'bestseller' ? 'Best Seller' : product.badge.charAt(0).toUpperCase() + product.badge.slice(1);
-    badgeOverlay.innerHTML = `<div class="gallery-badge badge-${badgeClass}">${badgeLabel}</div>`;
+  if (badgeOverlay) {
+    const badgesArr = (product.badges && product.badges.length > 0)
+      ? product.badges
+      : (product.badge ? [product.badge] : []);
+    if (badgesArr.length > 0) {
+      const badgeLabelMap = {
+        bestseller: 'Best Seller', new: 'New', featured: 'Featured',
+        sale: 'Sale', hot: 'Hot', limited: 'Limited',
+      };
+      badgeOverlay.innerHTML = badgesArr.map(b => {
+        const cls = b.toLowerCase().replace(/\s+/g, '');
+        const lbl = badgeLabelMap[cls] || (b.charAt(0).toUpperCase() + b.slice(1));
+        return `<div class="gallery-badge badge-${cls}" style="margin-bottom:4px;">${lbl}</div>`;
+      }).join('');
+    } else {
+      badgeOverlay.innerHTML = '';
+    }
   }
 
   // Set main image
@@ -270,14 +302,35 @@ function renderGallery(product) {
 
   if (galleryImages.length <= 1) {
     thumbsContainer.style.display = 'none';
-    return;
+  } else {
+    thumbsContainer.innerHTML = galleryImages.map((img, i) => `
+      <div class="gallery-thumb ${i === 0 ? 'active' : ''}" onclick="changeMainImage(${i})" role="button" aria-label="View image ${i + 1}">
+        <img src="${img}" alt="Product view ${i + 1}" loading="lazy" onerror="this.src='assets/images/placeholder.svg'">
+      </div>
+    `).join('');
   }
 
-  thumbsContainer.innerHTML = galleryImages.map((img, i) => `
-    <div class="gallery-thumb ${i === 0 ? 'active' : ''}" onclick="changeMainImage(${i})" role="button" aria-label="View image ${i + 1}">
-      <img src="${img}" alt="Product view ${i + 1}" loading="lazy" onerror="this.src='assets/images/placeholder.svg'">
-    </div>
-  `).join('');
+  // Render dot indicators (mobile-friendly)
+  let dotsContainer = document.getElementById('gallery-dots');
+  if (!dotsContainer) {
+    dotsContainer = document.createElement('div');
+    dotsContainer.id = 'gallery-dots';
+    dotsContainer.className = 'gallery-dots';
+    const galleryWrap = galleryMainWrap ? galleryMainWrap.parentElement : null;
+    if (galleryWrap) galleryWrap.insertBefore(dotsContainer, thumbsContainer || galleryWrap.children[1]);
+  }
+  if (galleryImages.length > 1) {
+    dotsContainer.innerHTML = galleryImages.map((_, i) =>
+      `<button class="gallery-dot${i === 0 ? ' active' : ''}" onclick="changeMainImage(${i})" aria-label="Image ${i + 1}"></button>`
+    ).join('');
+    dotsContainer.style.display = 'flex';
+  } else {
+    dotsContainer.innerHTML = '';
+    dotsContainer.style.display = 'none';
+  }
+
+  // Touch swipe support
+  initGallerySwipe();
 }
 
 function changeMainImage(index) {
@@ -301,6 +354,51 @@ function changeMainImage(index) {
   document.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {
     thumb.classList.toggle('active', i === index);
   });
+
+  // Update active dots
+  document.querySelectorAll('.gallery-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === index);
+  });
+}
+
+/* =====================================================================
+   TOUCH SWIPE SUPPORT FOR GALLERY
+   ===================================================================== */
+let _swipeStartX = 0;
+let _swipeStartY = 0;
+
+function initGallerySwipe() {
+  const wrap = document.getElementById('gallery-main-wrap');
+  if (!wrap) return;
+
+  // Remove old listeners to avoid duplicates
+  wrap.removeEventListener('touchstart', _handleSwipeStart);
+  wrap.removeEventListener('touchend', _handleSwipeEnd);
+
+  wrap.addEventListener('touchstart', _handleSwipeStart, { passive: true });
+  wrap.addEventListener('touchend', _handleSwipeEnd, { passive: true });
+}
+
+function _handleSwipeStart(e) {
+  _swipeStartX = e.changedTouches[0].clientX;
+  _swipeStartY = e.changedTouches[0].clientY;
+}
+
+function _handleSwipeEnd(e) {
+  const dx = e.changedTouches[0].clientX - _swipeStartX;
+  const dy = e.changedTouches[0].clientY - _swipeStartY;
+  // Only handle horizontal swipes (more X movement than Y)
+  if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
+
+  if (dx < 0) {
+    // Swipe left => next image
+    const next = (currentImageIndex + 1) % galleryImages.length;
+    changeMainImage(next);
+  } else {
+    // Swipe right => previous image
+    const prev = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+    changeMainImage(prev);
+  }
 }
 
 /* =====================================================================

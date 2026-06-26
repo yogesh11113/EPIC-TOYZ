@@ -39,7 +39,8 @@
       color: var(--text);
       min-height: 100vh;
       display: flex;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     /* ── SCROLLBAR ── */
@@ -1397,6 +1398,9 @@
 
       .main-content {
         margin-left: 0;
+        height: auto;
+        min-height: 100vh;
+        overflow-y: visible;
       }
 
       .top-header { padding: 14px 16px 14px 68px; }
@@ -1460,7 +1464,7 @@
     }
   </style>
 </head>
-<body>
+<body class="admin-body-page">
 
   <!-- Page loader -->
   <div id="page-loader">
@@ -1655,10 +1659,12 @@
           </select>
           <select class="filter-select" id="products-badge-filter" onchange="Admin.handleProductSearch(document.getElementById('products-search').value)">
             <option value="">All Badges</option>
-            <option value="new">New</option>
-            <option value="bestseller">Best Seller</option>
-            <option value="featured">Featured</option>
-            <option value="sale">Sale</option>
+            <option value="new">✨ New</option>
+            <option value="bestseller">⭐ Best Seller</option>
+            <option value="featured">🔥 Featured</option>
+            <option value="sale">🏷️ Sale</option>
+            <option value="hot">🌶️ Hot</option>
+            <option value="limited">⏳ Limited Stock</option>
           </select>
         </div>
 
@@ -1832,15 +1838,36 @@
               </div>
               <input type="hidden" id="product-category" value="">
             </div>
-            <div class="form-group">
-              <label class="form-label">Badge</label>
-              <select class="form-control" id="product-badge">
-                <option value="">None</option>
-                <option value="new">New</option>
-                <option value="bestseller">Best Seller</option>
-                <option value="featured">Featured</option>
-                <option value="sale">Sale</option>
-              </select>
+            <div class="form-group full">
+              <label class="form-label">Badges <small style="color:var(--text-dim);font-weight:400;">(select all that apply)</small></label>
+              <div class="badge-checkbox-group" id="product-badges-container">
+                <label class="badge-checkbox-item">
+                  <input type="checkbox" name="product-badge-cb" value="new">
+                  <span>✨ New</span>
+                </label>
+                <label class="badge-checkbox-item">
+                  <input type="checkbox" name="product-badge-cb" value="sale">
+                  <span>🏷️ Sale</span>
+                </label>
+                <label class="badge-checkbox-item">
+                  <input type="checkbox" name="product-badge-cb" value="bestseller">
+                  <span>⭐ Best Seller</span>
+                </label>
+                <label class="badge-checkbox-item">
+                  <input type="checkbox" name="product-badge-cb" value="featured">
+                  <span>🔥 Featured</span>
+                </label>
+                <label class="badge-checkbox-item">
+                  <input type="checkbox" name="product-badge-cb" value="hot">
+                  <span>🌶️ Hot</span>
+                </label>
+                <label class="badge-checkbox-item">
+                  <input type="checkbox" name="product-badge-cb" value="limited">
+                  <span>⏳ Limited Stock</span>
+                </label>
+              </div>
+              <!-- hidden for backward compat -->
+              <input type="hidden" id="product-badge" value="">
             </div>
           </div>
 

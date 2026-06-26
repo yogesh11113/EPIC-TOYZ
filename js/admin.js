@@ -53,17 +53,22 @@ function esc(str) {
 }
 
 /**
- * Get badge HTML for product badge string
+ * Get badge HTML for product badge value (string or array)
  */
-function getBadgeHTML(badge) {
-  if (!badge || badge === 'none' || badge === '') return '<span class="badge badge-none">—</span>';
+function getBadgeHTML(badgeOrArr) {
+  const badges = Array.isArray(badgeOrArr)
+    ? badgeOrArr
+    : (badgeOrArr && badgeOrArr !== 'none' ? [badgeOrArr] : []);
+  if (!badges.length) return '<span class="badge badge-none">—</span>';
   const map = {
     new: '<span class="badge badge-new">✨ New</span>',
     bestseller: '<span class="badge badge-bestseller">⭐ Best Seller</span>',
     featured: '<span class="badge badge-featured">🔥 Featured</span>',
     sale: '<span class="badge badge-sale">🏷️ Sale</span>',
+    hot: '<span class="badge badge-sale" style="background:rgba(255,100,0,0.15);color:#ff6400;border-color:rgba(255,100,0,0.25);">🌶️ Hot</span>',
+    limited: '<span class="badge badge-none" style="background:rgba(155,89,182,0.15);color:#9b59b6;border-color:rgba(155,89,182,0.25);">⏳ Limited</span>',
   };
-  return map[badge] || `<span class="badge badge-none">${esc(badge)}</span>`;
+  return badges.map(b => map[b] || `<span class="badge badge-none">${esc(b)}</span>`).join(' ');
 }
 
 /**
@@ -665,7 +670,10 @@ const Admin = {
       products = products.filter(p => String(p.categoryId) === String(catFilter) || String(p.category) === String(catFilter));
     }
     if (badgeFilter) {
-      products = products.filter(p => (p.badge || '').toLowerCase() === badgeFilter.toLowerCase());
+      products = products.filter(p => {
+        const productBadges = p.badges && p.badges.length > 0 ? p.badges : (p.badge ? [p.badge] : []);
+        return productBadges.some(b => b.toLowerCase() === badgeFilter.toLowerCase());
+      });
     }
 
     // Update count label
@@ -724,7 +732,7 @@ const Admin = {
             <td>
               <span style="font-weight:700; color:${stock < 5 ? 'var(--error)' : 'var(--text)'};">${stock}</span>
             </td>
-            <td>${getBadgeHTML(p.badge)}</td>
+            <td><div style="display:flex;flex-wrap:wrap;gap:4px;">${getBadgeHTML(p.badges && p.badges.length > 0 ? p.badges : (p.badge || ''))}</div></td>
             <td>${statusHtml}</td>
             <td>
               <div style="display:flex; gap:6px;">
@@ -811,7 +819,14 @@ const Admin = {
       // Update hidden fallback
       document.getElementById('product-category').value = mappedCatsArray[0] || '';
 
-      document.getElementById('product-badge').value = product.badge || '';
+      // Restore badge checkboxes
+      const badgesArr = product.badges && product.badges.length > 0
+        ? product.badges
+        : (product.badge ? [product.badge] : []);
+      document.querySelectorAll('#product-badges-container input[type="checkbox"]').forEach(cb => {
+        cb.checked = badgesArr.includes(cb.value);
+      });
+      document.getElementById('product-badge').value = badgesArr[0] || '';
       document.getElementById('product-price').value = product.price || '';
       document.getElementById('product-original-price').value = product.originalPrice || '';
       document.getElementById('product-stock').value = product.stock ?? product.stockQuantity ?? 0;
@@ -1001,7 +1016,8 @@ const Admin = {
     const name = document.getElementById('product-name').value.trim();
     const selectedCategories = this.getSelectedCategoriesFromForm();
     const category = selectedCategories[0] || '';
-    const badge = document.getElementById('product-badge').value;
+    const selectedBadges = this.getSelectedBadgesFromForm();
+    const badge = selectedBadges[0] || null;
     const price = parseFloat(document.getElementById('product-price').value);
     const originalPrice = parseFloat(document.getElementById('product-original-price').value) || null;
     const stock = parseInt(document.getElementById('product-stock').value, 10);
@@ -1023,7 +1039,8 @@ const Admin = {
       categoryId: category,
       category,
       categories: selectedCategories,
-      badge: badge || null,
+      badge,
+      badges: selectedBadges,
       price,
       originalPrice,
       stock,
@@ -1163,6 +1180,11 @@ const Admin = {
     return features;
   },
 
+  getSelectedBadgesFromForm() {
+    const checkboxes = document.querySelectorAll('#product-badges-container input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+  },
+
   getSelectedCategoriesFromForm() {
     const checkboxes = document.querySelectorAll('#product-categories-container input[type="checkbox"]:checked');
     return Array.from(checkboxes).map(cb => cb.value);
@@ -1175,7 +1197,8 @@ const Admin = {
     const name = document.getElementById('product-name').value.trim();
     const selectedCategories = this.getSelectedCategoriesFromForm();
     const category = selectedCategories[0] || '';
-    const badge = document.getElementById('product-badge').value;
+    const selectedBadges = this.getSelectedBadgesFromForm();
+    const badge = selectedBadges[0] || null;
     const price = parseFloat(document.getElementById('product-price').value);
     const originalPrice = parseFloat(document.getElementById('product-original-price').value) || null;
     const stock = parseInt(document.getElementById('product-stock').value, 10);
@@ -1197,7 +1220,8 @@ const Admin = {
       categoryId: category,
       category,
       categories: selectedCategories,
-      badge: badge || null,
+      badge,
+      badges: selectedBadges,
       price,
       originalPrice,
       stock,

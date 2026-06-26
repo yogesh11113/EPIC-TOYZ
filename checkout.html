@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Checkout | Epic Toyz</title>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
@@ -935,9 +935,11 @@
         <!-- Order Review -->
         <div style="margin-bottom:24px;">
           <h3 style="font-size:0.9rem; font-weight:700; color:#ADB5BD; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 14px;">Order Items</h3>
-          <table class="order-review-table" id="order-review-table">
-            <!-- Filled by JS -->
-          </table>
+          <div class="order-review-table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+            <table class="order-review-table" id="order-review-table">
+              <!-- Filled by JS -->
+            </table>
+          </div>
         </div>
 
         <!-- Payment Methods -->

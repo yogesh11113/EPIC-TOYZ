@@ -295,11 +295,11 @@ function applyShopFilters() {
 
   // Badges
   if (activeFilters.badges.length) {
-    results = results.filter(p => {
-      const badge = (p.badge || '').toLowerCase();
-      return activeFilters.badges.some(b => badge === b || badge.includes(b));
-    });
-  }
+      results = results.filter(p => {
+        const productBadges = (p.badges && p.badges.length > 0) ? p.badges : (p.badge ? [p.badge] : []);
+        return activeFilters.badges.some(b => productBadges.some(pb => pb.toLowerCase() === b.toLowerCase()));
+      });
+    }
 
   // Sort
   results = sortProducts(results, activeFilters.sort);
@@ -377,7 +377,6 @@ function renderProductCard(product) {
   const price = product.price || 0;
   const originalPrice = product.original_price || product.originalPrice || 0;
   const discount = originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
-  const badge = product.badge || '';
   const image = (product.images && product.images[0]) || product.image || 'assets/images/placeholder.svg';
   const rating = product.rating || 0;
   const reviewCount = product.review_count || product.reviewCount || 0;
@@ -392,11 +391,29 @@ function renderProductCard(product) {
     stockHtml = '<span class="stock-tag in-stock">In Stock</span>';
   }
 
+  const badge = product.badge || '';
+  const badgesArr = (product.badges && product.badges.length > 0)
+    ? product.badges
+    : (badge ? [badge] : []);
+
+  const badgeLabelMap = {
+    bestseller: 'Best Seller',
+    new: 'New',
+    sale: 'Sale',
+    featured: 'Featured',
+    hot: 'Hot',
+    limited: 'Limited Stock',
+  };
+
   let badgeHtml = '';
-  if (badge) {
-    const badgeClass = badge.toLowerCase().replace(/\s+/g, '');
-    const badgeLabel = badge === 'bestseller' ? 'Best Seller' : badge.charAt(0).toUpperCase() + badge.slice(1);
-    badgeHtml = `<div class="product-badge badge-${badgeClass}">${badgeLabel}</div>`;
+  if (badgesArr.length > 0) {
+    badgeHtml = `<div style="position:absolute;top:10px;left:10px;z-index:2;display:flex;flex-wrap:wrap;gap:4px;">${
+      badgesArr.map(b => {
+        const cls = b.toLowerCase().replace(/\s+/g, '');
+        const lbl = badgeLabelMap[cls] || (b.charAt(0).toUpperCase() + b.slice(1));
+        return `<div class="product-badge badge-${cls}">${lbl}</div>`;
+      }).join('')
+    }</div>`;
   }
 
   const starsHtml = renderStars(rating);

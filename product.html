@@ -91,6 +91,9 @@
       top: 14px;
       left: 14px;
       z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
     .gallery-badge {
       padding: 5px 12px;
@@ -104,6 +107,8 @@
     .gallery-badge.badge-bestseller { background: #E63946; color: #fff; }
     .gallery-badge.badge-featured { background: #457B9D; color: #fff; }
     .gallery-badge.badge-sale { background: #f39c12; color: #fff; }
+    .gallery-badge.badge-hot { background: #ff6400; color: #fff; }
+    .gallery-badge.badge-limited { background: #9b59b6; color: #fff; }
 
     /* Thumbnails */
     #gallery-thumbs {
@@ -162,6 +167,8 @@
     .product-badge-pill.badge-bestseller { background: rgba(230,57,70,0.15); color: #E63946; border: 1px solid rgba(230,57,70,0.3); }
     .product-badge-pill.badge-featured { background: rgba(69,123,157,0.15); color: #457B9D; border: 1px solid rgba(69,123,157,0.3); }
     .product-badge-pill.badge-sale { background: rgba(243,156,18,0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+    .product-badge-pill.badge-hot { background: rgba(255,100,0,0.15); color: #ff6400; border: 1px solid rgba(255,100,0,0.3); }
+    .product-badge-pill.badge-none { background: rgba(155,89,182,0.15); color: #9b59b6; border: 1px solid rgba(155,89,182,0.3); }
 
     #product-name {
       font-size: 28px;

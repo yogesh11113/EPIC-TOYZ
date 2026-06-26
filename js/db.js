@@ -82,13 +82,19 @@ function mapSupabaseProduct(p) {
     ? specArray
     : (resolvedCategory ? [resolvedCategory] : (p.category_id ? [p.category_id] : (p.category ? [p.category] : [])));
 
+  // Normalize badges: prefer _badges_array, fall back to single badge string
+  const rawBadgesArr = p.specifications && p.specifications._badges_array;
+  const badgesList = Array.isArray(rawBadgesArr) && rawBadgesArr.length > 0
+    ? rawBadgesArr
+    : (p.badge ? [p.badge] : []);
+
   return {
     ...p,
     originalPrice: p.original_price != null ? Number(p.original_price) : null,
     price: p.price != null ? Number(p.price) : 0,
     shortDescription: p.short_description || '',
     isFeatured: !!p.is_featured,
-    isNew: p.badge === 'new',
+    isNew: badgesList.includes('new'),
     stock: p.stock_quantity ?? 0,
     stockQuantity: p.stock_quantity ?? 0,
     reviewsCount: p.review_count ?? 0,
@@ -98,6 +104,8 @@ function mapSupabaseProduct(p) {
     category: resolvedCategory || p.category_id || p.category || '',
     categoryId: p.category_id || '',
     categories: categoriesList,
+    badge: badgesList.length > 0 ? badgesList[0] : (p.badge || null),
+    badges: badgesList,
   };
 }
 
@@ -435,10 +443,20 @@ const DB = {
     if (Array.isArray(data.categories)) {
       specificationsObject._categories_array = data.categories;
     }
+
+    // Store badges array for multi-badge support
+    if (Array.isArray(data.badges) && data.badges.length > 0) {
+      specificationsObject._badges_array = data.badges;
+      p.badge = data.badges[0]; // first badge for backward compat
+    } else if (data.badges && typeof data.badges === 'string') {
+      specificationsObject._badges_array = [data.badges];
+      p.badge = data.badges;
+    }
     p.specifications = specificationsObject;
 
     if (data.features !== undefined) p.features = data.features;
-    if (data.badge !== undefined) p.badge = data.badge;
+    // Only set badge from data.badge if badges array was not already set
+    if (data.badge !== undefined && !Array.isArray(data.badges)) p.badge = data.badge;
 
     if (data.isFeatured !== undefined) p.is_featured = !!data.isFeatured;
     else if (data.featured !== undefined) p.is_featured = !!data.featured;

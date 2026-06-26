@@ -289,34 +289,42 @@ function renderProductCard(product) {
   const images = product.images || [];
   const image = product.image || product.image_url || '';
   const badge = product.badge || '';
-  const isBestseller = product.isBestseller || product.is_bestseller || badge === 'bestseller';
-  const isNew = product.isNew || product.is_new || badge === 'new';
-  const isHot = product.isHot || product.is_hot || badge === 'hot';
-  const isLimited = product.isLimited || product.is_limited || badge === 'limited';
-  const onSale = product.onSale || product.on_sale || badge === 'sale';
+  const badgesArr = (product.badges && product.badges.length > 0)
+    ? product.badges
+    : (badge ? [badge] : []);
+  const isBestseller = product.isBestseller || product.is_bestseller || badgesArr.includes('bestseller');
+  const isNew = product.isNew || product.is_new || badgesArr.includes('new');
+  const isHot = product.isHot || product.is_hot || badgesArr.includes('hot');
+  const isLimited = product.isLimited || product.is_limited || badgesArr.includes('limited');
+  const onSale = product.onSale || product.on_sale || badgesArr.includes('sale');
 
   // Determine image URL
   const imgUrl = (images && images[0]) || image || 'assets/images/placeholder.svg';
 
-  // Determine badge
-  let badgeType = badge || '';
-  let badgeLabel = '';
-  if (!badgeType) {
-    if (isBestseller) { badgeType = 'bestseller'; badgeLabel = '🔥 Best Seller'; }
-    else if (isNew)   { badgeType = 'new';         badgeLabel = '✨ New'; }
-    else if (isHot)   { badgeType = 'hot';         badgeLabel = '🔥 Hot'; }
-    else if (isLimited){ badgeType = 'limited';    badgeLabel = '⏳ Limited'; }
-    else if (onSale)  { badgeType = 'sale';        badgeLabel = '💸 Sale'; }
-  } else {
-    const labelMap = {
-      bestseller: '🔥 Best Seller',
-      new: '✨ New',
-      hot: '🔥 Hot',
-      limited: '⏳ Limited',
-      sale: '💸 Sale',
-    };
-    badgeLabel = labelMap[badgeType] || badgeType;
+  // Build badges list
+  const badgeFallbacks = [];
+  if (!badgesArr.length) {
+    if (isBestseller) badgeFallbacks.push('bestseller');
+    else if (isNew)   badgeFallbacks.push('new');
+    else if (isHot)   badgeFallbacks.push('hot');
+    else if (isLimited) badgeFallbacks.push('limited');
+    else if (onSale)  badgeFallbacks.push('sale');
   }
+  const finalBadges = badgesArr.length > 0 ? badgesArr : badgeFallbacks;
+
+  const labelMap = {
+    bestseller: '🔥 Best Seller',
+    new: '✨ New',
+    hot: '🔥 Hot',
+    limited: '⏳ Limited',
+    sale: '💸 Sale',
+    featured: '⭐ Featured',
+  };
+
+  const badgesHtml = finalBadges.map(b => {
+    const label = labelMap[b] || b;
+    return `<span class="badge badge-${b}">${label}</span>`;
+  }).join('');
 
   // Discount
   let discountHtml = '';
@@ -334,7 +342,7 @@ function renderProductCard(product) {
   return `
     <div class="product-card hover-lift reveal" onclick="viewProduct('${id}')">
       <div class="product-card-image">
-        ${badgeLabel ? `<span class="badge badge-${badgeType}">${badgeLabel}</span>` : ''}
+        ${badgesHtml ? `<div class="product-card-badges-row" style="position:absolute;top:10px;left:10px;z-index:2;display:flex;flex-wrap:wrap;gap:4px;">${badgesHtml}</div>` : ''}
         <img
           src="${imgUrl}"
           alt="${escapeHtml(name)}"
