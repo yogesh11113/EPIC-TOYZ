@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>My Account | Epic Toyz</title>
+  <meta name="description" content="Manage your Epic Toyz account, view your orders, and update your profile details.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <style>
+    /* ── Page Hero ── */
+    .page-hero {
+      position: relative;
+      min-height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0D0E1A 0%, #1D3557 50%, #0D0E1A 100%);
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(230,57,70,0.15) 0%, transparent 70%);
+    }
+    .page-hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(69,123,157,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(69,123,157,0.06) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .page-hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 2rem 1rem;
+    }
+    .page-hero h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .page-hero h1 span { color: #E63946; }
+    .page-hero p {
+      font-size: 1rem;
+      color: #ADB5BD;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* ── Main Layout ── */
+    .profile-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* ── Navigation Sidebar ── */
+    .profile-sidebar {
+      background: #12151F;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 24px;
+      position: sticky;
+      top: 100px;
+    }
+    .user-summary {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 20px;
+    }
+    .user-avatar {
+      width: 64px;
+      height: 64px;
+      background: rgba(230,57,70,0.1);
+      border: 1px solid rgba(230,57,70,0.3);
+      color: #E63946;
+      font-size: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+    .user-name {
+      font-weight: 700;
+      color: #fff;
+      font-size: 1.1rem;
+      word-break: break-all;
+    }
+    .user-role {
+      font-size: 0.75rem;
+      color: #E63946;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .profile-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .profile-menu-btn {
+      background: transparent;
+      border: none;
+      color: #ADB5BD;
+      padding: 12px 16px;
+      border-radius: 10px;
+      text-align: left;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.25s ease;
+      width: 100%;
+    }
+    .profile-menu-btn:hover {
+      background: rgba(255,255,255,0.03);
+      color: #fff;
+    }
+    .profile-menu-btn.active {
+      background: rgba(230,57,70,0.1);
+      color: #E63946;
+      border-left: 3px solid #E63946;
+      border-radius: 0 10px 10px 0;
+      padding-left: 13px;
+    }
+
+    /* ── Content Panels ── */
+    .profile-content {
+      background: #12151F;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 32px;
+      min-height: 400px;
+    }
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+      animation: fadeIn 0.35s ease;
+    }
+    .panel-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 12px;
+    }
+
+    /* ── Profile Details ── */
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .detail-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .detail-label {
+      font-size: 0.82rem;
+      color: #ADB5BD;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    .detail-val {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    /* ── Orders List ── */
+    .orders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .order-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 14px;
+      padding: 24px;
+      transition: border-color 0.25s ease;
+    }
+    .order-card:hover {
+      border-color: rgba(230,57,70,0.25);
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .order-meta {
+      font-size: 0.88rem;
+      color: #ADB5BD;
+    }
+    .order-meta strong {
+      color: #fff;
+    }
+    .order-status {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+    }
+    .status-pending { background: rgba(241,196,15,0.15); color: #f1c40f; }
+    .status-shipped { background: rgba(52,152,219,0.15); color: #3498db; }
+    .status-delivered { background: rgba(46,204,113,0.15); color: #2ecc71; }
+    .status-cancelled { background: rgba(231,76,60,0.15); color: #e74c3c; }
+
+    .order-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .order-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.92rem;
+    }
+    .order-item-name {
+      color: #fff;
+      font-weight: 500;
+    }
+    .order-item-qty {
+      color: #ADB5BD;
+      margin-left: 8px;
+    }
+    .order-item-price {
+      color: #fff;
+      font-weight: 600;
+    }
+    .order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .order-total {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .order-total span {
+      color: #E63946;
+    }
+
+    .empty-orders {
+      text-align: center;
+      padding: 48px 16px;
+    }
+    .empty-orders-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+    .empty-orders h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .empty-orders p {
+      color: #ADB5BD;
+      font-size: 0.92rem;
+      margin-bottom: 20px;
+    }
+
+    /* ── Responsiveness ── */
+    @media (max-width: 768px) {
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+      .profile-sidebar {
+        position: relative;
+        top: 0;
+        padding: 20px;
+      }
+      .profile-content {
+        padding: 24px;
+      }
+      .details-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR PLACEHOLDER -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- PAGE HERO -->
+  <section class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-content">
+      <h1>My <span>Account</span></h1>
+      <p>Manage your orders, payment requests, and account profile details.</p>
+    </div>
+  </section>
+
+  <!-- PROFILE SECTION -->
+  <main class="container">
+    <div class="profile-container">
+      <div class="profile-grid">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="profile-sidebar">
+          <div class="user-summary">
+            <div class="user-avatar" id="avatar-initial">👤</div>
+            <div class="user-name" id="user-display-name">Loading...</div>
+            <div class="user-role" id="user-display-role">Customer</div>
+          </div>
+          <nav class="profile-menu" role="tablist">
+            <button class="profile-menu-btn active" onclick="switchTab('details')" id="tab-btn-details" role="tab" aria-selected="true" aria-controls="panel-details">
+              <span>👤</span> My Profile
+            </button>
+            <button class="profile-menu-btn" onclick="switchTab('orders')" id="tab-btn-orders" role="tab" aria-selected="false" aria-controls="panel-orders">
+              <span>📦</span> My Orders
+            </button>
+            <button class="profile-menu-btn" onclick="handleLogout()" style="color: #ff4d5a;" role="button">
+              <span>🚪</span> Logout
+            </button>
+          </nav>
+        </aside>
+
+        <!-- Content Area -->
+        <section class="profile-content">
+          
+          <!-- TAB PANEL: DETAILS -->
+          <div class="tab-panel active" id="panel-details" role="tabpanel" aria-labelledby="tab-btn-details">
+            <h2 class="panel-title">Profile Information</h2>
+            <div class="details-grid">
+              <div class="detail-card">
+                <div class="detail-label">Full Name</div>
+                <div class="detail-val" id="profile-name">—</div>
+              </div>
+              <div class="detail-card">
+                <div class="detail-label">Email Address</div>
+                <div class="detail-val" id="profile-email">—</div>
+              </div>
+              <div class="detail-card">
+                <div class="detail-label">Phone Number</div>
+                <div class="detail-val" id="profile-phone">—</div>
+              </div>
+              <div class="detail-card">
+                <div class="detail-label">Account Created</div>
+                <div class="detail-val" id="profile-created">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB PANEL: ORDERS -->
+          <div class="tab-panel" id="panel-orders" role="tabpanel" aria-labelledby="tab-btn-orders">
+            <h2 class="panel-title">Order History</h2>
+            <div id="orders-loading-msg" style="text-align:center; color:#ADB5BD; padding:20px;">
+              Loading orders...
+            </div>
+            <div class="orders-list" id="orders-list-container" style="display:none;">
+              <!-- Dynamically populated -->
+            </div>
+            <div class="empty-orders" id="empty-orders-view" style="display:none;">
+              <div class="empty-orders-icon">🏎️</div>
+              <h3>No Orders Found</h3>
+              <p>You haven't placed any order requests yet. Browse our premium collections!</p>
+              <a href="shop.html" class="btn btn-primary btn-sm">Go to Shop</a>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER PLACEHOLDER -->
+  <div id="footer-placeholder"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+
+  <script>
+    'use strict';
+
+    // Guard: Redirect to login if not authenticated
+    function checkAuthGuard() {
+      if (typeof Auth !== 'undefined') {
+        const user = Auth.getCurrentUser();
+        if (!user) {
+          console.warn('[Profile] User not authenticated. Redirecting to login page...');
+          window.location.href = 'admin/login.html';
+          return null;
+        }
+        return user;
+      }
+      return null;
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = checkAuthGuard();
+      if (!user) return;
+
+      // Render profile info
+      renderProfileDetails(user);
+
+      // Fetch and render orders
+      loadUserOrders(user.id);
+
+      // Check if deep link tab is specified in URL (e.g. ?tab=orders)
+      const params = new URLSearchParams(window.location.search);
+      const targetTab = params.get('tab');
+      if (targetTab === 'orders') {
+        switchTab('orders');
+      }
+    });
+
+    // Render User Details
+    function renderProfileDetails(user) {
+      document.getElementById('user-display-name').textContent = user.name || 'User';
+      document.getElementById('user-display-role').textContent = user.role === 'admin' ? 'Administrator' : 'Customer';
+      
+      const avatar = document.getElementById('avatar-initial');
+      if (avatar && user.name) {
+        avatar.textContent = user.name.charAt(0).toUpperCase();
+      }
+
+      document.getElementById('profile-name').textContent = user.name || '—';
+      document.getElementById('profile-email').textContent = user.email || '—';
+      document.getElementById('profile-phone').textContent = user.phone || '—';
+      
+      if (user.createdAt) {
+        try {
+          const date = new Date(user.createdAt);
+          document.getElementById('profile-created').textContent = date.toLocaleDateString('en-IN', {
+            year: 'numeric', month: 'long', day: 'numeric'
+          });
+        } catch (e) {
+          document.getElementById('profile-created').textContent = user.createdAt;
+        }
+      } else {
+        document.getElementById('profile-created').textContent = '—';
+      }
+    }
+
+    // Switch Tabs
+    function switchTab(tabId) {
+      document.querySelectorAll('.profile-menu-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      const activePanel = document.getElementById(`panel-${tabId}`);
+      if (activeBtn && activePanel) {
+        activeBtn.classList.add('active');
+        activeBtn.setAttribute('aria-selected', 'true');
+        activePanel.classList.add('active');
+      }
+    }
+
+    // Load User Orders
+    async function loadUserOrders(userId) {
+      const loadingMsg = document.getElementById('orders-loading-msg');
+      const listContainer = document.getElementById('orders-list-container');
+      const emptyView = document.getElementById('empty-orders-view');
+
+      if (!loadingMsg || !listContainer || !emptyView) return;
+
+      try {
+        if (typeof DB !== 'undefined' && DB.getOrders) {
+          const orders = await DB.getOrders(userId);
+          loadingMsg.style.display = 'none';
+
+          if (orders && orders.length > 0) {
+            emptyView.style.display = 'none';
+            listContainer.style.display = 'flex';
+            
+            listContainer.innerHTML = orders.map(order => {
+              const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', {
+                day: '2-digit', month: 'short', year: 'numeric'
+              }) : '—';
+
+              const statusClass = `status-${(order.status || 'pending').toLowerCase()}`;
+              const formattedStatus = order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Pending';
+
+              const itemsHTML = (order.items || []).map(item => `
+                <div class="order-item-row">
+                  <span class="order-item-name">${escapeHtml(item.name)}<span class="order-item-qty">×${item.quantity}</span></span>
+                  <span class="order-item-price">₹${(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                </div>
+              `).join('');
+
+              const paymentMethodLabel = {
+                whatsapp: 'WhatsApp Order',
+                upi: 'UPI Transfer',
+                cod: 'Cash on Delivery'
+              }[order.payment_method || 'whatsapp'] || (order.payment_method || 'WhatsApp');
+
+              return `
+                <div class="order-card">
+                  <div class="order-header">
+                    <div class="order-meta">
+                      Order Date: <strong>${orderDate}</strong>
+                    </div>
+                    <span class="order-status ${statusClass}">${formattedStatus}</span>
+                  </div>
+                  <div class="order-items">
+                    ${itemsHTML}
+                  </div>
+                  <div class="order-footer">
+                    <div style="color:#ADB5BD; font-size:0.88rem;">
+                      Method: <strong style="color:#fff;">${paymentMethodLabel}</strong>
+                    </div>
+                    <div class="order-total">
+                      Total: <span>₹${(order.total || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          } else {
+            listContainer.style.display = 'none';
+            emptyView.style.display = 'block';
+          }
+        } else {
+          throw new Error('Database module not loaded');
+        }
+      } catch (err) {
+        console.error('[Profile] Error loading orders:', err);
+        loadingMsg.textContent = 'Failed to load order history.';
+      }
+    }
+
+    // Logout
+    function handleLogout() {
+      if (typeof Auth !== 'undefined') {
+        if (confirm('Are you sure you want to logout?')) {
+          Auth.logout();
+        }
+      }
+    }
+
+    // Helper to escape HTML tags
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>

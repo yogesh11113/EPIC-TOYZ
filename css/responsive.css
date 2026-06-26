@@ -895,14 +895,49 @@ html, body {
 }
 
 /* ============================================================
-   MOBILE NAV — ENSURE HAMBURGER IS ALWAYS VISIBLE
+   MOBILE NAV — PREMIUM HAMBURGER & HEADER OPTIMIZATION
    ============================================================ */
 @media (max-width: 1023px) {
   .hamburger {
     display: flex !important;
+    flex-direction: column;
+    gap: 6px !important;
+    padding: 10px !important;
+    background: rgba(230, 57, 70, 0.1) !important; /* Premium red translucent background */
+    border: 1.5px solid var(--red) !important; /* Bold signature red border for visibility */
+    border-radius: 8px !important;
     z-index: 1100;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .hamburger span {
+    display: block;
+    width: 22px !important;
+    height: 2.5px !important; /* Thicker bars for better visibility */
+    background: #FFFFFF !important; /* Pure white lines for extreme contrast */
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+  .hamburger:hover {
+    background: rgba(230, 57, 70, 0.2) !important;
+    transform: scale(1.05);
   }
   .navbar-nav {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Hide Instagram icon in the header on mobile/tablet to avoid crowded top bars */
+  .navbar-actions .nav-icon-btn[aria-label="Instagram"] {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* On small phones, hide Wishlist and Account header icons. They are fully accessible in the mobile drawer */
+  .navbar-actions .nav-icon-btn[aria-label="Wishlist"],
+  .navbar-actions .nav-icon-btn[id="navAccountBtn"] {
     display: none !important;
   }
 }

@@ -345,31 +345,25 @@ function generateWhatsAppOrder() {
   const fullAddress = [delivery.addr1, delivery.addr2, delivery.city, delivery.state, delivery.pincode]
     .filter(Boolean).join(', ');
 
-  const shippingLabel = `₹${shipping}`;
-  const orderId = generateOrderId();
-  CheckoutState.orderId = orderId;
+  const message = `🛒 *New Order Request - Epic Toyz*
 
-  const message = `🛒 *New Order - Epic Toyz*
+👤 *Customer Name:* ${delivery.name || '—'}
+📞 *Phone Number:* ${delivery.phone || '—'}
+📍 *Address:* ${fullAddress || '—'}
 
-*Customer:* ${delivery.name || '—'}
-*Phone:* ${delivery.phone || '—'}
-*Email:* ${delivery.email || '—'}
-*Address:* ${fullAddress || '—'}
-
-📦 *ORDER ITEMS:*
+📦 *ORDERED PRODUCTS:*
 ${itemLines}
 
-💰 *Subtotal:* ₹${subtotal.toLocaleString('en-IN')}
-🚚 *Shipping:* ${shippingLabel} (${deliveryMethod === 'express' ? 'Express' : 'Standard'})${codFee ? `\n💵 *COD Fee:* ₹${codFee}` : ''}
-✅ *TOTAL:* ₹${total.toLocaleString('en-IN')}
+💰 *Total Amount:* ₹${total.toLocaleString('en-IN')} (including shipping${codFee ? ' and COD fee' : ''})
+💳 *Preferred Payment Method:* ${paymentMethodLabel(paymentMethod)}
 
-💳 *Payment:* ${paymentMethodLabel(paymentMethod)}
-🔖 *Order #:* ${orderId}
+💳 *Payment Details:*
+UPI ID: 9363114113@sbi
 
-_Please confirm this order. Thank you!_`;
+Please complete the payment (if applicable) and send the payment screenshot along with this order message for faster confirmation.`;
 
   const encoded = encodeURIComponent(message);
-  window.open(`https://wa.me/916383793890?text=${encoded}`, '_blank');
+  return `https://wa.me/916383793890?text=${encoded}`;
 }
 
 function paymentMethodLabel(method) {
@@ -393,56 +387,25 @@ async function placeOrder() {
   const btn = document.getElementById('btn-place-order');
   setLoading(btn, true);
 
-  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = 50;
-  const codFee = paymentMethod === 'cod' ? 50 : 0;
-  const total = subtotal + shipping + codFee;
+  // Generate WhatsApp link
+  const whatsappUrl = generateWhatsAppOrder();
 
-  const orderId = CheckoutState.orderId || generateOrderId();
-  CheckoutState.orderId = orderId;
-
-  const orderData = {
-    order_id: orderId,
-    customer: CheckoutState.user,
-    delivery: CheckoutState.delivery,
-    delivery_method: CheckoutState.deliveryMethod,
-    payment_method: paymentMethod,
-    items: cart,
-    subtotal,
-    shipping,
-    cod_fee: codFee,
-    total,
-    status: 'pending',
-    created_at: new Date().toISOString(),
-  };
-
-  try {
-    // Try to save to DB
-    if (typeof DB !== 'undefined' && DB.createOrder) {
-      await DB.createOrder(orderData);
-    }
-  } catch (dbErr) {
-    console.warn('DB order save failed, continuing:', dbErr);
-  }
-
-  // Always save to localStorage as backup
-  const orders = JSON.parse(localStorage.getItem('epictoyz_orders') || '[]');
-  orders.unshift(orderData);
-  localStorage.setItem('epictoyz_orders', JSON.stringify(orders));
-
-  // If WhatsApp payment, open WhatsApp
-  if (paymentMethod === 'whatsapp') {
-    generateWhatsAppOrder();
-  }
+  // Open WhatsApp chat in a new tab
+  window.open(whatsappUrl, '_blank');
 
   // Clear cart
   Store.clearCart();
   if (typeof UI !== 'undefined' && UI.updateCartBadge) UI.updateCartBadge();
 
-  setLoading(btn, false, 'Place Order');
+  setLoading(btn, false, 'Continue Order on WhatsApp');
 
-  // Show success
-  document.getElementById('success-order-id').textContent = orderId;
+  // Update retry button link in success step
+  const successWaBtn = document.getElementById('success-whatsapp-btn');
+  if (successWaBtn) {
+    successWaBtn.href = whatsappUrl;
+  }
+
+  // Show transition step (checkout-step-success)
   document.querySelectorAll('.checkout-step').forEach(el => el.classList.remove('active'));
   const successStep = document.getElementById('checkout-step-success');
   if (successStep) {
@@ -450,7 +413,7 @@ async function placeOrder() {
     successStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // Update progress bar to show all done
+  // Update progress bar to show completed
   for (let i = 1; i <= 3; i++) {
     const ind = document.getElementById(`step-indicator-${i}`);
     const circle = document.getElementById(`step-circle-${i}`);

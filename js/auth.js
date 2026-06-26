@@ -356,7 +356,7 @@ const Auth = {
       }
       if (navUserIcon) {
         navUserIcon.title   = user.name || 'My Account';
-        navUserIcon.href    = this.isAdmin(user.email) ? this._getPath('admin-dashboard') : this._getPath('checkout-login');
+        navUserIcon.href    = this.isAdmin(user.email) ? this._getPath('admin-dashboard') : this._getPath('profile.html');
         navUserIcon.innerHTML = '👤';
       }
     } else {
@@ -368,6 +368,34 @@ const Auth = {
         navUserIcon.title   = 'Login';
         navUserIcon.href    = this._getPath('admin-login');
         navUserIcon.innerHTML = '🔑';
+      }
+    }
+
+    // Dynamic Mobile Navigation Drawer Auth Section
+    const mobileAuthSection = document.getElementById('mobileNavAuthSection');
+    const mobileAuthDivider = document.querySelector('.auth-divider');
+    const prefix = this._getPath('home').replace('index.html', '');
+
+    if (mobileAuthSection) {
+      if (user) {
+        if (mobileAuthDivider) mobileAuthDivider.style.display = 'block';
+        if (this.isAdmin(user.email)) {
+          mobileAuthSection.innerHTML = `
+            <a href="${prefix}admin/dashboard.html" class="nav-link">🛠️ Admin Dashboard</a>
+            <a href="#" onclick="event.preventDefault(); Auth.logout();" class="nav-link" style="color: #ff4d5a !important; font-weight: 600;">🚪 Logout (${user.name || 'Admin'})</a>
+          `;
+        } else {
+          mobileAuthSection.innerHTML = `
+            <a href="${prefix}profile.html" class="nav-link">👤 My Profile</a>
+            <a href="${prefix}profile.html?tab=orders" class="nav-link">📦 My Orders</a>
+            <a href="#" onclick="event.preventDefault(); Auth.logout();" class="nav-link" style="color: #ff4d5a !important; font-weight: 600;">🚪 Logout (${user.name || 'User'})</a>
+          `;
+        }
+      } else {
+        if (mobileAuthDivider) mobileAuthDivider.style.display = 'block';
+        mobileAuthSection.innerHTML = `
+          <a href="${prefix}admin/login.html" class="nav-link">🔑 Login / Register</a>
+        `;
       }
     }
   },

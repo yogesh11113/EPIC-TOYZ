@@ -163,6 +163,8 @@ function injectNavbar() {
         <a href="${prefix}cart.html" class="nav-link">🛒 Cart</a>
         <a href="${prefix}wishlist.html" class="nav-link">❤️ Wishlist</a>
         <a href="https://www.instagram.com/epictoyz.in/" target="_blank" class="nav-link" style="color: #FFD700 !important; font-weight: 600;">📸 Instagram (@epictoyz.in)</a>
+        <div class="mobile-nav-divider auth-divider" style="display:none;"></div>
+        <div id="mobileNavAuthSection"></div>
       </div>
     </nav>
   `;
@@ -215,7 +217,7 @@ function injectNavbar() {
           if (Auth.isAdmin(currentUser.email)) {
             window.location.href = `${prefix}admin/dashboard.html`;
           } else {
-            window.location.href = `${prefix}checkout.html?login=true`;
+            window.location.href = `${prefix}profile.html`;
           }
         } else {
           window.location.href = `${prefix}admin/login.html`;
@@ -236,6 +238,11 @@ function injectNavbar() {
         mainNavbar.classList.remove('scrolled');
       }
     });
+  }
+
+  // Trigger navbar auth update to populate user session info and mobile auth menu
+  if (typeof Auth !== 'undefined' && Auth.updateNavbarAuth) {
+    Auth.updateNavbarAuth();
   }
 }
 
