@@ -30,11 +30,7 @@ let shopCategories = [];
 /* =====================================================================
    INIT
    ===================================================================== */
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initShopPage);
-} else {
-  initShopPage();
-}
+document.addEventListener('DOMContentLoaded', initShopPage);
 
 async function initShopPage() {
   try {
@@ -198,18 +194,9 @@ async function renderCategoryFilters() {
   const counts = {};
   shopCategories.forEach(c => { counts[c.slug] = 0; });
   allProducts.forEach(p => {
-    const productCats = new Set();
-    if (p.category) {
-      productCats.add(p.category.toLowerCase().replace(/\s+/g, '-'));
-    }
-    if (Array.isArray(p.categories)) {
-      p.categories.forEach(c => {
-        productCats.add(String(c).toLowerCase().replace(/\s+/g, '-'));
-      });
-    }
-    productCats.forEach(slug => {
-      if (counts[slug] !== undefined) counts[slug]++;
-    });
+    const slug = (p.category || '').toLowerCase().replace(/\s+/g, '-');
+    if (counts[slug] !== undefined) counts[slug]++;
+    else if (counts[(p.category || '').toLowerCase()] !== undefined) counts[(p.category || '').toLowerCase()]++;
   });
 
   container.innerHTML = shopCategories.map(cat => {
@@ -296,16 +283,7 @@ function applyShopFilters() {
     results = results.filter(p => {
       const catRaw = (p.category || '').toLowerCase();
       const catSlug = catRaw.replace(/\s+/g, '-');
-      const isPrimaryMatch = activeFilters.categories.includes(catSlug) || activeFilters.categories.includes(catRaw);
-      if (isPrimaryMatch) return true;
-      
-      if (Array.isArray(p.categories)) {
-        return p.categories.some(c => {
-          const slug = String(c).toLowerCase().replace(/\s+/g, '-');
-          return activeFilters.categories.includes(slug) || activeFilters.categories.includes(String(c).toLowerCase());
-        });
-      }
-      return false;
+      return activeFilters.categories.includes(catSlug) || activeFilters.categories.includes(catRaw);
     });
   }
 

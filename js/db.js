@@ -78,25 +78,9 @@ function mapSupabaseProduct(p) {
   }
 
   const specArray = p.specifications && p.specifications._categories_array;
-  let categoriesList = [];
-  try {
-    const cats = LS.get('et_categories') || [];
-    if (Array.isArray(specArray)) {
-      categoriesList = specArray.map(item => {
-        const found = cats.find(c => String(c.id) === String(item) || String(c.slug) === String(item) || String(c.name) === String(item));
-        return found ? found.slug : item;
-      });
-    } else {
-      categoriesList = resolvedCategory ? [resolvedCategory] : (p.category_id ? [p.category_id] : (p.category ? [p.category] : []));
-    }
-    // Ensure all items in categoriesList are resolved to slugs if possible
-    categoriesList = categoriesList.map(item => {
-      const found = cats.find(c => String(c.id) === String(item) || String(c.slug) === String(item) || String(c.name) === String(item));
-      return found ? found.slug : item;
-    });
-  } catch (e) {
-    categoriesList = Array.isArray(specArray) ? specArray : (resolvedCategory ? [resolvedCategory] : (p.category_id ? [p.category_id] : (p.category ? [p.category] : [])));
-  }
+  const categoriesList = Array.isArray(specArray)
+    ? specArray
+    : (resolvedCategory ? [resolvedCategory] : (p.category_id ? [p.category_id] : (p.category ? [p.category] : [])));
 
   // Normalize badges: prefer _badges_array, fall back to single badge string
   const rawBadgesArr = p.specifications && p.specifications._badges_array;
@@ -204,11 +188,7 @@ function applyFilters(products, filters = {}) {
   let result = [...products];
 
   if (filters.category) {
-    result = result.filter(p => 
-      p.category === filters.category || 
-      p.categoryId === filters.category ||
-      (Array.isArray(p.categories) && p.categories.includes(filters.category))
-    );
+    result = result.filter(p => p.category === filters.category);
   }
   if (filters.badge) {
     result = result.filter(p => p.badge === filters.badge);
@@ -269,7 +249,7 @@ const DB = {
           if (filters.category) {
             const cat = categories.find(c => c.slug === filters.category || c.id === filters.category);
             if (cat) {
-              query = query.or(`category_id.eq.${cat.id},specifications->_categories_array.cs.["${cat.id}"],specifications->_categories_array.cs.["${cat.slug}"]`);
+              query = query.eq('category_id', cat.id);
             }
           }
           if (filters.badge)    query = query.eq('badge', filters.badge);
@@ -640,27 +620,22 @@ const DB = {
      CATEGORIES
      ══════════════════════════════════════════════════════════ */
 
-  _categoriesCache: null,
+  /**
+   * Fetch all categories.
+   * @returns {Promise<object[]>}
+   */
   async getCategories() {
-    if (this._categoriesCache) {
-      LS.set('et_categories', this._categoriesCache);
-      return this._categoriesCache;
-    }
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
         const { data, error } = await window.EpicSupabase
           .from('categories').select('*').order('name', { ascending: true });
         if (error) throw error;
-        this._categoriesCache = data || [];
-        LS.set('et_categories', this._categoriesCache);
-        return this._categoriesCache;
+        return data || [];
       } catch (err) {
         console.warn('[DB] Supabase getCategories failed:', err.message);
       }
     }
-    const localCats = lsCategories();
-    LS.set('et_categories', localCats);
-    return localCats;
+    return lsCategories();
   },
 
   /**

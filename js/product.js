@@ -17,11 +17,7 @@ let galleryImages = [];
 /* =====================================================================
    INIT
    ===================================================================== */
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initProductPage);
-} else {
-  initProductPage();
-}
+document.addEventListener('DOMContentLoaded', initProductPage);
 
 async function initProductPage() {
   initNavbar();
@@ -836,18 +832,13 @@ async function loadRelatedProducts(category) {
 
   try {
     let relatedAll = [];
-    if (typeof DB !== 'undefined' && typeof DB.getProducts === 'function') {
-      relatedAll = await DB.getProducts({ category });
-    } else if (typeof window.SAMPLE_DATA !== 'undefined') {
-      relatedAll = (window.SAMPLE_DATA.products || []).filter(p => {
+    if (typeof DB !== 'undefined' && DB.getProductsByCategory) {
+      relatedAll = await DB.getProductsByCategory(category);
+    } else if (typeof PRODUCTS_DATA !== 'undefined') {
+      relatedAll = PRODUCTS_DATA.filter(p => {
         const catSlug = (p.category || '').toLowerCase().replace(/\s+/g, '-');
         const filterSlug = (category || '').toLowerCase().replace(/\s+/g, '-');
-        const isPrimaryMatch = catSlug === filterSlug;
-        if (isPrimaryMatch) return true;
-        if (Array.isArray(p.categories)) {
-          return p.categories.some(c => String(c).toLowerCase().replace(/\s+/g, '-') === filterSlug);
-        }
-        return false;
+        return catSlug === filterSlug && p.id !== currentProduct.id;
       });
     }
 
