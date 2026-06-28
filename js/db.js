@@ -56,7 +56,7 @@ const DB = {
   async getProducts(filters = {}) {
 
     // ── SUPABASE PATH ──
-    if (isSupabaseConfigured() && window.EpicSupabase) {
+    if (false) {
       try {
 
         let query = window.EpicSupabase
