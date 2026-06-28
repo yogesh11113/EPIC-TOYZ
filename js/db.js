@@ -110,13 +110,43 @@ function mapSupabaseProduct(p) {
 }
 
 /**
+ * Automatically retries an async Supabase database function up to maxAttempts times.
+ * @param {function} queryFn - Function that returns a Promise resolving to the query result.
+ * @param {number} [maxAttempts=3] - Maximum number of attempts.
+ * @param {number} [delayMs=1000] - Delay in milliseconds between attempts.
+ * @returns {Promise<any>} The result of the query function.
+ */
+async function retryQuery(queryFn, maxAttempts = 3, delayMs = 1000) {
+  let attempt = 0;
+  while (attempt < maxAttempts) {
+    try {
+      const result = await queryFn();
+      if (result && result.error) {
+        throw result.error;
+      }
+      return result;
+    } catch (err) {
+      attempt++;
+      console.warn(`[DB] Supabase query attempt ${attempt} failed: ${err.message || JSON.stringify(err)}`);
+      if (attempt >= maxAttempts) {
+        console.error(`[DB] All ${maxAttempts} query attempts failed.`);
+        throw err;
+      }
+      console.info(`[DB] Retrying in ${delayMs}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
+/**
  * Executes a Supabase products query, safely retrying without the categories relation join if it fails.
+ * Automatically retries the fetch up to 3 times on general error/failure.
  * @param {function} buildQueryFn - Function that constructs query builder with select string
  * @param {boolean} [isSingle=false]
  * @returns {Promise<{data: any, error: any}>}
  */
 async function queryProductsSafe(buildQueryFn, isSingle = false) {
-  try {
+  const runQuery = async () => {
     // First try with the categories join
     const qJoin = buildQueryFn('*, categories(id, name, slug)');
     const result = isSingle ? await qJoin.single() : await qJoin;
@@ -125,30 +155,21 @@ async function queryProductsSafe(buildQueryFn, isSingle = false) {
     const err = result.error;
     const errMsg = err.message || '';
 
-    // If the products table itself doesn't exist (PGRST205), throw to trigger localStorage fallback
-    if ((err.code === 'PGRST205' || err.status === 404) && !errMsg.includes('categories')) {
-      console.error('[DB] Supabase table not found (schema not set up?):', errMsg);
-      throw err;
-    }
-
-    // If join to categories failed, retry without the join
+    // If join to categories failed, try without the join
     if (err.code === 'PGRST205' || err.status === 404 || errMsg.includes('categories') || errMsg.includes('relationship')) {
-      console.warn('[DB] Supabase categories join failed, retrying without join:', errMsg);
+      console.warn('[DB] Supabase categories join failed, retrying query without join:', errMsg);
       const qPlain = buildQueryFn('*');
       const retryResult = isSingle ? await qPlain.single() : await qPlain;
-      if (retryResult.error) {
-        const retryErr = retryResult.error;
-        if (retryErr.code === 'PGRST205' || retryErr.status === 404) {
-          console.error('[DB] Supabase products table not found (schema not set up?):', retryErr.message);
-          throw retryErr;
-        }
-      }
       return retryResult;
     }
     return result;
+  };
+
+  try {
+    return await retryQuery(runQuery, 3, 1000);
   } catch (e) {
-    console.error('[DB] queryProductsSafe caught exception — falling back to localStorage:', e.message || e);
-    throw e; // Re-throw so getProducts() catch block uses localStorage
+    console.error('[DB] queryProductsSafe caught exception:', e.message || e);
+    throw e;
   }
 }
 
@@ -239,12 +260,13 @@ const DB = {
    * @returns {Promise<object[]>}
    */
   async getProducts(filters = {}) {
-    if (isSupabaseConfigured() && window.EpicSupabase) {
+    const supabase = await window.ensureSupabase();
+    if (supabase) {
       try {
         const categories = await DB.getCategories();
         
         const buildQuery = (selectStr) => {
-          let query = window.EpicSupabase.from('products').select(selectStr);
+          let query = supabase.from('products').select(selectStr);
           
           if (filters.category) {
             const cat = categories.find(c => c.slug === filters.category || c.id === filters.category);
@@ -276,14 +298,19 @@ const DB = {
         console.log('[DB] Supabase getProducts returned count:', data ? data.length : 0);
         return (data || []).map(mapSupabaseProduct);
       } catch (err) {
-        console.warn('[DB] Supabase getProducts failed, using localStorage:', err.message);
+        console.error('[DB] Supabase getProducts failed after retries:', err.message || err);
+        throw err;
       }
     }
-    let products = applyFilters(lsProducts(), filters);
-    if (filters.limit) {
-      products = products.slice(0, filters.limit);
+    
+    if (!isSupabaseConfigured()) {
+      let products = applyFilters(lsProducts(), filters);
+      if (filters.limit) {
+        products = products.slice(0, filters.limit);
+      }
+      return products;
     }
-    return products;
+    throw new Error('Supabase client is not initialized.');
   },
 
   /**
@@ -292,19 +319,24 @@ const DB = {
    * @returns {Promise<object|null>}
    */
   async getProductById(id) {
-    if (isSupabaseConfigured() && window.EpicSupabase) {
+    const supabase = await window.ensureSupabase();
+    if (supabase) {
       try {
         const buildQuery = (selectStr) => {
-          return window.EpicSupabase.from('products').select(selectStr).eq('id', id);
+          return supabase.from('products').select(selectStr).eq('id', id);
         };
         const { data, error } = await queryProductsSafe(buildQuery, true);
         if (error) throw error;
         return mapSupabaseProduct(data);
       } catch (err) {
-        console.warn('[DB] Supabase getProductById failed:', err.message);
+        console.error('[DB] Supabase getProductById failed after retries:', err.message || err);
+        throw err;
       }
     }
-    return lsProducts().find(p => String(p.id) === String(id)) || null;
+    if (!isSupabaseConfigured()) {
+      return lsProducts().find(p => String(p.id) === String(id)) || null;
+    }
+    throw new Error('Supabase client is not initialized.');
   },
 
   /**
@@ -313,19 +345,24 @@ const DB = {
    * @returns {Promise<object|null>}
    */
   async getProductBySlug(slug) {
-    if (isSupabaseConfigured() && window.EpicSupabase) {
+    const supabase = await window.ensureSupabase();
+    if (supabase) {
       try {
         const buildQuery = (selectStr) => {
-          return window.EpicSupabase.from('products').select(selectStr).eq('slug', slug);
+          return supabase.from('products').select(selectStr).eq('slug', slug);
         };
         const { data, error } = await queryProductsSafe(buildQuery, true);
         if (error) throw error;
         return mapSupabaseProduct(data);
       } catch (err) {
-        console.warn('[DB] Supabase getProductBySlug failed:', err.message);
+        console.error('[DB] Supabase getProductBySlug failed after retries:', err.message || err);
+        throw err;
       }
     }
-    return lsProducts().find(p => p.slug === slug) || null;
+    if (!isSupabaseConfigured()) {
+      return lsProducts().find(p => p.slug === slug) || null;
+    }
+    throw new Error('Supabase client is not initialized.');
   },
 
   /**
@@ -335,19 +372,24 @@ const DB = {
    */
   async getProductsByIds(ids) {
     if (!ids || ids.length === 0) return [];
-    if (isSupabaseConfigured() && window.EpicSupabase) {
+    const supabase = await window.ensureSupabase();
+    if (supabase) {
       try {
         const buildQuery = (selectStr) => {
-          return window.EpicSupabase.from('products').select(selectStr).in('id', ids);
+          return supabase.from('products').select(selectStr).in('id', ids);
         };
         const { data, error } = await queryProductsSafe(buildQuery);
         if (error) throw error;
         return (data || []).map(mapSupabaseProduct);
       } catch (err) {
-        console.warn('[DB] Supabase getProductsByIds failed:', err.message);
+        console.error('[DB] Supabase getProductsByIds failed after retries:', err.message || err);
+        throw err;
       }
     }
-    return lsProducts().filter(p => ids.map(String).includes(String(p.id)));
+    if (!isSupabaseConfigured()) {
+      return lsProducts().filter(p => ids.map(String).includes(String(p.id)));
+    }
+    throw new Error('Supabase client is not initialized.');
   },
 
   /**
@@ -625,17 +667,25 @@ const DB = {
    * @returns {Promise<object[]>}
    */
   async getCategories() {
-    if (isSupabaseConfigured() && window.EpicSupabase) {
+    const supabase = await window.ensureSupabase();
+    if (supabase) {
       try {
-        const { data, error } = await window.EpicSupabase
-          .from('categories').select('*').order('name', { ascending: true });
+        const { data, error } = await retryQuery(
+          () => supabase.from('categories').select('*').order('name', { ascending: true }),
+          3,
+          1000
+        );
         if (error) throw error;
         return data || [];
       } catch (err) {
-        console.warn('[DB] Supabase getCategories failed:', err.message);
+        console.error('[DB] Supabase getCategories failed after retries:', err.message || err);
+        throw err;
       }
     }
-    return lsCategories();
+    if (!isSupabaseConfigured()) {
+      return lsCategories();
+    }
+    throw new Error('Supabase client is not initialized.');
   },
 
   /**
@@ -1172,77 +1222,28 @@ if (document.readyState === 'loading') {
 window.DB = DB;
 
 // Automatically update LocalStorage products to remove Bronco and add MH2 GTR
-(function migrateProducts() {
+// Automatically clean up demo/hardcoded products from localStorage to avoid mixing database with demo products
+(function cleanupDemoProducts() {
   try {
     const productsKey = 'et_products';
     let products = JSON.parse(localStorage.getItem(productsKey)) || [];
-    
-    // Remove Ford Bronco
-    const originalLength = products.length;
-    products = products.filter(p => !p.name.toLowerCase().includes('bronco') && !p.name.toLowerCase().includes('ford'));
-    
-    // Check if MH2 GTR already exists
-    const hasMH2 = products.some(p => p.id === 'product-mh2-gtr' || p.name.includes('MH2 GTR'));
-    
-    if (!hasMH2) {
-      const mh2Product = {
-        id: 'product-mh2-gtr',
-        name: 'MH2 GTR High Performance Model',
-        slug: 'mh2-gtr-performance',
-        category: 'hobby-grade',
-        price: 14999,
-        originalPrice: 19999,
-        image: 'assets/images/new-product-1.jpg?v=2',
-        images: ['assets/images/new-product-1.jpg?v=2', 'assets/images/new-product-2.jpg?v=2'],
-        shortDescription: 'High performance hobby-grade track model featuring dual-motor AWD drive and realistic MH2 decals.',
-        description: 'The MH2 GTR represents the pinnacle of compact track racing. Engineered with high-strength carbon composites and a high-performance brushless motor, this 1:10 scale replica delivers blinding speed and authentic track performance. Pre-assembled and ready-to-run (RTR) with a premium 2.4GHz radio system.',
-        stock: 8,
-        rating: 5.0,
-        reviewsCount: 12,
-        isFeatured: true,
-        isNew: true,
-        badge: 'bestseller',
-        features: ['AWD Drivetrain', 'Brushless Power System', 'Authentic Decals & Finish', 'Adjustable Suspension'],
-        specs: [
-          { name: 'Scale', value: '1:10' },
-          { name: 'Motor', value: 'Brushless 3300KV' },
-          { name: 'Speed', value: '65+ km/h' },
-          { name: 'Battery', value: '2S LiPo Supported' }
-        ],
-        created_at: new Date().toISOString()
-      };
-      products.push(mh2Product);
+    const beforeLength = products.length;
+    products = products.filter(p => p.id !== 'product-mh2-gtr' && !p.id.startsWith('demo-') && !p.id.startsWith('product-sample-') && !p.name.includes('MH2 GTR'));
+    if (products.length !== beforeLength) {
       localStorage.setItem(productsKey, JSON.stringify(products));
-      
-      // Update inventory entry
-      const inventoryKey = 'et_inventory';
-      let inventory = JSON.parse(localStorage.getItem(inventoryKey)) || [];
-      const hasInv = inventory.some(i => i.productId === 'product-mh2-gtr');
-      if (!hasInv) {
-        inventory.push({ productId: 'product-mh2-gtr', quantity: 8 });
-        localStorage.setItem(inventoryKey, JSON.stringify(inventory));
-      }
-      console.log('[Migration] Added MH2 GTR product & removed Ford Bronco.');
-    } else {
-      // Ensure existing MH2 GTR product has the cache-busting image URLs in localStorage
-      let updated = false;
-      products = products.map(p => {
-        if (p.id === 'product-mh2-gtr' || p.name.includes('MH2 GTR')) {
-          if (p.image !== 'assets/images/new-product-1.jpg?v=2') {
-            p.image = 'assets/images/new-product-1.jpg?v=2';
-            p.images = ['assets/images/new-product-1.jpg?v=2', 'assets/images/new-product-2.jpg?v=2'];
-            updated = true;
-          }
-        }
-        return p;
-      });
-      if (updated || products.length !== originalLength) {
-        localStorage.setItem(productsKey, JSON.stringify(products));
-        console.log('[Migration] Updated existing MH2 GTR product image URLs with cache-buster.');
-      }
+      console.log('[Cleanup] Removed demo/hardcoded products from LocalStorage. Remaining:', products.length);
+    }
+    
+    // Also clean up from inventory
+    const inventoryKey = 'et_inventory';
+    let inventory = JSON.parse(localStorage.getItem(inventoryKey)) || [];
+    const invBefore = inventory.length;
+    inventory = inventory.filter(i => i.productId !== 'product-mh2-gtr');
+    if (inventory.length !== invBefore) {
+      localStorage.setItem(inventoryKey, JSON.stringify(inventory));
     }
   } catch (err) {
-    console.warn('[Migration] Error migrating products:', err);
+    console.warn('[Cleanup] Error cleaning up demo products:', err);
   }
 })();
 

@@ -420,8 +420,8 @@ async function renderBestSellers() {
     refreshReveal(grid);
 
   } catch (err) {
-    console.warn('[Home] renderBestSellers error:', err);
-    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px 0; font-size: 0.95rem;">No products available</div>';
+    console.error('[Home] renderBestSellers error:', err);
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--red); padding: 40px 0; font-size: 0.95rem;">⚠️ Failed to load products. Please check your connection.</div>';
   }
 }
 
@@ -456,8 +456,8 @@ async function renderNewArrivals() {
     refreshReveal(grid);
 
   } catch (err) {
-    console.warn('[Home] renderNewArrivals error:', err);
-    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px 0; font-size: 0.95rem;">No products available</div>';
+    console.error('[Home] renderNewArrivals error:', err);
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--red); padding: 40px 0; font-size: 0.95rem;">⚠️ Failed to load products. Please check your connection.</div>';
   }
 }
 
@@ -513,8 +513,8 @@ async function renderFeaturedProducts(category = 'all') {
     }
 
   } catch (err) {
-    console.warn('[Home] renderFeaturedProducts error:', err);
-    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px 0; font-size: 0.95rem;">No products available</div>';
+    console.error('[Home] renderFeaturedProducts error:', err);
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--red); padding: 40px 0; font-size: 0.95rem;">⚠️ Failed to load products. Please check your connection.</div>';
   }
 }
 

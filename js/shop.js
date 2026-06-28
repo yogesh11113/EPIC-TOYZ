@@ -37,7 +37,7 @@ async function initShopPage() {
     // Load products from DB (with localStorage fallback via data.js)
     if (typeof DB !== 'undefined' && DB.getProducts) {
       allProducts = await DB.getProducts();
-    } else if (typeof window.SAMPLE_DATA !== 'undefined' && window.SAMPLE_DATA.products) {
+    } else if (typeof isSupabaseConfigured === 'function' && !isSupabaseConfigured() && typeof window.SAMPLE_DATA !== 'undefined' && window.SAMPLE_DATA.products) {
       allProducts = window.SAMPLE_DATA.products;
     } else {
       allProducts = [];

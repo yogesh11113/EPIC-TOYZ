@@ -832,14 +832,12 @@ async function loadRelatedProducts(category) {
 
   try {
     let relatedAll = [];
-    if (typeof DB !== 'undefined' && DB.getProductsByCategory) {
-      relatedAll = await DB.getProductsByCategory(category);
-    } else if (typeof PRODUCTS_DATA !== 'undefined') {
-      relatedAll = PRODUCTS_DATA.filter(p => {
-        const catSlug = (p.category || '').toLowerCase().replace(/\s+/g, '-');
-        const filterSlug = (category || '').toLowerCase().replace(/\s+/g, '-');
-        return catSlug === filterSlug && p.id !== currentProduct.id;
-      });
+    if (typeof DB !== 'undefined' && DB.getProducts) {
+      try {
+        relatedAll = await DB.getProducts({ category });
+      } catch (err) {
+        console.error('[product.js] Failed to fetch related products:', err);
+      }
     }
 
     // Exclude current product and limit to 4
