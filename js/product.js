@@ -17,7 +17,11 @@ let galleryImages = [];
 /* =====================================================================
    INIT
    ===================================================================== */
-document.addEventListener('DOMContentLoaded', initProductPage);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initProductPage);
+} else {
+  initProductPage();
+}
 
 async function initProductPage() {
   initNavbar();
@@ -832,12 +836,19 @@ async function loadRelatedProducts(category) {
 
   try {
     let relatedAll = [];
-    if (typeof DB !== 'undefined' && DB.getProducts) {
-      try {
-        relatedAll = await DB.getProducts({ category });
-      } catch (err) {
-        console.error('[product.js] Failed to fetch related products:', err);
-      }
+    if (typeof DB !== 'undefined' && typeof DB.getProducts === 'function') {
+      relatedAll = await DB.getProducts({ category });
+    } else if (typeof window.SAMPLE_DATA !== 'undefined') {
+      relatedAll = (window.SAMPLE_DATA.products || []).filter(p => {
+        const catSlug = (p.category || '').toLowerCase().replace(/\s+/g, '-');
+        const filterSlug = (category || '').toLowerCase().replace(/\s+/g, '-');
+        const isPrimaryMatch = catSlug === filterSlug;
+        if (isPrimaryMatch) return true;
+        if (Array.isArray(p.categories)) {
+          return p.categories.some(c => String(c).toLowerCase().replace(/\s+/g, '-') === filterSlug);
+        }
+        return false;
+      });
     }
 
     // Exclude current product and limit to 4

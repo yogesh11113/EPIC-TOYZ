@@ -30,14 +30,18 @@ let shopCategories = [];
 /* =====================================================================
    INIT
    ===================================================================== */
-document.addEventListener('DOMContentLoaded', initShopPage);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initShopPage);
+} else {
+  initShopPage();
+}
 
 async function initShopPage() {
   try {
     // Load products from DB (with localStorage fallback via data.js)
     if (typeof DB !== 'undefined' && DB.getProducts) {
       allProducts = await DB.getProducts();
-    } else if (typeof isSupabaseConfigured === 'function' && !isSupabaseConfigured() && typeof window.SAMPLE_DATA !== 'undefined' && window.SAMPLE_DATA.products) {
+    } else if (typeof window.SAMPLE_DATA !== 'undefined' && window.SAMPLE_DATA.products) {
       allProducts = window.SAMPLE_DATA.products;
     } else {
       allProducts = [];
@@ -194,9 +198,18 @@ async function renderCategoryFilters() {
   const counts = {};
   shopCategories.forEach(c => { counts[c.slug] = 0; });
   allProducts.forEach(p => {
-    const slug = (p.category || '').toLowerCase().replace(/\s+/g, '-');
-    if (counts[slug] !== undefined) counts[slug]++;
-    else if (counts[(p.category || '').toLowerCase()] !== undefined) counts[(p.category || '').toLowerCase()]++;
+    const productCats = new Set();
+    if (p.category) {
+      productCats.add(p.category.toLowerCase().replace(/\s+/g, '-'));
+    }
+    if (Array.isArray(p.categories)) {
+      p.categories.forEach(c => {
+        productCats.add(String(c).toLowerCase().replace(/\s+/g, '-'));
+      });
+    }
+    productCats.forEach(slug => {
+      if (counts[slug] !== undefined) counts[slug]++;
+    });
   });
 
   container.innerHTML = shopCategories.map(cat => {
@@ -283,7 +296,16 @@ function applyShopFilters() {
     results = results.filter(p => {
       const catRaw = (p.category || '').toLowerCase();
       const catSlug = catRaw.replace(/\s+/g, '-');
-      return activeFilters.categories.includes(catSlug) || activeFilters.categories.includes(catRaw);
+      const isPrimaryMatch = activeFilters.categories.includes(catSlug) || activeFilters.categories.includes(catRaw);
+      if (isPrimaryMatch) return true;
+      
+      if (Array.isArray(p.categories)) {
+        return p.categories.some(c => {
+          const slug = String(c).toLowerCase().replace(/\s+/g, '-');
+          return activeFilters.categories.includes(slug) || activeFilters.categories.includes(String(c).toLowerCase());
+        });
+      }
+      return false;
     });
   }
 

@@ -69,53 +69,21 @@ function getSupabaseClient() {
 }
 
 /** Shared Supabase client instance (null when not configured). */
-let _supabase = getSupabaseClient();
-
-let _initPromise = null;
-
-/**
- * Ensures the Supabase client is initialized, waiting for window.supabase if necessary.
- * @returns {Promise<import('@supabase/supabase-js').SupabaseClient | null>}
- */
-async function ensureSupabase() {
-  if (_supabase) return _supabase;
-  if (!isSupabaseConfigured()) return null;
-  if (_initPromise) return _initPromise;
-
-  _initPromise = new Promise(async (resolve) => {
-    let retries = 50; // 50 * 100ms = 5 seconds
-    while ((typeof window === 'undefined' || !window.supabase) && retries > 0) {
-      await new Promise(r => setTimeout(r, 100));
-      retries--;
-    }
-
-    if (typeof window !== 'undefined' && window.supabase) {
-      _supabase = getSupabaseClient();
-      window.EpicSupabase = _supabase;
-    } else {
-      console.error('[EpicToyz] Supabase JS library failed to load (timeout).');
-    }
-    resolve(_supabase);
-  });
-
-  return _initPromise;
-}
+const _supabase = getSupabaseClient();
 
 // ─── Expose to global scope ──────────────────────────────────────────────────
-window.EpicSupabase         = _supabase;
-window.ensureSupabase       = ensureSupabase;
+window.EpicSupabase       = _supabase;
 window.isSupabaseConfigured = isSupabaseConfigured;
-window.SUPABASE_CONFIG      = SUPABASE_CONFIG;
+window.SUPABASE_CONFIG    = SUPABASE_CONFIG;
 
 // ─── Startup diagnostic ──────────────────────────────────────────────────────
 (async function runStartupDiagnostic() {
-  const client = await ensureSupabase();
-  if (!client) {
-    console.info('[EpicToyz] Supabase not configured or failed to load — running in localStorage-only mode.');
+  if (!_supabase) {
+    console.info('[EpicToyz] Supabase not configured — running in localStorage-only mode.');
     return;
   }
   try {
-    const { data, error } = await client.from('categories').select('id', { count: 'exact', head: false });
+    const { data, error } = await _supabase.from('categories').select('id', { count: 'exact', head: false });
     if (error) {
       if (error.code === 'PGRST205' || error.status === 404) {
         console.error(
