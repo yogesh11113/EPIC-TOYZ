@@ -111,6 +111,7 @@ function mapSupabaseProduct(p) {
 
 /**
  * Automatically retries an async Supabase database function up to maxAttempts times.
+ * Aborts retries immediately on terminal database errors like statement timeouts (57014).
  * @param {function} queryFn - Function that returns a Promise resolving to the query result.
  * @param {number} [maxAttempts=3] - Maximum number of attempts.
  * @param {number} [delayMs=1000] - Delay in milliseconds between attempts.
@@ -127,7 +128,16 @@ async function retryQuery(queryFn, maxAttempts = 3, delayMs = 1000) {
       return result;
     } catch (err) {
       attempt++;
-      console.warn(`[DB] Supabase query attempt ${attempt} failed: ${err.message || JSON.stringify(err)}`);
+      const errMsg = err.message || '';
+      const errCode = err.code || '';
+      console.warn(`[DB] Supabase query attempt ${attempt} failed: ${errMsg} (Code: ${errCode})`);
+      
+      // Abort retries on statement timeout (57014)
+      if (errCode === '57014' || errMsg.includes('timeout') || errMsg.includes('canceling statement')) {
+        console.error('[DB] Terminal database error (statement timeout). Aborting retries to prevent slow page load.');
+        throw err;
+      }
+
       if (attempt >= maxAttempts) {
         console.error(`[DB] All ${maxAttempts} query attempts failed.`);
         throw err;
