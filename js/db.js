@@ -1,161 +1,136 @@
 'use strict';
 
-/* ─── helpers ────────────────────────────────────────────────────────────── */
+/* ───────── LocalStorage Helpers ───────── */
 
 const LS = {
-  get: (key) => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
+  get: (key) => {
+    try { return JSON.parse(localStorage.getItem(key)); }
+    catch { return null; }
+  },
   set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
-  remove: (key) => localStorage.removeItem(key),
 };
 
 const KEYS = {
   PRODUCTS: 'et_products',
   CATEGORIES: 'et_categories',
-  ORDERS: 'et_orders',
-  REVIEWS: 'et_reviews',
-  WISHLIST: 'et_wishlist',
-  INVENTORY: 'et_inventory',
 };
 
+/* ───────── Seed ───────── */
+
 function seedLocalStorage() {
-  if (!LS.get('et_initialized') && window.SAMPLE_DATA) {
+  if (!localStorage.getItem('et_initialized') && window.SAMPLE_DATA) {
     LS.set(KEYS.PRODUCTS, window.SAMPLE_DATA.products || []);
     LS.set(KEYS.CATEGORIES, window.SAMPLE_DATA.categories || []);
-    LS.set(KEYS.ORDERS, []);
-    LS.set(KEYS.REVIEWS, window.SAMPLE_DATA.reviews || []);
-    LS.set(KEYS.INVENTORY, (window.SAMPLE_DATA.products || []).map(p => ({
-      productId: p.id,
-      quantity: p.stock ?? 10,
-    })));
     localStorage.setItem('et_initialized', 'true');
   }
 }
 
-function lsProducts() { return LS.get(KEYS.PRODUCTS) || []; }
-function lsCategories() { return LS.get(KEYS.CATEGORIES) || []; }
-function lsOrders() { return LS.get(KEYS.ORDERS) || []; }
-function lsReviews() { return LS.get(KEYS.REVIEWS) || []; }
+/* ───────── Loaders ───────── */
 
-function uid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-  });
-}
+const lsProducts = () => LS.get(KEYS.PRODUCTS) || [];
+const lsCategories = () => LS.get(KEYS.CATEGORIES) || [];
 
-/* ─── SAFE QUERY FIX ─────────────────────────────────────────────────────── */
+/* ───────── Utils ───────── */
 
-async function queryProductsSafe(buildQueryFn, isSingle = false) {
-  try {
-    // ❌ OLD: categories join removed to fix timeout
-    const qJoin = buildQueryFn('*');
-
-    const result = isSingle ? await qJoin.single() : await qJoin;
-    if (!result.error) return result;
-
-    const err = result.error;
-    const errMsg = err.message || '';
-
-    if ((err.code === 'PGRST205' || err.status === 404)) {
-      throw err;
-    }
-
-    const qPlain = buildQueryFn('*');
-    const retryResult = isSingle ? await qPlain.single() : await qPlain;
-
-    return retryResult;
-
-  } catch (e) {
-    console.error('[DB] queryProductsSafe failed:', e.message || e);
-    throw e;
-  }
-}
-
-/* ─── PRODUCT MAPPING ───────────────────────────────────────────────────── */
-
-function mapSupabaseProduct(p) {
+function mapProduct(p) {
   if (!p) return null;
 
   return {
     ...p,
-    originalPrice: p.original_price != null ? Number(p.original_price) : null,
-    price: p.price != null ? Number(p.price) : 0,
+    price: Number(p.price || 0),
+    originalPrice: p.original_price ? Number(p.original_price) : null,
     shortDescription: p.short_description || '',
     isFeatured: !!p.is_featured,
-    stock: p.stock_quantity ?? 0,
-    stockQuantity: p.stock_quantity ?? 0,
-    reviewsCount: p.review_count ?? 0,
-    image: (p.images && p.images.length > 0) ? p.images[0] : 'assets/images/placeholder.jpg',
-    specs: p.specifications || {},
-    specifications: p.specifications || {},
-    category: p.category_id || '',
+    stock: p.stock_quantity ?? p.stock ?? 0,
+    image: (p.images && p.images.length) ? p.images[0] : 'assets/images/placeholder.jpg',
     categoryId: p.category_id || '',
   };
 }
 
-/* ─── DB ─────────────────────────────────────────────────────────────────── */
+/* ───────── DB ───────── */
 
 const DB = {
 
+  /* ================= PRODUCTS ================= */
+
   async getProducts(filters = {}) {
+
+    // ── SUPABASE PATH ──
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
 
-        const buildQuery = (selectStr) => {
-          let query = window.EpicSupabase.from('products').select(selectStr);
+        let query = window.EpicSupabase
+          .from('products')
+          .select('*') // ✅ IMPORTANT FIX (NO JOIN)
 
-          if (filters.category) {
-            query = query.eq('category_id', filters.category);
-          }
+          .limit(filters.limit || 24); // ✅ prevents timeout
 
-          if (filters.featured) query = query.eq('is_featured', true);
-          if (filters.search) query = query.ilike('name', `%${filters.search}%`);
-          if (filters.minPrice != null) query = query.gte('price', filters.minPrice);
-          if (filters.maxPrice != null) query = query.lte('price', filters.maxPrice);
+        if (filters.category) {
+          query = query.eq('category_id', filters.category);
+        }
 
-          const sort = filters.sort || 'featured';
-          if (sort === 'price-asc') query = query.order('price', { ascending: true });
-          else if (sort === 'price-desc') query = query.order('price', { ascending: false });
-          else query = query.order('is_featured', { ascending: false });
+        if (filters.featured) {
+          query = query.eq('is_featured', true);
+        }
 
-          // ✅ LIMIT FIX (IMPORTANT)
-          query = query.limit(filters.limit || 24);
+        if (filters.search) {
+          query = query.ilike('name', `%${filters.search}%`);
+        }
 
-          return query;
-        };
+        if (filters.minPrice != null) {
+          query = query.gte('price', filters.minPrice);
+        }
 
-        const { data, error } = await queryProductsSafe(buildQuery);
+        if (filters.maxPrice != null) {
+          query = query.lte('price', filters.maxPrice);
+        }
+
+        const sort = filters.sort || 'featured';
+
+        if (sort === 'price-asc') {
+          query = query.order('price', { ascending: true });
+        } else if (sort === 'price-desc') {
+          query = query.order('price', { ascending: false });
+        } else if (sort === 'newest') {
+          query = query.order('created_at', { ascending: false });
+        } else {
+          query = query.order('is_featured', { ascending: false });
+        }
+
+        const { data, error } = await query;
+
         if (error) throw error;
 
-        return (data || []).map(mapSupabaseProduct);
+        return (data || []).map(mapProduct);
 
       } catch (err) {
-        console.warn('[DB] Supabase getProducts failed:', err.message);
+        console.warn('[DB] Supabase failed, using local:', err.message);
       }
     }
 
+    // ── LOCAL FALLBACK ──
     let products = lsProducts();
 
-    if (filters.limit) {
-      products = products.slice(0, filters.limit);
-    } else {
-      products = products.slice(0, 24);
-    }
-
-    return products;
+    return products
+      .map(mapProduct)
+      .slice(0, filters.limit || 24);
   },
+
+  /* ================= SINGLE PRODUCT ================= */
 
   async getProductById(id) {
-    const p = lsProducts().find(p => String(p.id) === String(id));
-    return p || null;
+    const p = lsProducts().find(x => String(x.id) === String(id));
+    return mapProduct(p);
   },
+
+  /* ================= CATEGORIES ================= */
 
   async getCategories() {
     return lsCategories();
   }
 };
 
-/* ─── BOOT ──────────────────────────────────────────────────────────────── */
+/* ───────── INIT ───────── */
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', seedLocalStorage);
