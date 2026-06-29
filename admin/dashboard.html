@@ -1417,6 +1417,9 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
       }
+      .data-table {
+        min-width: 850px;
+      }
       .data-table th, .data-table td {
         padding: 8px 10px;
         font-size: 12px;
@@ -2118,20 +2121,7 @@
   <script src="../js/admin.js"></script>
 
   <script>
-    // Mobile sidebar toggle
-    const sidebarToggleBtn = document.getElementById('sidebar-toggle');
-    const sidebarEl = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-    sidebarToggleBtn.addEventListener('click', () => {
-      sidebarEl.classList.toggle('open');
-      sidebarOverlay.classList.toggle('open');
-    });
-
-    sidebarOverlay.addEventListener('click', () => {
-      sidebarEl.classList.remove('open');
-      sidebarOverlay.classList.remove('open');
-    });
 
     // Auto-slug generation for categories
     document.getElementById('category-name').addEventListener('input', function() {
