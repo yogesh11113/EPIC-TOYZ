@@ -70,15 +70,7 @@
     align-items: center !important;
   }
   .navbar-logo {
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 10 !important;
-    margin: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: none !important;
   }
   .navbar-logo-img {
     width: 140px !important;
@@ -1023,15 +1015,9 @@ html, body {
   }
 }
 
-@media (max-width: 767px) {
-  /* Hide Instagram icon in the header on mobile/tablet to avoid crowded top bars */
-  .navbar-actions .nav-icon-btn[aria-label="Instagram"] {
-    display: none !important;
-  }
-}
-
-@media (max-width: 480px) {
-  /* On small phones, hide Wishlist and Account header icons. They are fully accessible in the mobile drawer */
+@media (max-width: 1023px) {
+  /* Hide Instagram, Wishlist, and Account header icons in the header on mobile/tablet view to avoid crowding. They are fully accessible in the mobile drawer. */
+  .navbar-actions .nav-icon-btn[aria-label="Instagram"],
   .navbar-actions .nav-icon-btn[aria-label="Wishlist"],
   .navbar-actions .nav-icon-btn[id="navAccountBtn"] {
     display: none !important;
