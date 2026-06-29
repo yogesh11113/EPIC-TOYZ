@@ -869,9 +869,7 @@ const Admin = {
     }
 
     // Pagination controls
-    this.renderPagination('products-pagination', currentPage, totalPages, (pg) => {
-      this.renderProducts(this._productSearch, pg);
-    });
+    this.renderPagination('products-pagination', currentPage, totalPages, 'Admin.goToProductPage');
   },
 
   handleProductSearch(value) {
@@ -879,6 +877,10 @@ const Admin = {
     this._searchTimeout = setTimeout(() => {
       this.renderProducts(value, 1);
     }, 350);
+  },
+
+  goToProductPage(pg) {
+    this.renderProducts(this._productSearch, pg);
   },
 
   // ── PRODUCT MODAL ──────────────────────────────────────
@@ -1683,10 +1685,14 @@ const Admin = {
       }).join('');
     }
 
-    this.renderPagination('orders-pagination', currentPage, totalPages, (pg) => {
-      this._orderPage = pg;
-      this.renderOrders(statusFilter, searchQuery);
-    });
+    this.renderPagination('orders-pagination', currentPage, totalPages, 'Admin.goToOrderPage');
+  },
+
+  goToOrderPage(pg) {
+    this._orderPage = pg;
+    const statusFilter = (document.getElementById('orders-status-filter') || {}).value || 'all';
+    const searchQuery = (document.getElementById('orders-search') || {}).value || '';
+    this.renderOrders(statusFilter, searchQuery);
   },
 
   async openOrderModal(orderId) {
@@ -2065,20 +2071,28 @@ const Admin = {
 
     let html = `<span class="pagination-info">Page ${currentPage} of ${totalPages}</span>`;
 
+    const getClickAction = (pg) => {
+      if (typeof onPageClick === 'string') {
+        return `${onPageClick}(${pg})`;
+      } else {
+        return `(${onPageClick.toString()})(${pg})`;
+      }
+    };
+
     // Prev
-    html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled style="opacity:0.4;"' : ''} onclick="(${onPageClick.toString()})(${currentPage - 1})">‹</button>`;
+    html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled style="opacity:0.4;"' : ''} onclick="${getClickAction(currentPage - 1)}">‹</button>`;
 
     // Pages
     let start = Math.max(1, currentPage - 2);
     let end = Math.min(totalPages, currentPage + 2);
-    if (start > 1) html += `<button class="pagination-btn" onclick="(${onPageClick.toString()})(1)">1</button>${start > 2 ? '<span style="color:var(--text-muted);padding:0 4px;">…</span>' : ''}`;
+    if (start > 1) html += `<button class="pagination-btn" onclick="${getClickAction(1)}">1</button>${start > 2 ? '<span style="color:var(--text-muted);padding:0 4px;">…</span>' : ''}`;
     for (let i = start; i <= end; i++) {
-      html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="(${onPageClick.toString()})(${i})">${i}</button>`;
+      html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="${getClickAction(i)}">${i}</button>`;
     }
-    if (end < totalPages) html += `${end < totalPages - 1 ? '<span style="color:var(--text-muted);padding:0 4px;">…</span>' : ''}<button class="pagination-btn" onclick="(${onPageClick.toString()})(${totalPages})">${totalPages}</button>`;
+    if (end < totalPages) html += `${end < totalPages - 1 ? '<span style="color:var(--text-muted);padding:0 4px;">…</span>' : ''}<button class="pagination-btn" onclick="${getClickAction(totalPages)}">${totalPages}</button>`;
 
     // Next
-    html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled style="opacity:0.4;"' : ''} onclick="(${onPageClick.toString()})(${currentPage + 1})">›</button>`;
+    html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled style="opacity:0.4;"' : ''} onclick="${getClickAction(currentPage + 1)}">›</button>`;
 
     container.innerHTML = html;
   },
