@@ -40,6 +40,15 @@
   flex-shrink: 0;
 }
 
+/* Wide premium logo image (horizontal banner style like VR Wholesale) */
+.navbar-logo-img {
+  width: 160px;
+  height: auto;
+  max-height: 48px;
+  object-fit: contain;
+  display: block;
+}
+
 .logo-badge {
   width: 40px;
   height: 40px;

@@ -39,10 +39,9 @@ function injectNavbar() {
         <!-- Logo -->
         <a href="${prefix}index.html" class="navbar-logo">
           <img
-            src="${prefix}assets/images/logo.png"
+            src="${prefix}assets/images/epictoyz-logo.png"
             alt="Epic Toyz Logo"
             class="navbar-logo-img"
-            style="height:48px;width:48px;border-radius:50%;object-fit:cover;aspect-ratio:1/1;"
             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
           >
           <div class="logo-fallback" style="display:none;align-items:center;gap:8px;">
@@ -293,10 +292,10 @@ function injectFooter() {
         <div class="footer-brand">
           <a href="${prefix}index.html" class="footer-logo navbar-logo" style="margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px;">
             <img
-              src="${prefix}assets/images/logo.png"
+              src="${prefix}assets/images/epictoyz-logo.png"
               alt="Epic Toyz Logo"
               class="footer-logo-img"
-              style="height:48px;width:48px;border-radius:50%;object-fit:cover;aspect-ratio:1/1;"
+              style="height:auto;width:140px;object-fit:contain;"
               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
             >
             <div class="logo-fallback" style="display:none;align-items:center;gap:8px;">

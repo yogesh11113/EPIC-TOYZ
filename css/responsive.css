@@ -58,6 +58,38 @@
   .hamburger { display: flex; }
   .navbar-nav { display: none; }
 
+  .navbar {
+    height: auto !important;
+    min-height: 64px !important;
+  }
+  .navbar-inner {
+    position: relative !important;
+    height: 64px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  .navbar-logo {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 10 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .navbar-logo-img {
+    width: 140px !important;
+    max-width: 40vw !important;
+    height: auto !important;
+    max-height: 42px !important;
+    object-fit: contain !important;
+    display: block !important;
+    border-radius: 0 !important;
+  }
+
   .logo-text { font-size: var(--font-base); }
   .logo-badge { width: 34px; height: 34px; font-size: 12px; }
 
@@ -174,6 +206,38 @@
   .hamburger { display: flex; }
   .navbar-nav { display: none; }
 
+  .navbar {
+    height: auto !important;
+    min-height: 64px !important;
+  }
+  .navbar-inner {
+    position: relative !important;
+    height: 64px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  .navbar-logo {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 10 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .navbar-logo-img {
+    width: 140px !important;
+    max-width: 40vw !important;
+    height: auto !important;
+    max-height: 42px !important;
+    object-fit: contain !important;
+    display: block !important;
+    border-radius: 0 !important;
+  }
+
   /* Hero */
   .hero-container {
     grid-template-columns: 1fr;
@@ -236,6 +300,38 @@
   /* Navbar - show fewer nav items, hide some */
   .hamburger { display: flex; }
   .navbar-nav { display: none; }
+
+  .navbar {
+    height: auto !important;
+    min-height: 64px !important;
+  }
+  .navbar-inner {
+    position: relative !important;
+    height: 64px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  .navbar-logo {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 10 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .navbar-logo-img {
+    width: 140px !important;
+    max-width: 40vw !important;
+    height: auto !important;
+    max-height: 42px !important;
+    object-fit: contain !important;
+    display: block !important;
+    border-radius: 0 !important;
+  }
 
   /* Hero */
   .hero-container {

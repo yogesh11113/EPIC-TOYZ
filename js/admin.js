@@ -858,7 +858,7 @@ const Admin = {
             <td><div style="display:flex;flex-wrap:wrap;gap:4px;">${getBadgeHTML(p.badges && p.badges.length > 0 ? p.badges : (p.badge || ''))}</div></td>
             <td>${statusHtml}</td>
             <td>
-              <div style="display:flex; gap:6px;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="Admin.openProductModal('${esc(String(p.id))}')">✏️ Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="Admin.deleteProduct('${esc(String(p.id))}')">🗑️</button>
               </div>

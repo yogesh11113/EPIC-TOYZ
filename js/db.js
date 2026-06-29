@@ -82,6 +82,7 @@ function mapSupabaseProduct(p) {
     price: p.price != null ? Number(p.price) : 0,
     shortDescription: p.short_description || '',
     isFeatured: !!p.is_featured,
+    featured: !!p.is_featured,
     isNew: p.badge === 'new',
     stock: p.stock_quantity ?? 0,
     stockQuantity: p.stock_quantity ?? 0,
@@ -91,6 +92,8 @@ function mapSupabaseProduct(p) {
     specifications: p.specifications || {},
     category: resolvedCategory || p.category_id || p.category || '',
     categoryId: p.category_id || '',
+    badges: Array.isArray(p.badges) ? p.badges : (p.badge ? [p.badge] : []),
+    categories: Array.isArray(p.categories) ? p.categories : (p.category_id ? [p.category_id] : []),
   };
 }
 
@@ -425,7 +428,14 @@ const DB = {
     else if (data.specs !== undefined) p.specifications = data.specs;
 
     if (data.features !== undefined) p.features = data.features;
+
+    // Badge: single string for backward compat
     if (data.badge !== undefined) p.badge = data.badge;
+    // Badges: array of badge strings (new multi-badge support)
+    if (Array.isArray(data.badges)) p.badges = data.badges;
+
+    // Categories: array of category IDs
+    if (Array.isArray(data.categories)) p.categories = data.categories;
 
     if (data.isFeatured !== undefined) p.is_featured = !!data.isFeatured;
     else if (data.featured !== undefined) p.is_featured = !!data.featured;
@@ -446,6 +456,9 @@ const DB = {
     if (data.reviewsCount !== undefined) revCount = Number(data.reviewsCount);
     else if (data.review_count !== undefined) revCount = Number(data.review_count);
     p.review_count = isNaN(revCount) ? 0 : revCount;
+
+    // Updated timestamp
+    if (data.updatedAt !== undefined) p.updated_at = data.updatedAt;
 
     return p;
   },
