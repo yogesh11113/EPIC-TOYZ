@@ -474,11 +474,29 @@ const DB = {
       const dbProduct = this._mapClientToSupabaseProduct(newProduct);
       console.log('[DB] Supabase product insert request payload:', dbProduct);
 
-      const { data: result, error } = await window.EpicSupabase
+      let queryResult = await window.EpicSupabase
         .from('products')
         .insert([dbProduct])
         .select()
         .single();
+
+      if (queryResult.error) {
+        const errDetails = JSON.stringify(queryResult.error);
+        if (errDetails.toLowerCase().includes('badges') && errDetails.toLowerCase().includes('column')) {
+          console.warn('[DB] "badges" column missing in Supabase. Falling back to single "badge" column and retrying...');
+          if (Array.isArray(dbProduct.badges) && dbProduct.badges.length > 0) {
+            dbProduct.badge = dbProduct.badges[0];
+          }
+          delete dbProduct.badges;
+          queryResult = await window.EpicSupabase
+            .from('products')
+            .insert([dbProduct])
+            .select()
+            .single();
+        }
+      }
+
+      const { data: result, error } = queryResult;
 
       if (error) {
         console.error('[DB] Supabase product insert failed:', error);
@@ -525,12 +543,31 @@ const DB = {
       const dbProduct = this._mapClientToSupabaseProduct(updated);
       console.log('[DB] Supabase product update request payload for ID:', id, dbProduct);
 
-      const { data: result, error } = await window.EpicSupabase
+      let queryResult = await window.EpicSupabase
         .from('products')
         .update(dbProduct)
         .eq('id', id)
         .select()
         .single();
+
+      if (queryResult.error) {
+        const errDetails = JSON.stringify(queryResult.error);
+        if (errDetails.toLowerCase().includes('badges') && errDetails.toLowerCase().includes('column')) {
+          console.warn('[DB] "badges" column missing in Supabase. Falling back to single "badge" column and retrying...');
+          if (Array.isArray(dbProduct.badges) && dbProduct.badges.length > 0) {
+            dbProduct.badge = dbProduct.badges[0];
+          }
+          delete dbProduct.badges;
+          queryResult = await window.EpicSupabase
+            .from('products')
+            .update(dbProduct)
+            .eq('id', id)
+            .select()
+            .single();
+        }
+      }
+
+      const { data: result, error } = queryResult;
 
       if (error) {
         console.error('[DB] Supabase product update failed:', error);

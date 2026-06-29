@@ -70,13 +70,21 @@
     align-items: center !important;
   }
   .navbar-logo {
-    display: none !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 10 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
   .navbar-logo-img {
-    width: 140px !important;
-    max-width: 40vw !important;
+    width: 110px !important;
+    max-width: 32vw !important;
     height: auto !important;
-    max-height: 42px !important;
+    max-height: 36px !important;
     object-fit: contain !important;
     display: block !important;
     border-radius: 0 !important;
