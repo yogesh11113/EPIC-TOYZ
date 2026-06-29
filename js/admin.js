@@ -1039,22 +1039,24 @@ const Admin = {
     }
   },
 
-  handleGalleryImageUpload(input) {
+  async handleGalleryImageUpload(input) {
     const file = input.files && input.files[0];
     if (!file) return;
     const row = input.closest('.image-row');
     if (!row) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    try {
+      const compressedDataUrl = await this.compressImage(file, 600, 0.6);
       const urlInput = row.querySelector('.image-url-input');
       const preview = row.querySelector('.image-row-preview');
-      if (urlInput) urlInput.value = e.target.result;
+      if (urlInput) urlInput.value = compressedDataUrl;
       if (preview) {
-        preview.src = e.target.result;
+        preview.src = compressedDataUrl;
         preview.classList.add('visible');
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('[Admin] handleGalleryImageUpload compression failed:', err);
+      Toast.error('Failed to process image. Please try another image.');
+    }
   },
 
   compressImage(file, maxDimension = 256, quality = 0.7) {
@@ -1111,7 +1113,7 @@ const Admin = {
     }
   },
 
-  handleMultipleImagesUpload(input) {
+  async handleMultipleImagesUpload(input) {
     const files = input.files;
     if (!files || files.length === 0) return;
     
@@ -1124,13 +1126,14 @@ const Admin = {
       }
     }
 
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.addImageRow(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    });
+    for (const file of Array.from(files)) {
+      try {
+        const compressedDataUrl = await this.compressImage(file, 600, 0.6);
+        this.addImageRow(compressedDataUrl);
+      } catch (err) {
+        console.error('[Admin] handleMultipleImagesUpload compression failed:', err);
+      }
+    }
     // Clear input so selecting the same files again triggers change event
     input.value = '';
   },
