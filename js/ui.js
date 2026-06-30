@@ -290,7 +290,7 @@ function injectFooter() {
       <div class="container footer-grid">
         <!-- Column 1: Brand Info -->
         <div class="footer-brand">
-          <a href="${prefix}index.html" class="footer-logo navbar-logo" style="margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px;">
+          <a href="${prefix}index.html" class="footer-logo" style="margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px;">
             <img
               src="${prefix}assets/images/epictoyz-logo.png"
               alt="Epic Toyz Logo"

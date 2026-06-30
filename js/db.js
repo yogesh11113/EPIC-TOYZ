@@ -60,6 +60,35 @@ function uid() {
 }
 
 /**
+ * Safely parses the categories column which can be an array, stringified JSON array,
+ * or a PostgreSQL array literal.
+ * @param {any} catField
+ * @returns {string[]}
+ */
+function parseCategories(catField) {
+  if (!catField) return [];
+  if (Array.isArray(catField)) return catField;
+  if (typeof catField === 'string') {
+    const trimmed = catField.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        return JSON.parse(trimmed);
+      } catch (e) {
+        console.warn('[DB] parseCategories failed to parse JSON string:', trimmed, e);
+      }
+    }
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      return trimmed.substring(1, trimmed.length - 1)
+        .split(',')
+        .map(s => s.trim().replace(/^"|"$/g, ''))
+        .filter(Boolean);
+    }
+    return [trimmed];
+  }
+  return [];
+}
+
+/**
  * Maps a Supabase product database object (snake_case) to client-side naming (camelCase).
  * @param {object} p - Supabase product
  * @returns {object} - Client product
@@ -81,16 +110,17 @@ function mapSupabaseProduct(p) {
 
   // Resolve the categories array (text[] column) into slugs for storefront filtering
   let resolvedCategories = [];
-  if (Array.isArray(p.categories) && p.categories.length > 0) {
-    // p.categories is a text[] array of category IDs from the DB column
+  const parsedCats = parseCategories(p.categories);
+  if (parsedCats.length > 0) {
+    // parsedCats is an array of category IDs
     try {
       const cats = LS.get('et_categories') || [];
-      resolvedCategories = p.categories.map(catId => {
+      resolvedCategories = parsedCats.map(catId => {
         const found = cats.find(c => String(c.id) === String(catId) || c.slug === String(catId));
         return found ? found.slug : String(catId);
       });
     } catch (e) {
-      resolvedCategories = p.categories.map(String);
+      resolvedCategories = parsedCats.map(String);
     }
   } else if (p.category_id) {
     resolvedCategories = [resolvedCategory || p.category_id];
@@ -261,9 +291,8 @@ const DB = {
           if (filters.category) {
             const cat = categories.find(c => c.slug === filters.category || c.id === filters.category);
             if (cat) {
-              // Use .contains to match products where this category appears anywhere in the categories array
-              // Falls back to category_id eq for single-category products
-              query = query.or(`categories.cs.{${cat.id}},category_id.eq.${cat.id}`);
+              // Use ilike to match category id in stringified JSON array in the text column
+              query = query.or(`categories.ilike.%${cat.id}%,category_id.eq.${cat.id}`);
             }
           }
           if (filters.badge)    query = query.eq('badge', filters.badge);

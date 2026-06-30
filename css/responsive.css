@@ -111,7 +111,7 @@
   .section-header { margin-bottom: var(--space-8); }
 
   /* Products grid */
-  .products-grid { grid-template-columns: 1fr; gap: var(--space-4); }
+  .products-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
 
   /* Categories */
   .categories-grid { grid-template-columns: 1fr 1fr; gap: var(--space-3); }
@@ -509,7 +509,7 @@
    PRODUCT GRID — variant classes for different page layouts
    ============================================================ */
 @media (max-width: 575px) {
-  .products-grid-auto { grid-template-columns: 1fr; }
+  .products-grid-auto { grid-template-columns: repeat(2, 1fr); }
 }
 @media (min-width: 576px) and (max-width: 767px) {
   .products-grid-auto { grid-template-columns: repeat(2, 1fr); }
