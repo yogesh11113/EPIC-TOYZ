@@ -790,7 +790,15 @@ const Admin = {
 
     // Apply local filters
     if (catFilter) {
-      products = products.filter(p => String(p.categoryId) === String(catFilter) || String(p.category) === String(catFilter));
+      products = products.filter(p => {
+        // Check direct categoryId or category string
+        if (String(p.categoryId) === String(catFilter) || String(p.category) === String(catFilter)) return true;
+        // Check categories array for multi-category support
+        if (Array.isArray(p.categories)) {
+          return p.categories.some(c => String(c) === String(catFilter));
+        }
+        return false;
+      });
     }
     if (badgeFilter) {
       products = products.filter(p => {
@@ -824,7 +832,16 @@ const Admin = {
     } else {
       tbody.innerHTML = paginated.map(p => {
         const stock = Number(p.stock || p.stockQuantity || 0);
-        const catName = (catMap[p.categoryId] || catMap[p.category] || {}).name || p.category || '—';
+        // Show all category names for multi-category products
+        let catName = '—';
+        if (Array.isArray(p.categories) && p.categories.length > 0) {
+          catName = p.categories.map(c => {
+            const found = catMap[c];
+            return found ? found.name : (catMap[p.categoryId] || {}).name || c;
+          }).filter(Boolean).join(', ') || '—';
+        } else {
+          catName = (catMap[p.categoryId] || catMap[p.category] || {}).name || p.category || '—';
+        }
         const price = p.price ? formatCurrency(p.price) : '—';
         const statusHtml = stock === 0
           ? '<span class="status-badge status-outofstock">Out of Stock</span>'

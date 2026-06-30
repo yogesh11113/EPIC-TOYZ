@@ -66,7 +66,9 @@ function uid() {
  */
 function mapSupabaseProduct(p) {
   if (!p) return null;
-  let resolvedCategory = p.categories?.slug;
+
+  // Resolve primary category from the aliased join (category_rel) or category_id
+  let resolvedCategory = p.category_rel?.slug;
   if (!resolvedCategory && p.category_id) {
     try {
       const cats = LS.get('et_categories') || [];
@@ -76,8 +78,30 @@ function mapSupabaseProduct(p) {
       console.warn('[DB] mapSupabaseProduct local category resolve failed:', e);
     }
   }
+
+  // Resolve the categories array (text[] column) into slugs for storefront filtering
+  let resolvedCategories = [];
+  if (Array.isArray(p.categories) && p.categories.length > 0) {
+    // p.categories is a text[] array of category IDs from the DB column
+    try {
+      const cats = LS.get('et_categories') || [];
+      resolvedCategories = p.categories.map(catId => {
+        const found = cats.find(c => String(c.id) === String(catId) || c.slug === String(catId));
+        return found ? found.slug : String(catId);
+      });
+    } catch (e) {
+      resolvedCategories = p.categories.map(String);
+    }
+  } else if (p.category_id) {
+    resolvedCategories = [resolvedCategory || p.category_id];
+  }
+
+  // Clean up the aliased join key so it doesn't pollute the product object
+  const cleaned = { ...p };
+  delete cleaned.category_rel;
+
   return {
-    ...p,
+    ...cleaned,
     originalPrice: p.original_price != null ? Number(p.original_price) : null,
     price: p.price != null ? Number(p.price) : 0,
     shortDescription: p.short_description || '',
@@ -93,7 +117,7 @@ function mapSupabaseProduct(p) {
     category: resolvedCategory || p.category_id || p.category || '',
     categoryId: p.category_id || '',
     badges: Array.isArray(p.badges) ? p.badges : (p.badge ? [p.badge] : []),
-    categories: Array.isArray(p.categories) ? p.categories : (p.category_id ? [p.category_id] : []),
+    categories: resolvedCategories,
   };
 }
 
@@ -105,8 +129,8 @@ function mapSupabaseProduct(p) {
  */
 async function queryProductsSafe(buildQueryFn, isSingle = false) {
   try {
-    // First try with the categories join
-    const qJoin = buildQueryFn('*, categories(id, name, slug)');
+    // First try with the categories relation join (aliased to avoid overwriting the categories column)
+    const qJoin = buildQueryFn('*, category_rel:categories(id, name, slug)');
     const result = isSingle ? await qJoin.single() : await qJoin;
     if (!result.error) return result;
 
@@ -237,7 +261,9 @@ const DB = {
           if (filters.category) {
             const cat = categories.find(c => c.slug === filters.category || c.id === filters.category);
             if (cat) {
-              query = query.eq('category_id', cat.id);
+              // Use .contains to match products where this category appears anywhere in the categories array
+              // Falls back to category_id eq for single-category products
+              query = query.or(`categories.cs.{${cat.id}},category_id.eq.${cat.id}`);
             }
           }
           if (filters.badge)    query = query.eq('badge', filters.badge);

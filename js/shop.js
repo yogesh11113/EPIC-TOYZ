@@ -190,13 +190,23 @@ async function renderCategoryFilters() {
 
   shopCategories = categories;
 
-  // Count products per category
+  // Count products per category (supports multi-category products)
   const counts = {};
   shopCategories.forEach(c => { counts[c.slug] = 0; });
   allProducts.forEach(p => {
-    const slug = (p.category || '').toLowerCase().replace(/\s+/g, '-');
-    if (counts[slug] !== undefined) counts[slug]++;
-    else if (counts[(p.category || '').toLowerCase()] !== undefined) counts[(p.category || '').toLowerCase()]++;
+    // If product has a categories array, count it in every matching category
+    if (Array.isArray(p.categories) && p.categories.length > 0) {
+      p.categories.forEach(c => {
+        const slug = (c || '').toLowerCase().replace(/\s+/g, '-');
+        if (counts[slug] !== undefined) counts[slug]++;
+        else if (counts[(c || '').toLowerCase()] !== undefined) counts[(c || '').toLowerCase()]++;
+      });
+    } else {
+      // Fallback to single category
+      const slug = (p.category || '').toLowerCase().replace(/\s+/g, '-');
+      if (counts[slug] !== undefined) counts[slug]++;
+      else if (counts[(p.category || '').toLowerCase()] !== undefined) counts[(p.category || '').toLowerCase()]++;
+    }
   });
 
   container.innerHTML = shopCategories.map(cat => {
@@ -278,12 +288,22 @@ function applyShopFilters() {
     );
   }
 
-  // Category
+  // Category filter (supports multi-category products)
   if (activeFilters.categories.length) {
     results = results.filter(p => {
+      // Check single category string (backward compat)
       const catRaw = (p.category || '').toLowerCase();
       const catSlug = catRaw.replace(/\s+/g, '-');
-      return activeFilters.categories.includes(catSlug) || activeFilters.categories.includes(catRaw);
+      if (activeFilters.categories.includes(catSlug) || activeFilters.categories.includes(catRaw)) return true;
+      // Check categories array for multi-category support
+      if (Array.isArray(p.categories) && p.categories.length > 0) {
+        return p.categories.some(c => {
+          const cLower = (c || '').toLowerCase();
+          const cSlug = cLower.replace(/\s+/g, '-');
+          return activeFilters.categories.includes(cSlug) || activeFilters.categories.includes(cLower);
+        });
+      }
+      return false;
     });
   }
 

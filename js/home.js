@@ -488,7 +488,13 @@ async function renderFeaturedProducts(category = 'all') {
     } else if (typeof window.SAMPLE_DATA !== 'undefined') {
       products = (window.SAMPLE_DATA.products || []).filter(p => {
         if (category === 'all') return true;
-        return (p.category || '').toLowerCase().includes(category.toLowerCase());
+        // Check single category string
+        if ((p.category || '').toLowerCase().includes(category.toLowerCase())) return true;
+        // Check categories array for multi-category support
+        if (Array.isArray(p.categories) && p.categories.length > 0) {
+          return p.categories.some(c => (c || '').toLowerCase().includes(category.toLowerCase()));
+        }
+        return false;
       });
     }
 
