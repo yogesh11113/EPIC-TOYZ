@@ -218,6 +218,49 @@ function mapSupabaseReview(r) {
   };
 }
 
+/**
+ * Maps a Supabase order database object (snake_case) to client-side naming (camelCase/expected keys).
+ * @param {object} o - Supabase order
+ * @returns {object} - Client order
+ */
+function mapSupabaseOrder(o) {
+  if (!o) return null;
+  return {
+    ...o,
+    id: o.id,
+    orderNumber: o.order_number,
+    userId: o.user_id,
+    customerName: o.customer_name,
+    customerPhone: o.customer_phone,
+    customerEmail: o.customer_email,
+    addressLine1: o.address_line1,
+    addressLine2: o.address_line2,
+    city: o.city,
+    state: o.state,
+    pincode: o.pincode,
+    subtotal: parseFloat(o.subtotal || 0),
+    shipping: parseFloat(o.shipping || 0),
+    total: parseFloat(o.total || 0),
+    paymentMethod: o.payment_method,
+    paymentStatus: o.payment_status,
+    status: o.order_status,
+    whatsappSent: o.whatsapp_sent,
+    notes: o.notes,
+    createdAt: o.created_at,
+    date: o.created_at,
+    updatedAt: o.updated_at,
+    items: (o.order_items || []).map(item => ({
+      id: item.id,
+      productId: item.product_id,
+      name: item.product_name,
+      image: item.product_image,
+      price: parseFloat(item.price || 0),
+      quantity: item.quantity,
+      lineTotal: parseFloat(item.line_total || 0)
+    }))
+  };
+}
+
 /* ─── local-storage helpers ─────────────────────────────────────────────── */
 
 /**
@@ -809,27 +852,89 @@ const DB = {
    * @returns {Promise<object>}
    */
   async createOrder(orderData) {
-    const newOrder = {
+    const orderId = orderData.id || uid();
+    const orderNumber = window.generateOrderNumber ? window.generateOrderNumber() : `ET-${Date.now()}`;
+    const createdAt = new Date().toISOString();
+
+    const clientOrder = {
       ...orderData,
-      id:          orderData.id || uid(),
-      orderNumber: window.generateOrderNumber ? window.generateOrderNumber() : `ET-${Date.now()}`,
+      id:          orderId,
+      orderNumber: orderNumber,
       status:      'pending',
-      createdAt:   new Date().toISOString(),
+      createdAt:   createdAt,
     };
+
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const { data, error } = await window.EpicSupabase
-          .from('orders').insert([newOrder]).select().single();
-        if (error) throw error;
-        return data;
+        const delivery = orderData.delivery || {};
+        const customerName = delivery.name || orderData.customerName || 'Guest';
+        const customerPhone = delivery.phone || orderData.customerPhone || '0000000000';
+        const customerEmail = orderData.user?.email || orderData.customerEmail || null;
+
+        const addressText = delivery.address || orderData.address || '';
+        let pincode = '';
+        const pinMatch = addressText.match(/\b\d{6}\b/);
+        if (pinMatch) pincode = pinMatch[0];
+
+        const parts = addressText.split(',').map(s => s.trim());
+        const city = parts[parts.length - 3] || 'City';
+        const state = parts[parts.length - 2] || 'State';
+
+        let userId = window.Auth?.getCurrentUser?.()?.id || null;
+        // Ensure user_id is a valid UUID before sending to Supabase
+        if (userId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+          userId = null;
+        }
+
+        const dbOrder = {
+          id:              orderId,
+          order_number:    orderNumber,
+          user_id:         userId,
+          customer_name:   customerName,
+          customer_phone:  customerPhone,
+          customer_email:  customerEmail,
+          address_line1:   addressText || 'N/A',
+          city:            city,
+          state:           state,
+          pincode:         pincode || '000000',
+          subtotal:        orderData.subtotal || orderData.total - 50 || 0,
+          shipping:        orderData.shipping || 50,
+          total:           orderData.total || 0,
+          payment_method:  orderData.paymentMethod || 'whatsapp',
+          payment_status:  'pending',
+          order_status:    'pending',
+          notes:           orderData.notes || '',
+        };
+
+        const { data: insertedOrder, error: orderErr } = await window.EpicSupabase
+          .from('orders').insert([dbOrder]).select().single();
+        if (orderErr) throw orderErr;
+
+        const items = orderData.items || [];
+        if (items.length > 0) {
+          const dbItems = items.map(item => ({
+            order_id:      orderId,
+            product_id:    item.id || item.productId || null,
+            product_name:  item.name,
+            product_image: item.image || null,
+            price:         item.price,
+            quantity:      item.quantity,
+            line_total:    item.price * item.quantity
+          }));
+          const { error: itemsErr } = await window.EpicSupabase
+            .from('order_items').insert(dbItems);
+          if (itemsErr) console.warn('[DB] Failed to insert order items to Supabase:', itemsErr.message);
+        }
+
+        return await this.getOrderById(orderId) || mapSupabaseOrder(insertedOrder);
       } catch (err) {
         console.warn('[DB] Supabase createOrder failed:', err.message);
       }
     }
     const orders = lsOrders();
-    orders.push(newOrder);
+    orders.push(clientOrder);
     LS.set(KEYS.ORDERS, orders);
-    return newOrder;
+    return clientOrder;
   },
 
   /**
@@ -841,11 +946,11 @@ const DB = {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
         let query = window.EpicSupabase
-          .from('orders').select('*').order('created_at', { ascending: false });
+          .from('orders').select('*, order_items(*)').order('created_at', { ascending: false });
         if (userId) query = query.eq('user_id', userId);
         const { data, error } = await query;
         if (error) throw error;
-        return data || [];
+        return (data || []).map(mapSupabaseOrder);
       } catch (err) {
         console.warn('[DB] Supabase getOrders failed:', err.message);
       }
@@ -864,9 +969,9 @@ const DB = {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
         const { data, error } = await window.EpicSupabase
-          .from('orders').select('*').eq('id', id).single();
+          .from('orders').select('*, order_items(*)').eq('id', id).single();
         if (error) throw error;
-        return data;
+        return mapSupabaseOrder(data);
       } catch (err) {
         console.warn('[DB] Supabase getOrderById failed:', err.message);
       }

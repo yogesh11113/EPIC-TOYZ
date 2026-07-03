@@ -228,9 +228,10 @@ function continueAsGuest() {
   CheckoutState.user = { name, email, phone, isGuest: true };
 
   // Prefill delivery
-  if (name) document.getElementById('d-name').value = name;
-  if (email) document.getElementById('d-email').value = email;
-  if (phone) document.getElementById('d-phone').value = phone;
+  const dName = document.getElementById('d-name');
+  const dPhone = document.getElementById('d-phone');
+  if (dName && name) dName.value = name;
+  if (dPhone && phone) dPhone.value = phone;
 
   showStep(2);
 }
@@ -347,6 +348,39 @@ async function placeOrder() {
 
   const btn = document.getElementById('btn-place-order');
   setLoading(btn, true);
+
+  // Save the order to DB
+  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const shipping = 50;
+  const total = subtotal + shipping;
+
+  const orderData = {
+    items: cart.map(item => ({
+      id: item.id || item.productId,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image
+    })),
+    delivery: CheckoutState.delivery,
+    subtotal: subtotal,
+    shipping: shipping,
+    total: total,
+    paymentMethod: CheckoutState.paymentMethod,
+    user: CheckoutState.user
+  };
+
+  try {
+    if (typeof DB !== 'undefined' && DB.createOrder) {
+      const createdOrder = await DB.createOrder(orderData);
+      if (createdOrder) {
+        CheckoutState.orderId = createdOrder.id;
+        console.log('[Checkout] Order stored successfully:', createdOrder);
+      }
+    }
+  } catch (err) {
+    console.error('[Checkout] Failed to save order:', err);
+  }
 
   // Generate WhatsApp link
   const whatsappUrl = generateWhatsAppOrder();

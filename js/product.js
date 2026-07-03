@@ -1,3 +1,4 @@
+import { supabase } from "./supabase.js";
 /**
  * product.js — Epic Toyz Product Detail Page Logic
  * Handles gallery, specs, reviews, related products, recently viewed, cart/wishlist.
@@ -128,35 +129,16 @@ function renderBreadcrumb(product) {
    PRODUCT DETAILS
    ===================================================================== */
 function renderProductDetails(product) {
-  // Badge pills — support multiple badges
+  // Badge pill
   const badgePill = document.getElementById('product-badge-pill');
-  if (badgePill) {
-    const badgesArr = (product.badges && product.badges.length > 0)
-      ? product.badges
-      : (product.badge ? [product.badge] : []);
-    if (badgesArr.length > 0) {
-      const pillMap = {
-        bestseller: '🔥 Best Seller',
-        new: '🆕 New Arrival',
-        featured: '⭐ Featured',
-        sale: '🏷️ On Sale',
-        hot: '🌶️ Hot',
-        limited: '⏳ Limited Stock',
-      };
-      const pillClassMap = {
-        hot: 'badge-sale',
-        limited: 'badge-none',
-      };
-      badgePill.innerHTML = `<div class="product-badges-row">${
-        badgesArr.map(b => {
-          const label = pillMap[b] || (b.charAt(0).toUpperCase() + b.slice(1));
-          const cls = pillClassMap[b] || `badge-${b}`;
-          return `<span class="product-badge-pill ${cls}">${label}</span>`;
-        }).join('')
-      }</div>`;
-    } else {
-      badgePill.innerHTML = '';
-    }
+  if (badgePill && product.badge) {
+    const badgeClass = product.badge.toLowerCase().replace(/\s+/g, '');
+    const badgeLabel = product.badge === 'bestseller' ? '🔥 Best Seller' :
+                       product.badge === 'new' ? '🆕 New Arrival' :
+                       product.badge === 'featured' ? '⭐ Featured' :
+                       product.badge === 'sale' ? '🏷️ On Sale' :
+                       product.badge.charAt(0).toUpperCase() + product.badge.slice(1);
+    badgePill.innerHTML = `<span class="product-badge-pill badge-${badgeClass}">${badgeLabel}</span>`;
   }
 
   // Name
@@ -265,36 +247,16 @@ function renderGallery(product) {
   // Always ensure at least one image
   if (!galleryImages.length) galleryImages = ['assets/images/placeholder.svg'];
 
-  // Set gallery badge — support multiple badges
+  // Set gallery badge
   const badgeOverlay = document.getElementById('gallery-badge-overlay');
-  if (badgeOverlay) {
-    const badgesArr = (product.badges && product.badges.length > 0)
-      ? product.badges
-      : (product.badge ? [product.badge] : []);
-    if (badgesArr.length > 0) {
-      const badgeLabelMap = {
-        bestseller: 'Best Seller', new: 'New', featured: 'Featured',
-        sale: 'Sale', hot: 'Hot', limited: 'Limited',
-      };
-      badgeOverlay.innerHTML = badgesArr.map(b => {
-        const cls = b.toLowerCase().replace(/\s+/g, '');
-        const lbl = badgeLabelMap[cls] || (b.charAt(0).toUpperCase() + b.slice(1));
-        return `<div class="gallery-badge badge-${cls}" style="margin-bottom:4px;">${lbl}</div>`;
-      }).join('');
-    } else {
-      badgeOverlay.innerHTML = '';
-    }
+  if (badgeOverlay && product.badge) {
+    const badgeClass = product.badge.toLowerCase().replace(/\s+/g, '');
+    const badgeLabel = product.badge === 'bestseller' ? 'Best Seller' : product.badge.charAt(0).toUpperCase() + product.badge.slice(1);
+    badgeOverlay.innerHTML = `<div class="gallery-badge badge-${badgeClass}">${badgeLabel}</div>`;
   }
 
   // Set main image
   changeMainImage(0);
-
-  // Make main image wrap clickable for lightbox
-  const galleryMainWrap = document.getElementById('gallery-main-wrap');
-  if (galleryMainWrap) {
-    galleryMainWrap.style.cursor = 'zoom-in';
-    galleryMainWrap.onclick = () => openLightbox(currentImageIndex);
-  }
 
   // Render thumbnails
   const thumbsContainer = document.getElementById('gallery-thumbs');
@@ -302,35 +264,14 @@ function renderGallery(product) {
 
   if (galleryImages.length <= 1) {
     thumbsContainer.style.display = 'none';
-  } else {
-    thumbsContainer.innerHTML = galleryImages.map((img, i) => `
-      <div class="gallery-thumb ${i === 0 ? 'active' : ''}" onclick="changeMainImage(${i})" role="button" aria-label="View image ${i + 1}">
-        <img src="${img}" alt="Product view ${i + 1}" loading="lazy" onerror="this.src='assets/images/placeholder.svg'">
-      </div>
-    `).join('');
+    return;
   }
 
-  // Render dot indicators (mobile-friendly)
-  let dotsContainer = document.getElementById('gallery-dots');
-  if (!dotsContainer) {
-    dotsContainer = document.createElement('div');
-    dotsContainer.id = 'gallery-dots';
-    dotsContainer.className = 'gallery-dots';
-    const galleryWrap = galleryMainWrap ? galleryMainWrap.parentElement : null;
-    if (galleryWrap) galleryWrap.insertBefore(dotsContainer, thumbsContainer || galleryWrap.children[1]);
-  }
-  if (galleryImages.length > 1) {
-    dotsContainer.innerHTML = galleryImages.map((_, i) =>
-      `<button class="gallery-dot${i === 0 ? ' active' : ''}" onclick="changeMainImage(${i})" aria-label="Image ${i + 1}"></button>`
-    ).join('');
-    dotsContainer.style.display = 'flex';
-  } else {
-    dotsContainer.innerHTML = '';
-    dotsContainer.style.display = 'none';
-  }
-
-  // Touch swipe support
-  initGallerySwipe();
+  thumbsContainer.innerHTML = galleryImages.map((img, i) => `
+    <div class="gallery-thumb ${i === 0 ? 'active' : ''}" onclick="changeMainImage(${i})" role="button" aria-label="View image ${i + 1}">
+      <img src="${img}" alt="Product view ${i + 1}" loading="lazy" onerror="this.src='assets/images/placeholder.svg'">
+    </div>
+  `).join('');
 }
 
 function changeMainImage(index) {
@@ -354,51 +295,6 @@ function changeMainImage(index) {
   document.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {
     thumb.classList.toggle('active', i === index);
   });
-
-  // Update active dots
-  document.querySelectorAll('.gallery-dot').forEach((dot, i) => {
-    dot.classList.toggle('active', i === index);
-  });
-}
-
-/* =====================================================================
-   TOUCH SWIPE SUPPORT FOR GALLERY
-   ===================================================================== */
-let _swipeStartX = 0;
-let _swipeStartY = 0;
-
-function initGallerySwipe() {
-  const wrap = document.getElementById('gallery-main-wrap');
-  if (!wrap) return;
-
-  // Remove old listeners to avoid duplicates
-  wrap.removeEventListener('touchstart', _handleSwipeStart);
-  wrap.removeEventListener('touchend', _handleSwipeEnd);
-
-  wrap.addEventListener('touchstart', _handleSwipeStart, { passive: true });
-  wrap.addEventListener('touchend', _handleSwipeEnd, { passive: true });
-}
-
-function _handleSwipeStart(e) {
-  _swipeStartX = e.changedTouches[0].clientX;
-  _swipeStartY = e.changedTouches[0].clientY;
-}
-
-function _handleSwipeEnd(e) {
-  const dx = e.changedTouches[0].clientX - _swipeStartX;
-  const dy = e.changedTouches[0].clientY - _swipeStartY;
-  // Only handle horizontal swipes (more X movement than Y)
-  if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
-
-  if (dx < 0) {
-    // Swipe left => next image
-    const next = (currentImageIndex + 1) % galleryImages.length;
-    changeMainImage(next);
-  } else {
-    // Swipe right => previous image
-    const prev = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
-    changeMainImage(prev);
-  }
 }
 
 /* =====================================================================
@@ -518,18 +414,26 @@ function addToCart() {
 
 function buyNow() {
   if (!currentProduct) return;
-  const buyNowItem = {
-    id: currentProduct.id,
-    name: currentProduct.name,
-    price: currentProduct.price,
-    image: currentProduct.image || (currentProduct.images && currentProduct.images[0]) || 'assets/images/placeholder.svg',
-    quantity: selectedQuantity
-  };
-  localStorage.setItem('et_buy_now', JSON.stringify(buyNowItem));
-  window.location.href = 'checkout.html?buynow=true';
+  if (typeof Store !== 'undefined' && Store.addToCart) {
+    Store.addToCart(currentProduct, selectedQuantity);
+  }
+  window.location.href = 'checkout.html';
 }
 
-
+function orderViaWhatsApp() {
+  if (!currentProduct) return;
+  const total = (currentProduct.price || 0) * selectedQuantity;
+  const totalFormatted = total.toLocaleString('en-IN');
+  const msg = encodeURIComponent(
+    `Hi! I want to order:\n\n` +
+    `🛒 *${currentProduct.name}*\n` +
+    `Quantity: ${selectedQuantity}\n` +
+    `Price: ₹${(currentProduct.price || 0).toLocaleString('en-IN')} each\n` +
+    `Total: ₹${totalFormatted}\n\n` +
+    `Please confirm availability and delivery details. Thank you! 🙏`
+  );
+  window.open(`https://wa.me/916383793890?text=${msg}`, '_blank', 'noopener,noreferrer');
+}
 
 /* =====================================================================
    WISHLIST
@@ -1131,125 +1035,4 @@ function generateWhatsAppMessage(items, notes) {
   if (notes) msg += `\n\nNotes: ${notes}`;
   msg += '\n\nPlease confirm availability. Thank you! 🙏';
   return encodeURIComponent(msg);
-}
-
-/* =====================================================================
-   LIGHTBOX / GALLERY VIEWER
-   ===================================================================== */
-let isLightboxOpen = false;
-
-function openLightbox(index) {
-  const modal = document.getElementById('lightbox-modal');
-  if (!modal) return;
-
-  isLightboxOpen = true;
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-
-  updateLightboxImage(index);
-  initLightboxEvents();
-}
-
-function closeLightbox() {
-  const modal = document.getElementById('lightbox-modal');
-  if (!modal) return;
-
-  isLightboxOpen = false;
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
-  removeLightboxEvents();
-}
-
-function updateLightboxImage(index) {
-  if (index < 0 || index >= galleryImages.length) return;
-  currentImageIndex = index;
-
-  const lightboxImg = document.getElementById('lightbox-img');
-  const counter = document.getElementById('lightbox-counter');
-  
-  if (lightboxImg) {
-    lightboxImg.src = galleryImages[index];
-  }
-  if (counter) {
-    counter.textContent = `${index + 1} / ${galleryImages.length}`;
-  }
-
-  // Update main gallery too, so they stay in sync
-  changeMainImage(index);
-}
-
-function navigateLightbox(direction) {
-  let nextIndex = currentImageIndex + direction;
-  if (nextIndex < 0) nextIndex = galleryImages.length - 1;
-  if (nextIndex >= galleryImages.length) nextIndex = 0;
-  updateLightboxImage(nextIndex);
-}
-
-// Touch swipe variables
-let touchStartX = 0;
-let touchEndX = 0;
-
-function handleLightboxTouchStart(e) {
-  touchStartX = e.changedTouches[0].screenX;
-}
-
-function handleLightboxTouchEnd(e) {
-  touchEndX = e.changedTouches[0].screenX;
-  handleSwipe();
-}
-
-function handleSwipe() {
-  const threshold = 50; // minimum distance for swipe
-  if (touchEndX < touchStartX - threshold) {
-    navigateLightbox(1);
-  } else if (touchEndX > touchStartX + threshold) {
-    navigateLightbox(-1);
-  }
-}
-
-function handleLightboxKeyDown(e) {
-  if (!isLightboxOpen) return;
-  if (e.key === 'Escape') {
-    closeLightbox();
-  } else if (e.key === 'ArrowRight') {
-    navigateLightbox(1);
-  } else if (e.key === 'ArrowLeft') {
-    navigateLightbox(-1);
-  }
-}
-
-function initLightboxEvents() {
-  const modal = document.getElementById('lightbox-modal');
-  const closeBtn = document.getElementById('lightbox-close');
-  const prevBtn = document.getElementById('lightbox-prev');
-  const nextBtn = document.getElementById('lightbox-next');
-
-  if (closeBtn) closeBtn.onclick = closeLightbox;
-  if (prevBtn) prevBtn.onclick = (e) => { e.stopPropagation(); navigateLightbox(-1); };
-  if (nextBtn) nextBtn.onclick = (e) => { e.stopPropagation(); navigateLightbox(1); };
-
-  if (modal) {
-    modal.onclick = (e) => {
-      if (e.target === modal || e.target.id === 'lightbox-content' || e.target.classList.contains('lightbox-content')) {
-        closeLightbox();
-      }
-    };
-  }
-
-  window.addEventListener('keydown', handleLightboxKeyDown);
-  if (modal) {
-    modal.addEventListener('touchstart', handleLightboxTouchStart, { passive: true });
-    modal.addEventListener('touchend', handleLightboxTouchEnd, { passive: true });
-  }
-}
-
-function removeLightboxEvents() {
-  const modal = document.getElementById('lightbox-modal');
-  window.removeEventListener('keydown', handleLightboxKeyDown);
-  if (modal) {
-    modal.removeEventListener('touchstart', handleLightboxTouchStart);
-    modal.removeEventListener('touchend', handleLightboxTouchEnd);
-  }
 }
