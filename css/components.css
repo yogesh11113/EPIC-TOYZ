@@ -3,11 +3,58 @@
 /* === EPIC TOYZ - COMPONENTS === */
 
 /* ============================================================
-   NAVBAR
+   ANNOUNCEMENT MARQUEE & NAVBAR
    ============================================================ */
-.navbar {
+.announcement-marquee {
   position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  height: 38px;
+  background: #0a0a0a;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(230, 57, 70, 0.35);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.marquee-content {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee-infinite 28s linear infinite;
+  will-change: transform;
+}
+
+.marquee-content span {
+  display: inline-block;
+  color: #f0f0f0;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  padding-right: 4rem;
+  text-transform: uppercase;
+}
+
+.marquee-content span strong,
+.marquee-content span .accent {
+  color: #E63946;
+}
+
+@keyframes marquee-infinite {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.navbar {
+  position: fixed;
+  top: 38px;
   left: 0;
   right: 0;
   z-index: 1000;
@@ -16,7 +63,19 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
-  transition: all var(--transition);
+  transition: top 0.3s cubic-bezier(0.16, 1, 0.3, 1), background var(--transition), box-shadow var(--transition);
+}
+
+body.scrolled-down .announcement-marquee {
+  transform: translateY(-100%);
+}
+
+body.scrolled-down .navbar {
+  top: 0;
+}
+
+body {
+  padding-top: 38px;
 }
 
 .navbar.scrolled {

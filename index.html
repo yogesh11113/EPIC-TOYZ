@@ -380,7 +380,7 @@
     }
 
     /* ====== NAVBAR PLACEHOLDER ====== */
-    #navbar-placeholder { min-height: 72px; }
+    #navbar-placeholder { min-height: 108px; /* marquee (38px) + navbar (70px) */ }
 
     /* ====== HERO ====== */
     .hero {
@@ -389,7 +389,7 @@
       display: flex;
       align-items: center;
       overflow: hidden;
-      padding: 120px 0 80px;
+      padding: 158px 0 80px; /* 38px marquee + 70px navbar + 50px breathing room */
     }
 
     .hero-bg-animated {
@@ -542,7 +542,11 @@
       position: relative;
       width: 100%;
       max-width: 680px; /* Increased from 520px for a bolder, premium visual presence */
-      animation: float 5s ease-in-out infinite;
+      animation: scaleIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards, float 5s ease-in-out infinite;
+    }
+
+    .hero-content {
+      animation: slideInLeft 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes float {
@@ -552,12 +556,23 @@
 
     .hero-image-box {
       width: 100%;
-      aspect-ratio: 1.5; /* Matches the exact aspect ratio of the BMW image */
+      aspect-ratio: 1.5;
       background: transparent;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-xl);
+    }
+
+    .hero-image-box::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 50%, rgba(6, 8, 16, 0.8) 100%);
+      pointer-events: none;
+      z-index: 2;
     }
 
     .hero-image-box img {
@@ -565,9 +580,14 @@
       height: 100%;
       object-fit: cover;
       border-radius: var(--radius-xl);
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
       /* Radial-gradient mask to blend the edges of the image seamlessly into the dark background */
       -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0.8) 55%, rgba(0,0,0,0) 96%);
       mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0.8) 55%, rgba(0,0,0,0) 96%);
+    }
+
+    .hero-image-container:hover .hero-image-box img {
+      transform: scale(1.04) translateY(-3px);
     }
 
     .hero-image-placeholder {
@@ -1325,13 +1345,32 @@
     }
 
     @media (max-width: 900px) {
-      .hero-grid { grid-template-columns: 1fr; gap: 32px; text-align: center; }
-      .hero-content { align-items: center; }
+      .hero-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        text-align: center;
+      }
+      .hero-visual {
+        order: 1;
+        display: block !important;
+        width: 100%;
+        max-width: 100%;
+      }
+      .hero-image-container {
+        max-width: 100%;
+        margin: 0 auto;
+        animation: none;
+      }
+      .hero-content {
+        order: 2;
+        align-items: center;
+        width: 100%;
+      }
       .hero-subtitle { margin: 0 auto; }
-      .hero-buttons { justify-content: center; }
-      .hero-visual { display: none !important; }
+      .hero-buttons { justify-content: center; width: 100%; }
       .hero-stats { grid-template-columns: repeat(3, 1fr); gap: 12px; justify-content: center; width: 100%; }
-      .hero { padding: 40px 0 20px; min-height: auto; }
+      .hero { padding: 80px 0 40px; min-height: auto; }
       .categories-grid { grid-template-columns: repeat(2, 1fr); }
       .products-grid { grid-template-columns: repeat(2, 1fr); }
       .why-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1374,7 +1413,7 @@
 
         <!-- Left: Content -->
         <div class="hero-content">
-          <div class="hero-badge">India's #1 RC Car Store</div>
+
 
           <h1 class="hero-title">
             <span class="line-1">Experience The</span>
@@ -1416,7 +1455,7 @@
 
             <!-- Main image box -->
             <div class="hero-image-box">
-              <img src="assets/images/new-product-1.jpg?v=2"
+              <img src="assets/images/hero-rc-chassis.jpg"
                    alt="Epic RC Car"
                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
               <div class="hero-image-placeholder">

@@ -33,6 +33,15 @@ function injectNavbar() {
   const isContact = currentPath.endsWith('contact.html');
   const isFAQ = currentPath.endsWith('faq.html');
   
+  const marqueeHTML = `
+    <div class="announcement-marquee" id="announcementMarquee">
+      <div class="marquee-content">
+        <span>🚗 WELCOME TO EPIC TOYZ • PREMIUM RC CARS • FAST SHIPPING ACROSS INDIA • 100% GENUINE PRODUCTS •</span>
+        <span>🚗 WELCOME TO EPIC TOYZ • PREMIUM RC CARS • FAST SHIPPING ACROSS INDIA • 100% GENUINE PRODUCTS •</span>
+      </div>
+    </div>
+  `;
+
   const navbarHTML = `
     <nav class="navbar" id="mainNavbar">
       <div class="container navbar-inner">
@@ -167,7 +176,7 @@ function injectNavbar() {
       </div>
     </nav>
   `;
-  navbarPlaceholder.innerHTML = navbarHTML;
+  navbarPlaceholder.innerHTML = marqueeHTML + navbarHTML;
 
   // Inject Global Search Overlay if not present
   if (!document.getElementById('globalSearchOverlay')) {
@@ -266,6 +275,12 @@ function injectNavbar() {
   const mainNavbar = document.getElementById('mainNavbar');
   if (mainNavbar) {
     window.addEventListener('scroll', () => {
+      if (window.scrollY > 10) {
+        document.body.classList.add('scrolled-down');
+      } else {
+        document.body.classList.remove('scrolled-down');
+      }
+
       if (window.scrollY > 50) {
         mainNavbar.classList.add('scrolled');
       } else {

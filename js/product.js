@@ -1,4 +1,3 @@
-import { supabase } from "./supabase.js";
 /**
  * product.js — Epic Toyz Product Detail Page Logic
  * Handles gallery, specs, reviews, related products, recently viewed, cart/wishlist.

@@ -192,15 +192,15 @@ async function handleRegister() {
 
   setLoading(btn, true);
   try {
-    const result = await Auth.register({ name, email, phone, password });
-    if (result && (result.user || result.session)) {
-      CheckoutState.user = result.user || { name, email, phone };
+    const result = await Auth.register(email, password, { name, phone });
+    if (result && result.user) {
+      CheckoutState.user = result.user;
       CheckoutState.isGuest = false;
       prefillDeliveryFromUser(CheckoutState.user);
       showToast('Account created successfully!', 'success');
       showStep(2);
     } else {
-      throw new Error('Registration failed');
+      throw new Error(result?.error || 'Registration failed');
     }
   } catch (err) {
     errMsg.textContent = err.message || 'Registration failed. Please try again.';
