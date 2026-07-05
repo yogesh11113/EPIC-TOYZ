@@ -33,11 +33,21 @@ function injectNavbar() {
   const isContact = currentPath.endsWith('contact.html');
   const isFAQ = currentPath.endsWith('faq.html');
   
+  const marqueeText = [
+    'Welcome to Epic Toyz',
+    'Welcome to Epic Toyz',
+    'Welcome to Epic Toyz',
+    'Welcome to Epic Toyz',
+    'Welcome to Epic Toyz',
+    'Welcome to Epic Toyz',
+    'Welcome to Epic Toyz',
+    'Welcome to Epic Toyz',
+  ].map(t => `<span>${t}<span class="sep">•</span></span>`).join('');
+
   const marqueeHTML = `
-    <div class="announcement-marquee" id="announcementMarquee">
-      <div class="marquee-content">
-        <span>🚗 WELCOME TO EPIC TOYZ • PREMIUM RC CARS • FAST SHIPPING ACROSS INDIA • 100% GENUINE PRODUCTS •</span>
-        <span>🚗 WELCOME TO EPIC TOYZ • PREMIUM RC CARS • FAST SHIPPING ACROSS INDIA • 100% GENUINE PRODUCTS •</span>
+    <div class="announcement-marquee" id="announcementMarquee" aria-hidden="true">
+      <div class="marquee-content" aria-hidden="true">
+        ${marqueeText}${marqueeText}
       </div>
     </div>
   `;
