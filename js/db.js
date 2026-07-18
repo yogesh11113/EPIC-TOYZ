@@ -333,12 +333,12 @@ const DB = {
       products = window.ProductCache.getProducts();
     } else if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
+        // Only select columns that actually exist in the Supabase products table.
+        // NOTE: 'badges' and 'brand' do NOT exist — using 'badge' (singular) instead.
         const buildQuery = (selectStr) => {
           return window.EpicSupabase.from('products').select(selectStr);
         };
-        // Fetch only needed columns to keep payload small and loading instant
-        const fields = 'id,name,slug,price,original_price,short_description,description,is_featured,badge,badges,stock_quantity,rating,review_count,images,specifications,category_id,categories,brand';
-        const { data, error } = await queryProductsSafe(buildQuery.bind(null, fields));
+        const { data, error } = await queryProductsSafe(buildQuery);
         if (error) throw error;
         products = (data || []).map(mapSupabaseProduct);
         if (window.ProductCache) {
@@ -514,10 +514,9 @@ const DB = {
 
     if (data.features !== undefined) p.features = data.features;
 
-    // Badge: single string for backward compat
+    // Badge: single string column only ('badges' array column does NOT exist in Supabase)
     if (data.badge !== undefined) p.badge = data.badge;
-    // Badges: array of badge strings (new multi-badge support)
-    if (Array.isArray(data.badges)) p.badges = data.badges;
+    else if (Array.isArray(data.badges) && data.badges.length > 0) p.badge = data.badges[0];
 
     // Categories: array of category IDs
     if (Array.isArray(data.categories)) p.categories = data.categories;

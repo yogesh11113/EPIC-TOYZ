@@ -1,26 +1,37 @@
-const url = 'https://wzqaawfqcjxztiyfsmof.supabase.co';
-const anonKey = 'sb_publishable_bu2DUkhTlL2dLtQFLxnogw_nS0Dj8B9';
+const https = require('https');
 
-async function run() {
-  console.log('Testing connection to Supabase...');
-  try {
-    const res = await fetch(`${url}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': anonKey
-      },
-      body: JSON.stringify({
-        email: 'epictoyz.in@gmail.com',
-        password: 'yogesh123*'
-      })
+const SUPABASE_URL = 'https://wzqaawfqcjxztiyfsmof.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_bu2DUkhTlL2dLtQFLxnogw_nS0Dj8B9';
+
+function fetchSupabase(table, select) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(`${SUPABASE_URL}/rest/v1/${table}?select=${encodeURIComponent(select)}&limit=3`);
+    const req = https.request({
+      hostname: url.hostname, path: url.pathname + url.search, method: 'GET',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' }
+    }, (res) => {
+      let body = ''; res.on('data', c => body += c);
+      res.on('end', () => resolve({ status: res.statusCode, body }));
     });
-    console.log('Auth status:', res.status);
-    const data = await res.json();
-    console.log('Auth response:', JSON.stringify(data, null, 2));
-  } catch (err) {
-    console.error('Error:', err);
-  }
+    req.on('error', reject); req.end();
+  });
 }
 
-run();
+async function main() {
+  console.log('Testing Supabase REST API...');
+  console.log('URL:', SUPABASE_URL);
+  console.log('Key:', SUPABASE_ANON_KEY.substring(0, 20) + '...\n');
+
+  try {
+    const r1 = await fetchSupabase('categories', 'id,name');
+    console.log('Categories - Status:', r1.status);
+    console.log('Response:', r1.body.substring(0, 500), '\n');
+  } catch (e) { console.error('Categories error:', e.message); }
+
+  try {
+    const r2 = await fetchSupabase('products', 'id,name,price');
+    console.log('Products - Status:', r2.status);
+    console.log('Response:', r2.body.substring(0, 500));
+  } catch (e) { console.error('Products error:', e.message); }
+}
+main();
