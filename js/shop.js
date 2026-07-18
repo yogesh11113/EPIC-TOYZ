@@ -34,6 +34,12 @@ document.addEventListener('DOMContentLoaded', initShopPage);
 
 async function initShopPage() {
   try {
+    // Show animated skeleton loaders immediately before starting DB load
+    const grid = document.getElementById('products-grid');
+    if (grid && typeof Perf !== 'undefined') {
+      Perf.renderSkeletons(grid, 8);
+    }
+
     // Load products from DB (with localStorage fallback via data.js)
     if (typeof DB !== 'undefined' && DB.getProducts) {
       allProducts = await DB.getProducts();

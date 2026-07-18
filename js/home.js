@@ -28,6 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
  * Main initialiser — bootstraps all homepage modules.
  */
 async function initHomePage() {
+  // Render animated skeleton loaders immediately for a fast, responsive initial paint
+  if (typeof Perf !== 'undefined') {
+    Perf.renderSkeletons(document.getElementById('bestsellers-grid'), 4);
+    Perf.renderSkeletons(document.getElementById('new-arrivals-grid'), 4);
+    Perf.renderSkeletons(document.getElementById('featured-grid'), 4);
+    Perf.renderCategorySkeletons(document.getElementById('categories-grid'), 5);
+  }
+
   // Load navbar & footer components (if ui.js provides it)
   if (typeof loadComponents === 'function') {
     await loadComponents();
@@ -41,7 +49,17 @@ async function initHomePage() {
   initScrollReveal();
   initFeaturedTabs();
 
-  // Render dynamic data (fire all concurrently)
+  // Pre-warm the cache by initiating the products fetch first.
+  // This collapses all subsequent parallel render calls into a single Supabase query.
+  if (typeof DB !== 'undefined') {
+    try {
+      await DB.getProducts();
+    } catch (e) {
+      console.warn('[Home] Pre-warming product cache failed:', e);
+    }
+  }
+
+  // Render dynamic data (resolved instantly from local cache)
   await Promise.allSettled([
     renderCategories(),
     renderBestSellers(),
@@ -170,7 +188,9 @@ async function renderCategories() {
   try {
     let categories;
 
-    if (typeof DB !== 'undefined' && typeof DB.getCategories === 'function') {
+    if (typeof DB !== 'undefined' && typeof DB.getCategoriesWithCounts === 'function') {
+      categories = await DB.getCategoriesWithCounts();
+    } else if (typeof DB !== 'undefined' && typeof DB.getCategories === 'function') {
       categories = await DB.getCategories();
     } else if (typeof SAMPLE_DATA !== 'undefined' && SAMPLE_DATA.categories) {
       categories = SAMPLE_DATA.categories;

@@ -3053,3 +3053,114 @@ body.scrolled-down .mobile-nav {
   }
 }
 
+/* === SKELETON LOADER STYLES === */
+.skeleton-card {
+  background: var(--card-bg, #12151F);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+  border-radius: 16px;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.skeleton-image {
+  width: 100%;
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.03);
+}
+.skeleton-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-grow: 1;
+}
+.skeleton-line {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+}
+.skeleton-line-sm {
+  width: 40%;
+}
+.skeleton-line-lg {
+  width: 90%;
+  height: 16px;
+}
+.skeleton-line-price {
+  width: 30%;
+  height: 16px;
+}
+.skeleton-line-btn {
+  width: 45%;
+  height: 32px;
+  border-radius: 8px;
+}
+.skeleton-line-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+}
+@keyframes search-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* === MOBILE GALLERY PINCH & DOTS STYLES === */
+.gallery-main-wrap {
+  overflow: hidden;
+  position: relative;
+  touch-action: none; /* Let us handle touch events completely */
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+}
+#gallery-main {
+  transition: transform 0.05s ease-out;
+  transform-origin: center center;
+  max-width: 100%;
+  display: block;
+}
+.gallery-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+.gallery-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+.gallery-dot.active {
+  background: #E63946;
+  transform: scale(1.2);
+}
+@media (min-width: 768px) {
+  .gallery-dots {
+    display: none; /* Hide dots on desktop, use thumbnails instead */
+  }
+}
+
+
+

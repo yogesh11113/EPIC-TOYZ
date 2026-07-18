@@ -233,6 +233,22 @@ function setInnerHTML(id, html) {
 /* =====================================================================
    IMAGE GALLERY
    ===================================================================== */
+// Touch & Zoom gesture states
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+
+let zoomScale = 1;
+let panX = 0;
+let panY = 0;
+let initialPinchDist = 0;
+let startScale = 1;
+let startPanX = 0;
+let startPanY = 0;
+let lastTap = 0;
+let galleryListenersSetup = false;
+
 function renderGallery(product) {
   // Build images array
   galleryImages = [];
@@ -257,6 +273,35 @@ function renderGallery(product) {
   // Set main image
   changeMainImage(0);
 
+  // Render dynamic pagination dots (only show on mobile)
+  let dotsContainer = document.getElementById('gallery-dots');
+  if (!dotsContainer) {
+    const wrap = document.getElementById('gallery-main-wrap');
+    if (wrap) {
+      dotsContainer = document.createElement('div');
+      dotsContainer.id = 'gallery-dots';
+      dotsContainer.className = 'gallery-dots';
+      wrap.parentNode.insertBefore(dotsContainer, wrap.nextSibling);
+    }
+  }
+
+  if (dotsContainer) {
+    if (galleryImages.length <= 1) {
+      dotsContainer.style.display = 'none';
+    } else {
+      dotsContainer.style.display = 'flex';
+      dotsContainer.innerHTML = galleryImages.map((_, i) => `
+        <div class="gallery-dot ${i === 0 ? 'active' : ''}" onclick="changeMainImage(${i})" role="button" aria-label="Go to image ${i + 1}"></div>
+      `).join('');
+    }
+  }
+
+  // Setup Touch Listeners once
+  if (!galleryListenersSetup) {
+    setupGalleryTouchListeners();
+    galleryListenersSetup = true;
+  }
+
   // Render thumbnails
   const thumbsContainer = document.getElementById('gallery-thumbs');
   if (!thumbsContainer) return;
@@ -266,6 +311,7 @@ function renderGallery(product) {
     return;
   }
 
+  thumbsContainer.style.display = 'flex';
   thumbsContainer.innerHTML = galleryImages.map((img, i) => `
     <div class="gallery-thumb ${i === 0 ? 'active' : ''}" onclick="changeMainImage(${i})" role="button" aria-label="View image ${i + 1}">
       <img src="${img}" alt="Product view ${i + 1}" loading="lazy" onerror="this.src='assets/images/placeholder.svg'">
@@ -294,6 +340,136 @@ function changeMainImage(index) {
   document.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {
     thumb.classList.toggle('active', i === index);
   });
+
+  // Update active pagination dots
+  document.querySelectorAll('.gallery-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === index);
+  });
+
+  // Trigger reset zoom event
+  document.getElementById('gallery-main-wrap')?.dispatchEvent(new CustomEvent('galleryChanged'));
+}
+
+function setupGalleryTouchListeners() {
+  const wrap = document.getElementById('gallery-main-wrap');
+  const img = document.getElementById('gallery-main');
+  if (!wrap || !img) return;
+
+  // Reset zoom styles on image reload/change
+  function resetZoom() {
+    zoomScale = 1;
+    panX = 0;
+    panY = 0;
+    img.style.transform = `scale(1) translate(0px, 0px)`;
+    img.style.transition = 'transform 0.25s ease-out';
+  }
+
+  // Swipe detection touch events
+  wrap.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      if (zoomScale > 1) {
+        startPanX = panX;
+        startPanY = panY;
+        img.style.transition = 'none'; // Instant pan tracking
+      }
+    } else if (e.touches.length === 2) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      initialPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      startScale = zoomScale;
+      img.style.transition = 'none';
+    }
+  }, { passive: true });
+
+  wrap.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 1 && zoomScale > 1) {
+      // Zoomed Panning
+      const dx = e.touches[0].clientX - touchStartX;
+      const dy = e.touches[0].clientY - touchStartY;
+      panX = startPanX + dx;
+      panY = startPanY + dy;
+
+      // Limit panning bounds
+      const bounds = (zoomScale - 1) * 150;
+      panX = Math.max(-bounds, Math.min(bounds, panX));
+      panY = Math.max(-bounds, Math.min(bounds, panY));
+
+      img.style.transform = `scale(${zoomScale}) translate(${panX / zoomScale}px, ${panY / zoomScale}px)`;
+      
+      // Prevent page scrolling while dragging zoomed image
+      if (e.cancelable) e.preventDefault();
+    } else if (e.touches.length === 2 && initialPinchDist > 0) {
+      // Pinch scaling
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const factor = dist / initialPinchDist;
+      
+      zoomScale = Math.max(1, Math.min(4, startScale * factor));
+      if (zoomScale < 1.05) {
+        zoomScale = 1;
+        panX = 0;
+        panY = 0;
+      }
+      img.style.transform = `scale(${zoomScale}) translate(${panX / zoomScale}px, ${panY / zoomScale}px)`;
+      
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
+
+  wrap.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) {
+      initialPinchDist = 0;
+      
+      // Swipe detection when scale is 1
+      if (zoomScale === 1) {
+        touchEndX = e.changedTouches[0].clientX;
+        touchEndY = e.changedTouches[0].clientY;
+        
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        
+        if (Math.abs(deltaX) > 60 && Math.abs(deltaY) < 50) {
+          if (deltaX < 0) {
+            changeMainImage(currentImageIndex + 1);
+          } else {
+            changeMainImage(currentImageIndex - 1);
+          }
+        }
+      } else {
+        img.style.transition = 'transform 0.15s ease-out';
+      }
+    }
+  }, { passive: true });
+
+  // Double Tap to zoom toggle
+  wrap.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) {
+      const now = performance.now();
+      const doubleTapThreshold = 280;
+      if (now - lastTap < doubleTapThreshold) {
+        if (zoomScale > 1) {
+          resetZoom();
+        } else {
+          zoomScale = 2.5;
+          const rect = wrap.getBoundingClientRect();
+          const clickX = e.changedTouches[0].clientX - rect.left - rect.width / 2;
+          const clickY = e.changedTouches[0].clientY - rect.top - rect.height / 2;
+          
+          panX = -clickX * 1.5;
+          panY = -clickY * 1.5;
+          img.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+          img.style.transform = `scale(${zoomScale}) translate(${panX / zoomScale}px, ${panY / zoomScale}px)`;
+        }
+        e.preventDefault();
+      }
+      lastTap = now;
+    }
+  }, { passive: false });
+
+  wrap.addEventListener('galleryChanged', resetZoom);
 }
 
 /* =====================================================================

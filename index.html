@@ -385,86 +385,65 @@
     /* ====== HERO ====== */
     .hero {
       position: relative;
-      min-height: 100vh;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       overflow: hidden;
-      padding: 158px 0 80px; /* 38px marquee + 70px navbar + 50px breathing room */
+      padding: 0;
+      min-height: auto;
     }
 
     .hero-bg-animated {
-      background: linear-gradient(135deg, #060810 0%, #0D0E1A 40%, #1a0a0f 70%, #0D0E1A 100%);
+      background: linear-gradient(180deg, #060810 0%, #0a0c18 30%, #0D0E1A 60%, #0f0a10 100%);
     }
 
-    /* Animated gradient orbs */
+    /* Ambient glow behind car */
     .hero-bg-animated::before {
       content: '';
       position: absolute;
-      width: 700px;
-      height: 700px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(230,57,70,0.18) 0%, transparent 70%);
-      top: -200px;
-      right: -150px;
-      animation: heroOrb1 8s ease-in-out infinite alternate;
+      width: 100%;
+      height: 60%;
+      top: 5%;
+      left: 0;
+      background: radial-gradient(ellipse at center 40%, rgba(230,57,70,0.08) 0%, rgba(230,57,70,0.03) 35%, transparent 70%);
+      pointer-events: none;
+      z-index: 1;
     }
 
     .hero-bg-animated::after {
       content: '';
       position: absolute;
-      width: 500px;
-      height: 500px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(29,53,87,0.3) 0%, transparent 70%);
-      bottom: -100px;
-      left: -100px;
-      animation: heroOrb2 10s ease-in-out infinite alternate;
-    }
-
-    @keyframes heroOrb1 {
-      from { transform: translate(0, 0) scale(1); }
-      to { transform: translate(-60px, 80px) scale(1.2); }
-    }
-
-    @keyframes heroOrb2 {
-      from { transform: translate(0, 0) scale(1); }
-      to { transform: translate(80px, -60px) scale(1.1); }
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background: radial-gradient(ellipse at 50% 30%, rgba(20,25,50,0.4) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 1;
     }
 
     .hero-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: center;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
       position: relative;
       z-index: 2;
     }
 
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(230,57,70,0.12);
-      border: 1px solid rgba(230,57,70,0.4);
-      color: var(--red-light);
-      font-size: 13px;
-      font-weight: 600;
-      padding: 8px 18px;
-      border-radius: 100px;
-      margin-bottom: 28px;
+    .custom-hero-container {
+      padding: 0;
+      max-width: 100%;
     }
 
-    .hero-badge::before {
-      content: '🏎️';
-      font-size: 16px;
+    .hero-badge {
+      display: none; /* Hidden — reference doesn't show badge */
     }
 
     .hero-title {
-      font-size: clamp(40px, 6vw, 72px);
+      font-size: clamp(36px, 8vw, 72px);
       font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -1.5px;
-      margin-bottom: 24px;
+      line-height: 1.0;
+      letter-spacing: -1px;
+      margin-bottom: 18px;
     }
 
     .hero-title .line-1 {
@@ -474,141 +453,160 @@
 
     .hero-title .line-2 {
       display: block;
-      background: linear-gradient(135deg, var(--red) 0%, #ff4d5a 50%, #ff8c94 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      filter: drop-shadow(0 0 40px rgba(230,57,70,0.6));
+      color: var(--red);
+      background: none;
+      -webkit-background-clip: unset;
+      -webkit-text-fill-color: var(--red);
+      background-clip: unset;
+      filter: none;
     }
 
     .hero-subtitle {
-      font-size: 18px;
+      font-size: 15px;
       color: var(--text-muted);
-      line-height: 1.7;
+      line-height: 1.65;
       max-width: 480px;
-      margin-bottom: 40px;
+      margin-bottom: 28px;
     }
 
     .hero-buttons {
       display: flex;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
+    /* Hero button overrides for reference-matching style */
+    .hero-buttons .btn-primary {
+      background: var(--red);
+      box-shadow: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 16px 32px;
+      justify-content: center;
+    }
+
+    .hero-buttons .btn-primary:hover {
+      background: var(--red-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(230,57,70,0.4);
+    }
+
+    .hero-buttons .btn-ghost {
+      border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 16px 32px;
+      justify-content: center;
+    }
+
+    .hero-buttons .btn-ghost:hover {
+      border-color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.05);
+      transform: translateY(-1px);
+    }
+
     .hero-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-top: 56px;
+      display: none; /* Hidden — reference doesn't show stats */
     }
 
-    .hero-stat {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 16px;
-      text-align: center;
-      transition: var(--transition);
-    }
-
-    .hero-stat:hover {
-      background: rgba(230,57,70,0.08);
-      border-color: rgba(230,57,70,0.3);
-    }
-
-    .hero-stat-value {
-      font-size: 26px;
-      font-weight: 900;
-      color: var(--red);
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .hero-stat-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    /* Hero Right */
+    /* Hero Visual — Image area */
     .hero-visual {
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: block;
+      width: 100%;
+      order: 1;
     }
 
     .hero-image-container {
       position: relative;
       width: 100%;
-      max-width: 680px; /* Increased from 520px for a bolder, premium visual presence */
-      animation: scaleIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards, float 5s ease-in-out infinite;
+      max-width: 100%;
+      animation: heroFadeIn 1s ease-out forwards;
+    }
+
+    @keyframes heroFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .hero-content {
-      animation: slideInLeft 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      order: 2;
+      animation: heroContentIn 0.8s ease-out 0.3s both;
+      padding: 0 20px 32px;
     }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-15px); }
+    @keyframes heroContentIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .hero-image-box {
       width: 100%;
-      aspect-ratio: 1.5;
+      aspect-ratio: auto;
       background: transparent;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
       overflow: hidden;
-      border-radius: var(--radius-xl);
+      border-radius: 0;
+    }
+
+    .hero-image-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      /* Top fade blends image's dark top into hero background; bottom-right glow for premium feel */
+      background:
+        linear-gradient(to bottom, #0a0c18 0%, transparent 35%),
+        radial-gradient(ellipse at center 60%, rgba(230,57,70,0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 1;
     }
 
     .hero-image-box::after {
       content: '';
       position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, transparent 50%, rgba(6, 8, 16, 0.8) 100%);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: linear-gradient(to bottom, transparent 0%, rgba(13,14,26,0.6) 50%, #0D0E1A 100%);
       pointer-events: none;
       z-index: 2;
     }
 
     .hero-image-box img {
       width: 100%;
-      height: 100%;
+      height: auto;
       object-fit: cover;
-      border-radius: var(--radius-xl);
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-      /* Radial-gradient mask to blend the edges of the image seamlessly into the dark background */
-      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0.8) 55%, rgba(0,0,0,0) 96%);
-      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0.8) 55%, rgba(0,0,0,0) 96%);
+      display: block;
+      border-radius: 0;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+      -webkit-mask-image: none;
+      mask-image: none;
+      filter: brightness(1.1) contrast(1.05);
     }
 
     .hero-image-container:hover .hero-image-box img {
-      transform: scale(1.04) translateY(-3px);
+      transform: scale(1.02);
     }
 
     .hero-image-placeholder {
-      display: none; /* Hidden by default; shown only if image fails to load */
+      display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 16px;
       width: 100%;
-      height: 100%;
+      height: 300px;
     }
 
     .hero-image-placeholder .car-icon {
       font-size: 80px;
       filter: drop-shadow(0 0 20px rgba(230,57,70,0.5));
-      animation: carBounce 2s ease-in-out infinite;
-    }
-
-    @keyframes carBounce {
-      0%, 100% { transform: rotate(-3deg) scale(1); }
-      50% { transform: rotate(3deg) scale(1.05); }
     }
 
     .hero-image-placeholder .placeholder-text {
@@ -617,61 +615,11 @@
       font-weight: 500;
     }
 
-    /* Decorative rings */
-    .hero-ring {
-      position: absolute;
-      border-radius: 50%;
-      border: 1px solid rgba(230,57,70,0.2);
-      animation: ringRotate 15s linear infinite;
-      pointer-events: none;
-    }
+    /* Decorative rings — hidden in redesign */
+    .hero-ring { display: none; }
 
-    .hero-ring-1 {
-      width: 120%;
-      height: 120%;
-      top: -10%;
-      left: -10%;
-      animation-duration: 20s;
-    }
-
-    .hero-ring-2 {
-      width: 140%;
-      height: 140%;
-      top: -20%;
-      left: -20%;
-      border-color: rgba(69,123,157,0.15);
-      animation-duration: 28s;
-      animation-direction: reverse;
-    }
-
-    .hero-ring-3 {
-      width: 160%;
-      height: 160%;
-      top: -30%;
-      left: -30%;
-      border-color: rgba(230,57,70,0.08);
-      animation-duration: 35s;
-    }
-
-    @keyframes ringRotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    /* Glow dot decorations */
-    .hero-dot {
-      position: absolute;
-      border-radius: 50%;
-      background: var(--red);
-      filter: blur(4px);
-      animation: twinkle 3s ease-in-out infinite;
-      pointer-events: none;
-    }
-
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.3; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.4); }
-    }
+    /* Glow dot decorations — hidden in redesign */
+    .hero-dot { display: none; }
 
 
 
@@ -1348,8 +1296,8 @@
       .hero-grid {
         display: flex;
         flex-direction: column;
-        gap: 32px;
-        text-align: center;
+        gap: 0;
+        text-align: left;
       }
       .hero-visual {
         order: 1;
@@ -1360,17 +1308,25 @@
       .hero-image-container {
         max-width: 100%;
         margin: 0 auto;
-        animation: none;
+      }
+      .hero-image-box {
+        height: 260px;
+      }
+      .hero-image-box img {
+        height: 100%;
+        object-fit: cover;
+        object-position: center 65%;
+        transform: scale(1.2);
       }
       .hero-content {
         order: 2;
-        align-items: center;
         width: 100%;
+        padding: 0 20px 32px;
+        margin-top: -20px;
       }
-      .hero-subtitle { margin: 0 auto; }
-      .hero-buttons { justify-content: center; width: 100%; }
-      .hero-stats { grid-template-columns: repeat(3, 1fr); gap: 12px; justify-content: center; width: 100%; }
-      .hero { padding: 80px 0 40px; min-height: auto; }
+      .hero-subtitle { max-width: 100%; }
+      .hero-buttons { width: 100%; }
+      .hero { padding: 0; min-height: auto; }
       .categories-grid { grid-template-columns: repeat(2, 1fr); }
       .products-grid { grid-template-columns: repeat(2, 1fr); }
       .why-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1382,10 +1338,19 @@
     }
 
     @media (max-width: 600px) {
-      .hero-stats { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-      .hero-stat-value { font-size: 20px; }
-      .hero-stat-label { font-size: 10px; }
       .hero-buttons { flex-direction: column; }
+      .hero-buttons .btn { width: 100%; }
+      .hero-title { font-size: clamp(34px, 10vw, 44px); margin-bottom: 12px; line-height: 1.0; }
+      .hero-subtitle { font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+      .hero-content { padding: 0 16px 20px; margin-top: -30px; }
+      .hero-buttons { gap: 10px; }
+      .hero-image-box {
+        height: 210px;
+      }
+      .hero-image-box img {
+        transform: scale(1.22);
+        object-position: center 65%;
+      }
       .categories-grid { grid-template-columns: 1fr 1fr; }
       .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .why-grid { grid-template-columns: 1fr; }
@@ -1396,6 +1361,61 @@
       .tab-btn { padding: 8px 16px; font-size: 13px; }
       .cta-buttons { flex-direction: column; align-items: center; }
       .section { padding: 32px 0; }
+    }
+
+    /* Desktop hero: 2-column layout */
+    @media (min-width: 901px) {
+      .hero {
+        padding: 0;
+      }
+      .custom-hero-container {
+        max-width: 1280px;
+        padding: 0 24px;
+        margin: 0 auto;
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        align-items: center;
+        min-height: calc(100vh - 108px);
+      }
+      .hero-content {
+        order: 1;
+        padding: 60px 0;
+      }
+      .hero-visual {
+        order: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .hero-image-container {
+        max-width: 680px;
+      }
+      .hero-image-box {
+        border-radius: 16px;
+        box-shadow: 0 0 80px rgba(230,57,70,0.12), 0 0 160px rgba(230,57,70,0.06);
+      }
+      .hero-image-box img {
+        border-radius: 16px;
+        filter: brightness(1.15) contrast(1.08);
+      }
+      .hero-image-box::after {
+        border-radius: 16px;
+      }
+      .hero-buttons {
+        flex-direction: row;
+      }
+      .hero-buttons .btn {
+        width: auto;
+      }
+      .hero-title {
+        font-size: clamp(48px, 5vw, 72px);
+      }
+      .hero-subtitle {
+        font-size: 17px;
+      }
     }
   </style>
 </head>
@@ -1408,12 +1428,26 @@
        1. HERO SECTION
   ================================================================ -->
   <section class="hero hero-bg-animated" id="hero">
-    <div class="container">
+    <div class="container custom-hero-container">
       <div class="hero-grid">
 
-        <!-- Left: Content -->
-        <div class="hero-content">
+        <!-- Hero Image -->
+        <div class="hero-visual">
+          <div class="hero-image-container">
+            <div class="hero-image-box">
+              <img src="assets/images/hero-rc-chassis-new.jpg"
+                   alt="Premium RC Car - Epic Toyz"
+                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div class="hero-image-placeholder">
+                <div class="car-icon">🏎️</div>
+                <p class="placeholder-text">Premium RC Cars</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <!-- Hero Content -->
+        <div class="hero-content">
 
           <h1 class="hero-title">
             <span class="line-1">Experience The</span>
@@ -1436,48 +1470,10 @@
             </a>
           </div>
 
-
-        </div>
-
-        <!-- Right: Visual -->
-        <div class="hero-visual">
-          <div class="hero-image-container">
-            <!-- Decorative rings -->
-            <div class="hero-ring hero-ring-1"></div>
-            <div class="hero-ring hero-ring-2"></div>
-            <div class="hero-ring hero-ring-3"></div>
-
-            <!-- Glow dots -->
-            <div class="hero-dot" style="width:10px;height:10px;top:10%;left:15%;animation-delay:0s;"></div>
-            <div class="hero-dot" style="width:6px;height:6px;top:70%;right:10%;animation-delay:0.7s;background:#457B9D;"></div>
-            <div class="hero-dot" style="width:8px;height:8px;bottom:15%;left:25%;animation-delay:1.4s;"></div>
-            <div class="hero-dot" style="width:5px;height:5px;top:30%;right:5%;animation-delay:2s;background:#FFD700;"></div>
-
-            <!-- Main image box -->
-            <div class="hero-image-box">
-              <img src="assets/images/hero-rc-chassis.jpg"
-                   alt="Epic RC Car"
-                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-              <div class="hero-image-placeholder">
-                <div class="car-icon">🏎️</div>
-                <p class="placeholder-text">Premium RC Cars</p>
-                <div style="display:flex;gap:6px;margin-top:4px;">
-                  <span style="width:8px;height:8px;border-radius:50%;background:var(--red);"></span>
-                  <span style="width:8px;height:8px;border-radius:50%;background:var(--blue-accent);opacity:0.6;"></span>
-                  <span style="width:8px;height:8px;border-radius:50%;background:var(--red);opacity:0.4;"></span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Speed lines decoration -->
-            <div style="position:absolute;bottom:-20px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);filter:blur(2px);animation:float 3s ease-in-out infinite;"></div>
-          </div>
         </div>
 
       </div><!-- hero-grid -->
     </div><!-- container -->
-
-
   </section>
 
 
@@ -1757,6 +1753,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/perf.js"></script>
   <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/store.js"></script>

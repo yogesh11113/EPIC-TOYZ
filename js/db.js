@@ -273,10 +273,13 @@ function applyFilters(products, filters = {}) {
   let result = [...products];
 
   if (filters.category) {
-    result = result.filter(p => p.category === filters.category);
+    result = result.filter(p => 
+      p.category === filters.category || 
+      (Array.isArray(p.categories) && p.categories.includes(filters.category))
+    );
   }
   if (filters.badge) {
-    result = result.filter(p => p.badge === filters.badge);
+    result = result.filter(p => p.badge === filters.badge || (Array.isArray(p.badges) && p.badges.includes(filters.badge)));
   }
   if (filters.featured) {
     result = result.filter(p => p.isFeatured);
@@ -320,56 +323,40 @@ const DB = {
 
   /**
    * Fetch all products, optionally filtered & sorted.
+   * Uses client-side caching (ProductCache) to optimize speed and query counts.
    * @param {object} filters - { category, search, badge, featured, minPrice, maxPrice, sort }
    * @returns {Promise<object[]>}
    */
   async getProducts(filters = {}) {
-    if (isSupabaseConfigured() && window.EpicSupabase) {
+    let products = [];
+    if (window.ProductCache && window.ProductCache.hasProducts()) {
+      products = window.ProductCache.getProducts();
+    } else if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const categories = await DB.getCategories();
-        
         const buildQuery = (selectStr) => {
-          let query = window.EpicSupabase.from('products').select(selectStr);
-          
-          if (filters.category) {
-            const cat = categories.find(c => c.slug === filters.category || c.id === filters.category);
-            if (cat) {
-              // Use ilike to match category id in stringified JSON array in the text column
-              query = query.or(`categories.ilike.%${cat.id}%,category_id.eq.${cat.id}`);
-            }
-          }
-          if (filters.badge)    query = query.eq('badge', filters.badge);
-          if (filters.featured) query = query.eq('is_featured', true);
-          if (filters.search)   query = query.ilike('name', `%${filters.search}%`);
-          if (filters.minPrice != null) query = query.gte('price', filters.minPrice);
-          if (filters.maxPrice != null) query = query.lte('price', filters.maxPrice);
-
-          const sort = filters.sort || 'featured';
-          if (sort === 'price-asc')  query = query.order('price', { ascending: true });
-          else if (sort === 'price-desc') query = query.order('price', { ascending: false });
-          else if (sort === 'rating') query = query.order('rating', { ascending: false });
-          else if (sort === 'newest') query = query.order('created_at', { ascending: false });
-          else query = query.order('is_featured', { ascending: false });
-
-          if (filters.limit) {
-            query = query.limit(filters.limit);
-          }
-          return query;
+          return window.EpicSupabase.from('products').select(selectStr);
         };
-
-        const { data, error } = await queryProductsSafe(buildQuery);
+        // Fetch only needed columns to keep payload small and loading instant
+        const fields = 'id,name,slug,price,original_price,short_description,description,is_featured,badge,badges,stock_quantity,rating,review_count,images,specifications,category_id,categories,brand';
+        const { data, error } = await queryProductsSafe(buildQuery.bind(null, fields));
         if (error) throw error;
-        console.log('[DB] Supabase getProducts returned count:', data ? data.length : 0);
-        return (data || []).map(mapSupabaseProduct);
+        products = (data || []).map(mapSupabaseProduct);
+        if (window.ProductCache) {
+          window.ProductCache.setProducts(products);
+        }
       } catch (err) {
         console.warn('[DB] Supabase getProducts failed, using localStorage:', err.message);
+        products = lsProducts();
       }
+    } else {
+      products = lsProducts();
     }
-    let products = applyFilters(lsProducts(), filters);
+
+    let filtered = applyFilters(products, filters);
     if (filters.limit) {
-      products = products.slice(0, filters.limit);
+      filtered = filtered.slice(0, filters.limit);
     }
-    return products;
+    return filtered;
   },
 
   /**
@@ -618,6 +605,7 @@ const DB = {
         console.warn('[DB] Supabase inventory auto-upsert threw exception:', invEx);
       }
 
+      if (window.ProductCache) window.ProductCache.invalidateAll();
       return mapSupabaseProduct(result);
     }
 
@@ -626,6 +614,7 @@ const DB = {
     const products = lsProducts();
     products.push(newProduct);
     LS.set(KEYS.PRODUCTS, products);
+    if (window.ProductCache) window.ProductCache.invalidateAll();
     return newProduct;
   },
 
@@ -690,6 +679,7 @@ const DB = {
         }
       }
 
+      if (window.ProductCache) window.ProductCache.invalidateAll();
       return mapSupabaseProduct(result);
     }
 
@@ -700,6 +690,7 @@ const DB = {
     if (idx === -1) return null;
     products[idx] = { ...products[idx], ...updated };
     LS.set(KEYS.PRODUCTS, products);
+    if (window.ProductCache) window.ProductCache.invalidateAll();
     return products[idx];
   },
 
@@ -722,6 +713,7 @@ const DB = {
         throw new Error(error.message || JSON.stringify(error));
       }
 
+      if (window.ProductCache) window.ProductCache.invalidateAll();
       console.log('[DB] Supabase product delete succeeded for ID:', id);
       return true;
     }
@@ -730,6 +722,7 @@ const DB = {
     console.log('[DB] Supabase not configured — falling back to localStorage');
     const products = lsProducts().filter(p => String(p.id) !== String(id));
     LS.set(KEYS.PRODUCTS, products);
+    if (window.ProductCache) window.ProductCache.invalidateAll();
     return true;
   },
 
@@ -742,17 +735,61 @@ const DB = {
    * @returns {Promise<object[]>}
    */
   async getCategories() {
+    const cached = window.ProductCache ? window.ProductCache.getCategories() : null;
+    if (cached) return cached;
+
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
         const { data, error } = await window.EpicSupabase
           .from('categories').select('*').order('name', { ascending: true });
         if (error) throw error;
-        return data || [];
+        const res = data || [];
+        LS.set(KEYS.CATEGORIES, res);
+        if (window.ProductCache) window.ProductCache.setCategories(res);
+        return res;
       } catch (err) {
         console.warn('[DB] Supabase getCategories failed:', err.message);
       }
     }
-    return lsCategories();
+    const localCats = lsCategories();
+    if (window.ProductCache) window.ProductCache.setCategories(localCats);
+    return localCats;
+  },
+
+  /**
+   * Calculates live product count per category dynamically.
+   * Runs single cached/warm query to avoid extra network calls.
+   * @returns {Promise<object>} Category slug/id to count mapping
+   */
+  async getCategoryProductCounts() {
+    const products = await this.getProducts(); // Warm and query cache/DB
+    const counts = {};
+    for (const p of products) {
+      const catsArr = Array.isArray(p.categories) ? p.categories : [];
+      if (catsArr.length > 0) {
+        for (const catId of catsArr) {
+          if (catId) counts[catId] = (counts[catId] || 0) + 1;
+        }
+      } else if (p.category) {
+        counts[p.category] = (counts[p.category] || 0) + 1;
+      }
+    }
+    return counts;
+  },
+
+  /**
+   * Fetches all categories merged with their live real-time product counts.
+   * @returns {Promise<object[]>}
+   */
+  async getCategoriesWithCounts() {
+    const [categories, counts] = await Promise.all([
+      this.getCategories(),
+      this.getCategoryProductCounts()
+    ]);
+    return categories.map(cat => ({
+      ...cat,
+      productCount: counts[cat.slug] || counts[cat.id] || 0
+    }));
   },
 
   /**
@@ -786,6 +823,7 @@ const DB = {
         const { data: result, error } = await window.EpicSupabase
           .from('categories').insert([newCat]).select().single();
         if (error) throw error;
+        if (window.ProductCache) window.ProductCache.invalidateCategories();
         return result;
       } catch (err) {
         console.warn('[DB] Supabase createCategory failed:', err.message);
@@ -794,6 +832,7 @@ const DB = {
     const cats = lsCategories();
     cats.push(newCat);
     LS.set(KEYS.CATEGORIES, cats);
+    if (window.ProductCache) window.ProductCache.invalidateCategories();
     return newCat;
   },
 
@@ -809,6 +848,7 @@ const DB = {
         const { data: result, error } = await window.EpicSupabase
           .from('categories').update(data).eq('id', id).select().single();
         if (error) throw error;
+        if (window.ProductCache) window.ProductCache.invalidateCategories();
         return result;
       } catch (err) {
         console.warn('[DB] Supabase updateCategory failed:', err.message);
@@ -819,6 +859,7 @@ const DB = {
     if (idx === -1) return null;
     cats[idx] = { ...cats[idx], ...data };
     LS.set(KEYS.CATEGORIES, cats);
+    if (window.ProductCache) window.ProductCache.invalidateCategories();
     return cats[idx];
   },
 
@@ -833,12 +874,14 @@ const DB = {
         const { error } = await window.EpicSupabase
           .from('categories').delete().eq('id', id);
         if (error) throw error;
+        if (window.ProductCache) window.ProductCache.invalidateCategories();
         return true;
       } catch (err) {
         console.warn('[DB] Supabase deleteCategory failed:', err.message);
       }
     }
     LS.set(KEYS.CATEGORIES, lsCategories().filter(c => c.id !== id));
+    if (window.ProductCache) window.ProductCache.invalidateCategories();
     return true;
   },
 

@@ -774,6 +774,9 @@ window.UI = {
 // --- GLOBAL SEARCH OVERLAY ---
 let searchProductsList = [];
 let searchOverlayInitialized = false;
+let isSearchLoading = false;
+let searchLoadingPromise = null;
+let searchDebounceTimer = null;
 
 function openGlobalSearchOverlay() {
   const overlay = document.getElementById('globalSearchOverlay');
@@ -796,8 +799,13 @@ function openGlobalSearchOverlay() {
   const clearBtn = document.getElementById('globalSearchClear');
   if (clearBtn) clearBtn.style.display = 'none';
 
-  // Load products dynamically on open to ensure it's always real-time
-  loadSearchProducts();
+  // Warm search cache asynchronously. Will resolve instantly if already preloaded.
+  loadSearchProducts().then(() => {
+    // If the user started typing before loading completed, trigger input handler to render search matches
+    if (input && input.value.trim()) {
+      input.dispatchEvent(new Event('input'));
+    }
+  });
 }
 
 function closeGlobalSearchOverlay() {
@@ -809,16 +817,28 @@ function closeGlobalSearchOverlay() {
 }
 
 async function loadSearchProducts() {
-  try {
-    if (typeof DB !== 'undefined' && DB.getProducts) {
-      searchProductsList = await DB.getProducts();
-    } else {
+  if (searchProductsList.length > 0) return searchProductsList;
+  if (searchLoadingPromise) return searchLoadingPromise;
+
+  isSearchLoading = true;
+  searchLoadingPromise = (async () => {
+    try {
+      if (typeof DB !== 'undefined' && DB.getProducts) {
+        searchProductsList = await DB.getProducts();
+      } else {
+        searchProductsList = JSON.parse(localStorage.getItem('et_products') || '[]');
+      }
+    } catch (e) {
+      console.warn('[Search] Failed to fetch products from DB, using local fallback:', e);
       searchProductsList = JSON.parse(localStorage.getItem('et_products') || '[]');
+    } finally {
+      isSearchLoading = false;
+      searchLoadingPromise = null;
     }
-  } catch (e) {
-    console.warn('[Search] Failed to fetch products from DB, using local fallback:', e);
-    searchProductsList = JSON.parse(localStorage.getItem('et_products') || '[]');
-  }
+    return searchProductsList;
+  })();
+
+  return searchLoadingPromise;
 }
 
 function initGlobalSearchLogic() {
@@ -830,6 +850,9 @@ function initGlobalSearchLogic() {
   const clearBtn = document.getElementById('globalSearchClear');
   const resultsContainer = document.getElementById('globalSearchResults');
   
+  // Background pre-fetch so catalog is ready instantly when clicking search button
+  loadSearchProducts();
+
   if (input) {
     input.addEventListener('input', (e) => {
       const q = e.target.value.trim().toLowerCase();
@@ -839,16 +862,30 @@ function initGlobalSearchLogic() {
         resultsContainer.innerHTML = '<p style="text-align: center; color: #ADB5BD; font-size: 0.95rem; margin: 20px 0;">Type to search for RC cars...</p>';
         return;
       }
-      
-      // Perform Search (case-insensitive, partial matching)
-      const matches = searchProductsList.filter(p => 
-        (p.name || '').toLowerCase().includes(q) ||
-        (p.category || '').toLowerCase().includes(q) ||
-        (p.brand || '').toLowerCase().includes(q) ||
-        (p.description || '').toLowerCase().includes(q)
-      );
-      
-      renderSearchResults(matches, q);
+
+      // If catalog is still loading, show animated spinner
+      if (isSearchLoading && searchProductsList.length === 0) {
+        resultsContainer.innerHTML = `
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; gap: 12px; color: #ADB5BD;">
+            <div style="width: 28px; height: 28px; border: 2.5px solid rgba(255,255,255,0.1); border-radius: 50%; border-top-color: #E63946; animation: search-spin 0.8s linear infinite;"></div>
+            <p style="font-size: 0.88rem; font-weight: 500;">Searching product catalog...</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Debounce the client search execution to keep input typing extremely fluid and smooth
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        const matches = searchProductsList.filter(p => 
+          (p.name || '').toLowerCase().includes(q) ||
+          (p.category || '').toLowerCase().includes(q) ||
+          (p.brand || '').toLowerCase().includes(q) ||
+          (p.short_description || p.shortDescription || '').toLowerCase().includes(q) ||
+          (p.description || '').toLowerCase().includes(q)
+        );
+        renderSearchResults(matches, q);
+      }, 150);
     });
     
     input.addEventListener('keydown', (e) => {
