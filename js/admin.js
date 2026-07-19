@@ -1058,26 +1058,50 @@ const Admin = {
     }
   },
 
+  /**
+   * Handles a single image file picked via the gallery row upload button.
+   * Uploads to ImageKit CDN and sets the URL in the input field.
+   * @param {HTMLInputElement} input
+   */
   async handleGalleryImageUpload(input) {
     const file = input.files && input.files[0];
     if (!file) return;
     const row = input.closest('.image-row');
     if (!row) return;
+
+    const uploadBtn = row.querySelector('.image-row-upload');
+    const urlInput  = row.querySelector('.image-url-input');
+    const preview   = row.querySelector('.image-row-preview');
+
+    // Show loading state
+    if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.innerHTML = '⏳'; }
+    if (urlInput)  { urlInput.disabled = true; urlInput.placeholder = 'Uploading to ImageKit…'; }
+
     try {
-      const compressedDataUrl = await this.compressImage(file, 600, 0.6);
-      const urlInput = row.querySelector('.image-url-input');
-      const preview = row.querySelector('.image-row-preview');
-      if (urlInput) urlInput.value = compressedDataUrl;
-      if (preview) {
-        preview.src = compressedDataUrl;
-        preview.classList.add('visible');
-      }
+      const cloudUrl = await this._uploadToCloud(file, '/products');
+      if (urlInput)  { urlInput.value = cloudUrl; urlInput.disabled = false; urlInput.placeholder = 'Paste image URL or upload…'; }
+      if (preview)   { preview.src = cloudUrl; preview.classList.add('visible'); }
+      Toast.success('Image uploaded to ImageKit ✔');
     } catch (err) {
-      console.error('[Admin] handleGalleryImageUpload compression failed:', err);
-      Toast.error('Failed to process image. Please try another image.');
+      console.error('[Admin] handleGalleryImageUpload failed:', err);
+      Toast.error(err.message || 'Image upload failed. Check your ImageKit config in js/imagekit.js.');
+      if (urlInput)  { urlInput.disabled = false; urlInput.placeholder = 'Paste image URL or upload…'; }
+    } finally {
+      if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.innerHTML = '📁'; }
+      input.value = ''; // reset so same file can be re-selected
     }
   },
 
+  /**
+   * Compress + resize an image File using canvas.
+   * Returns a data URL (JPEG). Used only for local preview before upload.
+   * NOTE: The returned data URL must NEVER be stored in Supabase directly.
+   *       Always call _uploadToCloud() to get a permanent CDN URL.
+   * @param {File}   file
+   * @param {number} maxDimension
+   * @param {number} quality      (0–1)
+   * @returns {Promise<string>}   JPEG data URL (for preview only)
+   */
   compressImage(file, maxDimension = 256, quality = 0.7) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -1116,26 +1140,63 @@ const Admin = {
     });
   },
 
+  /**
+   * Upload a File to ImageKit CDN and return the permanent URL.
+   * Converts to WebP (800 px max) before uploading.
+   * Throws a descriptive error if ImageKit is not configured.
+   *
+   * @param {File}   file
+   * @param {string} [folder='/products']
+   * @returns {Promise<string>} ImageKit CDN URL
+   */
+  async _uploadToCloud(file, folder = '/products') {
+    if (!window.ImageKitUpload || !ImageKitUpload.isConfigured()) {
+      throw new Error(
+        'ImageKit is not configured. ' +
+        'Open js/imagekit.js, set IMAGEKIT_PUBLIC_KEY and IMAGEKIT_URL_ENDPOINT, ' +
+        'then enable unsigned uploads in your ImageKit dashboard.'
+      );
+    }
+    return await ImageKitUpload.uploadFile(file, { maxDimension: 800, quality: 0.82, folder });
+  },
+
+  /**
+   * Handles a category icon file upload. Uploads to ImageKit and sets the URL.
+   * @param {HTMLInputElement} input
+   */
   async handleCategoryUpload(input) {
     const file = input.files && input.files[0];
     if (!file) return;
+
+    const urlInput  = document.getElementById('category-icon');
+    const uploadBtn = input.previousElementSibling; // the visible button
+    if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.textContent = '⏳ Uploading…'; }
+
     try {
-      const compressedDataUrl = await Admin.compressImage(file, 256, 0.7);
-      const urlInput = document.getElementById('category-icon');
+      const cloudUrl = await this._uploadToCloud(file, '/categories');
       if (urlInput) {
-        urlInput.value = compressedDataUrl;
-        Admin.handleCategoryImageUrl(compressedDataUrl);
+        urlInput.value = cloudUrl;
+        Admin.handleCategoryImageUrl(cloudUrl);
       }
+      Toast.success('Category icon uploaded ✔');
     } catch (err) {
-      console.error('[Admin] Error compressing category image:', err);
-      Toast.error('Failed to load image file. Please try another image.');
+      console.error('[Admin] handleCategoryUpload failed:', err);
+      Toast.error(err.message || 'Failed to upload category icon.');
+    } finally {
+      if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = '📁 Upload Image'; }
+      input.value = '';
     }
   },
 
+  /**
+   * Handles multiple image files selected at once.
+   * Uploads each to ImageKit sequentially and adds a URL row for each.
+   * @param {HTMLInputElement} input
+   */
   async handleMultipleImagesUpload(input) {
     const files = input.files;
     if (!files || files.length === 0) return;
-    
+
     // If the first image row is empty, clear it before appending
     const editor = document.getElementById('images-editor');
     if (editor && editor.children.length === 1) {
@@ -1145,15 +1206,25 @@ const Admin = {
       }
     }
 
+    Toast.info(`Uploading ${files.length} image${files.length > 1 ? 's' : ''} to ImageKit…`);
+
+    let uploadedCount = 0;
     for (const file of Array.from(files)) {
       try {
-        const compressedDataUrl = await this.compressImage(file, 600, 0.6);
-        this.addImageRow(compressedDataUrl);
+        const cloudUrl = await this._uploadToCloud(file, '/products');
+        this.addImageRow(cloudUrl);
+        uploadedCount++;
       } catch (err) {
-        console.error('[Admin] handleMultipleImagesUpload compression failed:', err);
+        console.error('[Admin] handleMultipleImagesUpload upload failed for file:', file.name, err);
+        Toast.error(`Failed to upload "${file.name}": ${err.message}`);
       }
     }
-    // Clear input so selecting the same files again triggers change event
+
+    if (uploadedCount > 0) {
+      Toast.success(`${uploadedCount} image${uploadedCount > 1 ? 's' : ''} uploaded ✔`);
+    }
+
+    // Reset input so the same files can be re-selected if needed
     input.value = '';
   },
 
@@ -1178,6 +1249,14 @@ const Admin = {
     if (!category) { Toast.error('Please select at least one category'); return; }
     if (isNaN(price) || price < 0) { Toast.error('Please enter a valid price'); return; }
     if (isNaN(stock) || stock < 0) { Toast.error('Please enter a valid stock quantity'); return; }
+
+    // Guard: never queue a product with raw Base64 images
+    const queueImages = this.getImagesFromForm();
+    const queueHasBase64 = queueImages.some(img => img && img.startsWith('data:image'));
+    if (queueHasBase64) {
+      Toast.error('⚠️ Images are still uploading (or failed). Wait for upload to finish before queuing.');
+      return;
+    }
 
     const data = {
       name,
@@ -1360,6 +1439,15 @@ const Admin = {
     if (isNaN(price) || price < 0) { Toast.error('Please enter a valid price'); return; }
     if (isNaN(stock) || stock < 0) { Toast.error('Please enter a valid stock quantity'); return; }
 
+    // Hard guard: block save if any image is still a raw Base64 data URL.
+    // This prevents the Supabase egress problem where large images bloat the DB.
+    const saveImages = this.getImagesFromForm();
+    const saveHasBase64 = saveImages.some(img => img && img.startsWith('data:image'));
+    if (saveHasBase64) {
+      Toast.error('⚠️ Images are still uploading (or failed to upload). Please wait or remove the problem image before saving.');
+      return;
+    }
+
     const data = {
       name,
       categoryId: category,
@@ -1430,17 +1518,38 @@ const Admin = {
   },
 
   // Image handlers
-  handleImageUpload(input, previewEl) {
+  /**
+   * Handles a single image file upload from the legacy single-image field.
+   * Uploads to ImageKit and updates the URL input and preview.
+   * @param {HTMLInputElement} input
+   * @param {HTMLImageElement} previewEl
+   */
+  async handleImageUpload(input, previewEl) {
     const file = input.files && input.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      document.getElementById('product-image-url').value = e.target.result;
-      previewEl.src = e.target.result;
-      previewEl.style.display = 'block';
-      previewEl.classList.add('visible');
-    };
-    reader.readAsDataURL(file);
+
+    const urlField = document.getElementById('product-image-url');
+    if (urlField) { urlField.placeholder = 'Uploading to ImageKit…'; urlField.disabled = true; }
+    if (previewEl) { previewEl.style.opacity = '0.5'; }
+
+    try {
+      const cloudUrl = await this._uploadToCloud(file, '/products');
+      if (urlField) { urlField.value = cloudUrl; urlField.disabled = false; urlField.placeholder = 'Paste image URL…'; }
+      if (previewEl) {
+        previewEl.src = cloudUrl;
+        previewEl.style.display = 'block';
+        previewEl.style.opacity = '1';
+        previewEl.classList.add('visible');
+      }
+      Toast.success('Image uploaded to ImageKit ✔');
+    } catch (err) {
+      console.error('[Admin] handleImageUpload failed:', err);
+      Toast.error(err.message || 'Image upload failed.');
+      if (urlField) { urlField.disabled = false; urlField.placeholder = 'Paste image URL…'; }
+      if (previewEl) { previewEl.style.opacity = '1'; }
+    }
+
+    input.value = '';
   },
 
   handleImageUrl(url) {

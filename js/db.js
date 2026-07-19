@@ -130,6 +130,14 @@ function mapSupabaseProduct(p) {
   const cleaned = { ...p };
   delete cleaned.category_rel;
 
+  // Strip any Base64 data-URLs from the images array.
+  // Returning megabytes of Base64 to the browser is the root cause of the
+  // 5 MB API response and 12+ second load times. If a product still has
+  // Base64 images in Supabase (pre-migration), show the placeholder instead.
+  const cleanImages = (p.images || []).filter(
+    img => img && typeof img === 'string' && !img.startsWith('data:image')
+  );
+
   return {
     ...cleaned,
     originalPrice: p.original_price != null ? Number(p.original_price) : null,
@@ -141,7 +149,8 @@ function mapSupabaseProduct(p) {
     stock: p.stock_quantity ?? 0,
     stockQuantity: p.stock_quantity ?? 0,
     reviewsCount: p.review_count ?? 0,
-    image: (p.images && p.images.length > 0) ? p.images[0] : 'assets/images/placeholder.jpg',
+    image: cleanImages.length > 0 ? cleanImages[0] : 'assets/images/placeholder.jpg',
+    images: cleanImages,
     specs: p.specifications || {},
     specifications: p.specifications || {},
     category: resolvedCategory || p.category_id || p.category || '',
@@ -329,25 +338,49 @@ const DB = {
    */
   async getProducts(filters = {}) {
     let products = [];
+
     if (window.ProductCache && window.ProductCache.hasProducts()) {
+      // Fast path: in-memory cache is still fresh
       products = window.ProductCache.getProducts();
-    } else if (isSupabaseConfigured() && window.EpicSupabase) {
+
+    } else if (window.ProductCache && window.ProductCache._pendingFetch) {
+      // Deduplication: a Supabase request is already in-flight.
+      // Await the same Promise instead of firing a second network call.
+      // This prevents the home page pre-warm and shop page init from
+      // both hitting Supabase simultaneously.
       try {
-        // Only select columns that actually exist in the Supabase products table.
-        // NOTE: 'badges' and 'brand' do NOT exist — using 'badge' (singular) instead.
-        const buildQuery = (selectStr) => {
-          return window.EpicSupabase.from('products').select(selectStr);
-        };
-        const { data, error } = await queryProductsSafe(buildQuery);
-        if (error) throw error;
-        products = (data || []).map(mapSupabaseProduct);
-        if (window.ProductCache) {
-          window.ProductCache.setProducts(products);
-        }
+        products = await window.ProductCache._pendingFetch;
+      } catch (err) {
+        console.warn('[DB] Piggy-backed getProducts fetch failed:', err.message);
+        products = lsProducts();
+      }
+
+    } else if (isSupabaseConfigured() && window.EpicSupabase) {
+      // Only select columns that actually exist in the Supabase products table.
+      // NOTE: 'badges' and 'brand' do NOT exist — using 'badge' (singular) instead.
+      const buildQuery = (selectStr) => {
+        return window.EpicSupabase.from('products').select(selectStr);
+      };
+
+      // Register the fetch Promise so concurrent callers can share it
+      const fetchPromise = queryProductsSafe(buildQuery)
+        .then(({ data, error }) => {
+          if (error) throw error;
+          const mapped = (data || []).map(mapSupabaseProduct);
+          if (window.ProductCache) window.ProductCache.setProducts(mapped);
+          return mapped;
+        });
+
+      if (window.ProductCache) window.ProductCache.trackFetch(fetchPromise);
+
+      try {
+        products = await fetchPromise;
       } catch (err) {
         console.warn('[DB] Supabase getProducts failed, using localStorage:', err.message);
         products = lsProducts();
+        if (window.ProductCache) window.ProductCache._pendingFetch = null;
       }
+
     } else {
       products = lsProducts();
     }
@@ -502,8 +535,13 @@ const DB = {
     }
 
     if (Array.isArray(data.images)) {
-      p.images = data.images;
-    } else if (data.image) {
+      // Safety guard: never write Base64 data-URLs to Supabase.
+      // Base64 images bloat the DB, destroy API performance, and exhaust
+      // Supabase egress. The admin panel must upload to ImageKit first.
+      p.images = data.images.filter(
+        img => img && typeof img === 'string' && !img.startsWith('data:image')
+      );
+    } else if (data.image && typeof data.image === 'string' && !data.image.startsWith('data:image')) {
       p.images = [data.image];
     } else if (data.images) {
       p.images = typeof data.images === 'string' ? [data.images] : [];
@@ -734,22 +772,41 @@ const DB = {
    * @returns {Promise<object[]>}
    */
   async getCategories() {
+    // Fast path: in-memory cache is still fresh
     const cached = window.ProductCache ? window.ProductCache.getCategories() : null;
     if (cached) return cached;
 
-    if (isSupabaseConfigured() && window.EpicSupabase) {
+    // Deduplication: piggyback onto an in-flight categories fetch
+    if (window.ProductCache && window.ProductCache._pendingCategoryFetch) {
       try {
-        const { data, error } = await window.EpicSupabase
-          .from('categories').select('*').order('name', { ascending: true });
-        if (error) throw error;
-        const res = data || [];
-        LS.set(KEYS.CATEGORIES, res);
-        if (window.ProductCache) window.ProductCache.setCategories(res);
-        return res;
+        return await window.ProductCache._pendingCategoryFetch;
       } catch (err) {
-        console.warn('[DB] Supabase getCategories failed:', err.message);
+        console.warn('[DB] Piggy-backed getCategories fetch failed:', err.message);
+        return lsCategories();
       }
     }
+
+    if (isSupabaseConfigured() && window.EpicSupabase) {
+      const fetchPromise = window.EpicSupabase
+        .from('categories').select('*').order('name', { ascending: true })
+        .then(({ data, error }) => {
+          if (error) throw error;
+          const res = data || [];
+          LS.set(KEYS.CATEGORIES, res);
+          if (window.ProductCache) window.ProductCache.setCategories(res);
+          return res;
+        });
+
+      if (window.ProductCache) window.ProductCache.trackCategoryFetch(fetchPromise);
+
+      try {
+        return await fetchPromise;
+      } catch (err) {
+        console.warn('[DB] Supabase getCategories failed:', err.message);
+        if (window.ProductCache) window.ProductCache._pendingCategoryFetch = null;
+      }
+    }
+
     const localCats = lsCategories();
     if (window.ProductCache) window.ProductCache.setCategories(localCats);
     return localCats;

@@ -14,12 +14,19 @@
 const ProductCache = {
   _products: null,
   _categories: null,
-  _productsTTL: 5 * 60 * 1000,   // 5 minutes
+  _productsTTL: 5 * 60 * 1000,    // 5 minutes
   _categoriesTTL: 10 * 60 * 1000, // 10 minutes
   _productsTimestamp: 0,
   _categoriesTimestamp: 0,
-  _fetchingProducts: null,   // Promise deduplication
-  _fetchingCategories: null,
+
+  /**
+   * In-flight Promise deduplication.
+   * When DB.getProducts() fires a Supabase request it stores the Promise here.
+   * Any concurrent caller that finds this set can await the same Promise
+   * instead of opening a second network connection.
+   */
+  _pendingFetch: null,
+  _pendingCategoryFetch: null,
 
   /** Check if products cache is still fresh */
   hasProducts() {
@@ -45,26 +52,52 @@ const ProductCache = {
   setProducts(products) {
     this._products = products;
     this._productsTimestamp = Date.now();
+    this._pendingFetch = null; // Request finished — clear in-flight slot
   },
 
   /** Store categories in cache */
   setCategories(categories) {
     this._categories = categories;
     this._categoriesTimestamp = Date.now();
+    this._pendingCategoryFetch = null;
+  },
+
+  /**
+   * Register an in-flight products fetch Promise.
+   * Returns the same promise so concurrent callers can await it.
+   * @param {Promise} promise
+   * @returns {Promise}
+   */
+  trackFetch(promise) {
+    this._pendingFetch = promise;
+    // Auto-clear on completion (success or failure)
+    promise.finally(() => { if (this._pendingFetch === promise) this._pendingFetch = null; });
+    return promise;
+  },
+
+  /**
+   * Register an in-flight categories fetch Promise.
+   * @param {Promise} promise
+   * @returns {Promise}
+   */
+  trackCategoryFetch(promise) {
+    this._pendingCategoryFetch = promise;
+    promise.finally(() => { if (this._pendingCategoryFetch === promise) this._pendingCategoryFetch = null; });
+    return promise;
   },
 
   /** Invalidate products cache (e.g. after admin mutations) */
   invalidateProducts() {
     this._products = null;
     this._productsTimestamp = 0;
-    this._fetchingProducts = null;
+    this._pendingFetch = null;
   },
 
   /** Invalidate categories cache */
   invalidateCategories() {
     this._categories = null;
     this._categoriesTimestamp = 0;
-    this._fetchingCategories = null;
+    this._pendingCategoryFetch = null;
   },
 
   /** Invalidate everything */
