@@ -2,53 +2,98 @@
  * Epic Toyz — ImageKit Upload Module
  * ─────────────────────────────────────────────────────────────
  * Handles browser-side image upload to ImageKit CDN.
- * Converts images to WebP locally before uploading, so the
- * database always stores clean HTTPS URLs — never Base64.
  *
- * ── SETUP (one-time) ────────────────────────────────────────
- * 1. Create a FREE account at https://imagekit.io
- * 2. After sign-up, go to: Dashboard → Developer Options → API Keys
- * 3. Copy your "Public Key"  → paste into IMAGEKIT_PUBLIC_KEY below
- * 4. Copy your "URL Endpoint" from the top of the Dashboard
- *    (looks like: https://ik.imagekit.io/yourname)
- *    → paste into IMAGEKIT_URL_ENDPOINT below
- * 5. In ImageKit Dashboard → Settings → Upload settings:
- *    Enable "Allow unsigned API requests" (toggle ON)
+ * Auth flow (secure — private key never touches the browser):
+ *   1. Browser calls  GET /api/imagekit-auth
+ *   2. Vercel serverless function generates token + expire + signature
+ *      using the Private Key (stored only in Vercel env vars)
+ *   3. Browser POSTs the image to ImageKit with those 4 auth params
+ *   4. ImageKit returns a permanent CDN URL
  *
- * For the one-time migration script (scratch/migrate_images_to_imagekit.js)
- * you also need your Private Key — only put it in that server-side script,
- * NEVER in this browser file.
+ * ── SETUP CHECKLIST ─────────────────────────────────────────
+ * Public credentials below are already filled in — do not change them.
+ *
+ * ONE-TIME server setup (Vercel dashboard):
+ *   Dashboard → Your Project → Settings → Environment Variables → Add:
+ *     IMAGEKIT_PRIVATE_KEY = private_IhEtHmXEPaBQIj6ZtuLbAsqDSJ8=
+ *
+ * The Private Key must NEVER be placed in this file or any browser JS.
  * ─────────────────────────────────────────────────────────────
  */
 
 'use strict';
 
-// ── CREDENTIALS ──────────────────────────────────────────────
-// Public Key is safe to include in browser code (read-only upload token).
-// Private Key is NEVER placed here — it lives only in the server-side migration script.
-const IMAGEKIT_PUBLIC_KEY    = 'public_ltyTYNk61moMtNetYZNKGQfaZug=';
-const IMAGEKIT_URL_ENDPOINT  = 'https://ik.imagekit.io/40toq7rru';
+// ── PUBLIC CREDENTIALS (safe for browser) ────────────────────
+const IMAGEKIT_PUBLIC_KEY   = 'public_ltyTYNk61moMtNetYZNKGQfaZug=';
+const IMAGEKIT_URL_ENDPOINT = 'https://ik.imagekit.io/40toq7rru';
 // ─────────────────────────────────────────────────────────────
 
 const IMAGEKIT_UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload';
 
+/**
+ * The URL of the serverless auth endpoint.
+ * Works on Vercel (deployed) and locally if you run `vercel dev`.
+ * Automatically resolves to the same origin — no hard-coded domain needed.
+ */
+const IMAGEKIT_AUTH_ENDPOINT = '/api/imagekit-auth';
+
 const ImageKitUpload = {
 
   /**
-   * Returns true when credentials have been filled in.
+   * Returns true when the public credentials have been filled in.
    * @returns {boolean}
    */
   isConfigured() {
     return (
-      IMAGEKIT_PUBLIC_KEY  !== 'YOUR_IMAGEKIT_PUBLIC_KEY'  &&
+      IMAGEKIT_PUBLIC_KEY   !== 'YOUR_IMAGEKIT_PUBLIC_KEY'  &&
       IMAGEKIT_URL_ENDPOINT !== 'YOUR_IMAGEKIT_URL_ENDPOINT' &&
       IMAGEKIT_PUBLIC_KEY.length > 10
     );
   },
 
   /**
-   * Resize + convert a File to WebP, then upload to ImageKit.
-   * Returns a permanent CDN URL with auto-WebP transform applied.
+   * Fetch a fresh set of auth parameters from the serverless endpoint.
+   * Returns { token, expire, signature }.
+   *
+   * @returns {Promise<{token: string, expire: number, signature: string}>}
+   * @private
+   */
+  async _getAuthParams() {
+    let res;
+    try {
+      res = await fetch(IMAGEKIT_AUTH_ENDPOINT, { method: 'GET' });
+    } catch (networkErr) {
+      throw new Error(
+        'Could not reach ImageKit auth endpoint (/api/imagekit-auth). ' +
+        'Make sure the site is deployed on Vercel (or run "vercel dev" locally). ' +
+        'Network error: ' + networkErr.message
+      );
+    }
+
+    if (!res.ok) {
+      let body = '';
+      try { body = await res.text(); } catch (_) {}
+      throw new Error(
+        `ImageKit auth endpoint returned HTTP ${res.status}. ` +
+        'Check that IMAGEKIT_PRIVATE_KEY is set in Vercel Environment Variables. ' +
+        'Details: ' + body
+      );
+    }
+
+    const data = await res.json();
+
+    if (!data.token || !data.expire || !data.signature) {
+      throw new Error(
+        'ImageKit auth endpoint returned incomplete data: ' + JSON.stringify(data)
+      );
+    }
+
+    return data; // { token, expire, signature }
+  },
+
+  /**
+   * Resize + convert a File to WebP, fetch auth params, then upload to ImageKit.
+   * Returns a permanent CDN URL.
    *
    * @param {File}   file          - Raw image file from <input type="file">
    * @param {object} [opts]
@@ -61,8 +106,7 @@ const ImageKitUpload = {
     if (!this.isConfigured()) {
       throw new Error(
         'ImageKit is not configured.\n' +
-        'Open js/imagekit.js and set IMAGEKIT_PUBLIC_KEY and IMAGEKIT_URL_ENDPOINT.\n' +
-        'See setup instructions at the top of that file.'
+        'Open js/imagekit.js and verify IMAGEKIT_PUBLIC_KEY and IMAGEKIT_URL_ENDPOINT.'
       );
     }
 
@@ -70,14 +114,25 @@ const ImageKitUpload = {
     const webpBlob = await this._toWebPBlob(file, maxDimension, quality);
     const fileName = `et_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.webp`;
 
-    // Step 2: Build multipart form data
-    const form = new FormData();
-    form.append('file', webpBlob, fileName);
-    form.append('fileName', fileName);
-    form.append('publicKey', IMAGEKIT_PUBLIC_KEY);
-    form.append('folder', folder);
+    // Step 2: Get server-generated auth params (token, expire, signature)
+    let authParams;
+    try {
+      authParams = await this._getAuthParams();
+    } catch (authErr) {
+      throw authErr; // already has a descriptive message
+    }
 
-    // Step 3: Upload to ImageKit
+    // Step 3: Build multipart form data with all required ImageKit auth params
+    const form = new FormData();
+    form.append('file',      webpBlob, fileName);
+    form.append('fileName',  fileName);
+    form.append('publicKey', IMAGEKIT_PUBLIC_KEY);
+    form.append('token',     authParams.token);
+    form.append('expire',    String(authParams.expire));
+    form.append('signature', authParams.signature);
+    form.append('folder',    folder);
+
+    // Step 4: Upload to ImageKit
     let res;
     try {
       res = await fetch(IMAGEKIT_UPLOAD_URL, { method: 'POST', body: form });
@@ -97,8 +152,7 @@ const ImageKitUpload = {
       throw new Error('ImageKit did not return a URL. Response: ' + JSON.stringify(json));
     }
 
-    // Return the CDN URL. ImageKit auto-serves WebP when the browser supports it,
-    // and we append a quality transform for good measure.
+    // Return the CDN URL with WebP + quality transform
     return json.url + '?tr=f-webp,q-80';
   },
 
@@ -134,7 +188,7 @@ const ImageKitUpload = {
           canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
 
-          // Try WebP first; fall back to JPEG if browser doesn't support webp blobs
+          // Try WebP first; fall back to JPEG if browser doesn't support WebP blobs
           canvas.toBlob(
             (blob) => {
               if (blob) {
@@ -164,9 +218,9 @@ const ImageKitUpload = {
 };
 
 // ── Expose to global scope ────────────────────────────────────
-window.ImageKitUpload     = ImageKitUpload;
-window.IMAGEKIT_PUBLIC_KEY    = IMAGEKIT_PUBLIC_KEY;
-window.IMAGEKIT_URL_ENDPOINT  = IMAGEKIT_URL_ENDPOINT;
+window.ImageKitUpload    = ImageKitUpload;
+window.IMAGEKIT_PUBLIC_KEY   = IMAGEKIT_PUBLIC_KEY;
+window.IMAGEKIT_URL_ENDPOINT = IMAGEKIT_URL_ENDPOINT;
 
 // Startup check
 if (!ImageKitUpload.isConfigured()) {
