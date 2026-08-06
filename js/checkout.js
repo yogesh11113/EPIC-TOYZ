@@ -16,6 +16,7 @@ const CheckoutState = {
   deliveryMethod: 'standard', // or 'express'
   paymentMethod: 'whatsapp',
   orderId: null,
+  shipping: 50,
 };
 
 function getCheckoutItems() {
@@ -42,6 +43,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initCheckoutPage() {
+  // Fetch live delivery charge
+  try {
+    if (typeof DB !== 'undefined' && DB.getDeliveryCharge) {
+      CheckoutState.shipping = await DB.getDeliveryCharge();
+    }
+  } catch (e) {
+    console.warn('[Checkout] Failed to fetch delivery charge:', e);
+  }
+
   // Guard: redirect to cart if empty
   const cart = getCheckoutItems();
   if (!cart || cart.length === 0) {
@@ -49,7 +59,7 @@ async function initCheckoutPage() {
     return;
   }
 
-  renderSidebar();
+  await renderSidebar();
   updateStandardShippingLabel();
 
   // Check if user is already logged in
@@ -73,6 +83,12 @@ async function initCheckoutPage() {
       renderSidebar();
     });
   });
+}
+
+function updateStandardShippingLabel() {
+  const shipping = CheckoutState.shipping ?? 50;
+  const labelEl = document.getElementById('standard-shipping-price');
+  if (labelEl) labelEl.textContent = `₹${shipping}`;
 }
 
 /* ============================================================
@@ -304,12 +320,22 @@ function populateOrderReview() {
 /* ============================================================
    WHATSAPP ORDER
    ============================================================ */
-function generateWhatsAppOrder() {
+/* ============================================================
+   WHATSAPP ORDER
+   ============================================================ */
+async function generateWhatsAppOrder() {
   const cart = getCheckoutItems();
   const { delivery } = CheckoutState;
 
+  let shipping = CheckoutState.shipping ?? 50;
+  try {
+    if (typeof DB !== 'undefined' && DB.getDeliveryCharge) {
+      shipping = await DB.getDeliveryCharge();
+      CheckoutState.shipping = shipping;
+    }
+  } catch (e) {}
+
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = 50;
   const total = subtotal + shipping;
 
   const itemLines = cart.map(item =>
@@ -325,7 +351,7 @@ function generateWhatsAppOrder() {
 📦 *ORDERED PRODUCTS:*
 ${itemLines}
 
-💰 *Total Amount:* ₹${total.toLocaleString('en-IN')} (including flat ₹50 shipping)
+💰 *Total Amount:* ₹${total.toLocaleString('en-IN')} (including delivery charge ₹${shipping})
 
 💳 *Payment Details (Direct UPI):*
 UPI ID: 9363114113@sbi
@@ -349,9 +375,16 @@ async function placeOrder() {
   const btn = document.getElementById('btn-place-order');
   setLoading(btn, true);
 
+  let shipping = CheckoutState.shipping ?? 50;
+  try {
+    if (typeof DB !== 'undefined' && DB.getDeliveryCharge) {
+      shipping = await DB.getDeliveryCharge();
+      CheckoutState.shipping = shipping;
+    }
+  } catch (e) {}
+
   // Save the order to DB
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = 50;
   const total = subtotal + shipping;
 
   const orderData = {
@@ -383,7 +416,7 @@ async function placeOrder() {
   }
 
   // Generate WhatsApp link
-  const whatsappUrl = generateWhatsAppOrder();
+  const whatsappUrl = await generateWhatsAppOrder();
 
   // Clear the appropriate cart
   const params = new URLSearchParams(window.location.search);
@@ -406,11 +439,19 @@ async function placeOrder() {
 /* ============================================================
    SIDEBAR RENDER
    ============================================================ */
-function renderSidebar() {
+async function renderSidebar() {
   const cart = getCheckoutItems();
   const sidebarItems = document.getElementById('sidebar-items');
   const sidebarSummary = document.getElementById('sidebar-summary');
   if (!sidebarItems || !sidebarSummary) return;
+
+  let shipping = CheckoutState.shipping ?? 50;
+  try {
+    if (typeof DB !== 'undefined' && DB.getDeliveryCharge) {
+      shipping = await DB.getDeliveryCharge();
+      CheckoutState.shipping = shipping;
+    }
+  } catch (e) {}
 
   // Items
   sidebarItems.innerHTML = cart.map(item => {
@@ -429,7 +470,6 @@ function renderSidebar() {
 
   // Summary
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = 50;
   const total = subtotal + shipping;
 
   sidebarSummary.innerHTML = `
