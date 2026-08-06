@@ -157,17 +157,6 @@ CREATE TABLE IF NOT EXISTS inventory (
 
 
 -- ============================================================
--- TABLE: settings
--- ============================================================
-CREATE TABLE IF NOT EXISTS settings (
-  key TEXT PRIMARY KEY,
-  value JSONB NOT NULL,
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-
-
--- ============================================================
 -- INDEXES for performance
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
@@ -268,17 +257,6 @@ CREATE POLICY "Admin manages inventory"
 CREATE POLICY "Public can read inventory"
   ON inventory FOR SELECT USING (TRUE);
 
--- Settings
-ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Public can read settings" ON settings;
-DROP POLICY IF EXISTS "Admin can manage settings" ON settings;
-
-CREATE POLICY "Public can read settings"
-  ON settings FOR SELECT USING (TRUE);
-CREATE POLICY "Admin can manage settings"
-  ON settings FOR ALL USING (TRUE);
-
-
 
 -- ============================================================
 -- TRIGGER: auto-update updated_at timestamp
@@ -334,24 +312,9 @@ ON CONFLICT (slug) DO NOTHING;
 
 
 -- ============================================================
--- EXPLICIT TABLE PERMISSIONS FOR ANON AND AUTHENTICATED ROLES
--- ============================================================
-GRANT ALL ON TABLE public.categories  TO anon, authenticated, service_role;
-GRANT ALL ON TABLE public.products    TO anon, authenticated, service_role;
-GRANT ALL ON TABLE public.profiles    TO anon, authenticated, service_role;
-GRANT ALL ON TABLE public.orders      TO anon, authenticated, service_role;
-GRANT ALL ON TABLE public.order_items TO anon, authenticated, service_role;
-GRANT ALL ON TABLE public.reviews     TO anon, authenticated, service_role;
-GRANT ALL ON TABLE public.wishlist    TO anon, authenticated, service_role;
-GRANT ALL ON TABLE public.inventory   TO anon, authenticated, service_role;
-GRANT ALL ON TABLE public.settings    TO anon, authenticated, service_role;
-
-
--- ============================================================
 -- DONE — Verify results
 -- ============================================================
 SELECT
   'Epic Toyz database setup complete!' AS status,
   (SELECT COUNT(*) FROM categories)    AS categories_seeded,
   (SELECT COUNT(*) FROM products)      AS products_count;
-

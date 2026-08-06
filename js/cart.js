@@ -123,7 +123,7 @@ function removeItem(productId) {
 /* ============================================================
    ORDER SUMMARY
    ============================================================ */
-async function renderOrderSummary() {
+function renderOrderSummary() {
   const cart = Store.getCart();
   const container = document.getElementById('summary-content');
   if (!container) return;
@@ -134,20 +134,13 @@ async function renderOrderSummary() {
   }
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  let shipping = 50;
-  try {
-    if (typeof DB !== 'undefined' && DB.getDeliveryCharge) {
-      shipping = await DB.getDeliveryCharge();
-    }
-  } catch (e) {
-    console.warn('[cart.js] Failed to fetch delivery charge:', e);
-  }
+  const shipping = 50;
   const total = subtotal + shipping;
 
   const subtotalFmt = subtotal.toLocaleString('en-IN');
   const totalFmt = total.toLocaleString('en-IN');
 
-  const promoHTML = `<div class="shipping-promo">🚚 Flat Delivery Charge of ₹${shipping} applies to all orders</div>`;
+  const promoHTML = `<div class="shipping-promo">🚚 Flat Delivery Charge of ₹50 applies to all orders</div>`;
 
   container.innerHTML = `
     ${promoHTML}
@@ -157,7 +150,7 @@ async function renderOrderSummary() {
     </div>
     <div class="summary-row">
       <span class="label">Shipping</span>
-      <span class="value">₹${shipping}</span>
+      <span class="value">₹50</span>
     </div>
     <hr class="summary-divider">
     <div class="summary-total">

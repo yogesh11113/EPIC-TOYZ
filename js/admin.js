@@ -667,11 +667,23 @@ const Admin = {
 
     let users = [];
     try {
-      if (typeof DB !== 'undefined' && DB.getUsers) {
-        users = await DB.getUsers();
-      } else {
-        const rawUsers = localStorage.getItem('et_users');
-        if (rawUsers) users = JSON.parse(rawUsers);
+      const rawUsers = localStorage.getItem('et_users');
+      if (rawUsers) {
+        users = JSON.parse(rawUsers);
+      }
+      if (users.length === 0) {
+        const rawUser = localStorage.getItem('et_user');
+        if (rawUser) {
+          users = [JSON.parse(rawUser)];
+        }
+      }
+      if (users.length === 0) {
+        users = [
+          { name: 'Yogesh Kumar', email: 'yogesh2007.gv@gmail.com', phone: '9363114113', role: 'user', createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
+          { name: 'Admin', email: 'epictoyz.in@gmail.com', phone: '6383793890', role: 'admin', createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString() },
+          { name: 'Karan Sharma', email: 'karan.sharma@gmail.com', phone: '9876543210', role: 'user', createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }
+        ];
+        localStorage.setItem('et_users', JSON.stringify(users));
       }
     } catch (e) {
       console.warn('[Admin] Failed to fetch users:', e);
@@ -705,11 +717,11 @@ const Admin = {
     };
 
     try {
-      if (typeof DB !== 'undefined' && DB.getSettings) {
-        settings = await DB.getSettings();
+      const saved = localStorage.getItem('et_shop_settings');
+      if (saved) {
+        settings = { ...settings, ...JSON.parse(saved) };
       } else {
-        const saved = localStorage.getItem('et_shop_settings');
-        if (saved) settings = { ...settings, ...JSON.parse(saved) };
+        localStorage.setItem('et_shop_settings', JSON.stringify(settings));
       }
     } catch (e) {
       console.warn('[Admin] Failed to read settings:', e);
@@ -726,7 +738,7 @@ const Admin = {
     if (shippingInput) shippingInput.value = settings.shipping ?? 50;
   },
 
-  async saveSettings(event) {
+  saveSettings(event) {
     if (event) event.preventDefault();
 
     const nameInput = document.getElementById('settings-shop-name');
@@ -742,119 +754,12 @@ const Admin = {
     };
 
     try {
-      if (typeof DB !== 'undefined' && DB.updateSettings) {
-        await DB.updateSettings(settings);
-      } else {
-        localStorage.setItem('et_shop_settings', JSON.stringify(settings));
-      }
+      localStorage.setItem('et_shop_settings', JSON.stringify(settings));
       Toast.success('Settings saved successfully!');
     } catch (e) {
       console.error('[Admin] Failed to save settings:', e);
       Toast.error('Failed to save settings.');
     }
-  },
-
-  async renderReviews() {
-    const listEl = document.getElementById('reviews-list');
-    if (!listEl) return;
-
-    let reviews = [];
-    try {
-      if (typeof DB !== 'undefined' && DB.getReviews) {
-        reviews = await DB.getReviews(null);
-      } else {
-        reviews = JSON.parse(localStorage.getItem('et_reviews') || '[]');
-      }
-    } catch (e) {
-      console.warn('[Admin] Failed to fetch reviews:', e);
-    }
-
-    if (reviews.length === 0) {
-      listEl.innerHTML = `<div class="table-empty"><div class="empty-icon">⭐</div><div>No customer reviews found</div></div>`;
-      return;
-    }
-
-    listEl.innerHTML = `
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Reviewer</th>
-              <th>Rating</th>
-              <th>Review</th>
-              <th>Status</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${reviews.map(r => {
-              const stars = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
-              const isApproved = r.is_approved || r.approved;
-              return `
-                <tr>
-                  <td>
-                    <strong>${esc(r.reviewer_name || r.name || r.userName || 'Anonymous')}</strong>
-                    ${r.reviewer_email ? `<div style="font-size:11px;color:var(--text-dim);">${esc(r.reviewer_email)}</div>` : ''}
-                  </td>
-                  <td style="color:var(--gold); font-size:14px;">${stars}</td>
-                  <td>
-                    ${r.title ? `<strong style="display:block;margin-bottom:2px;">${esc(r.title)}</strong>` : ''}
-                    <div style="font-size:12px;color:var(--text-muted);">${esc(r.review_text || r.text || r.comment || '')}</div>
-                  </td>
-                  <td>
-                    <span class="status-badge ${isApproved ? 'status-approved' : 'status-pending'}">
-                      ${isApproved ? 'Approved' : 'Pending Approval'}
-                    </span>
-                  </td>
-                  <td style="font-size:12px;color:var(--text-dim);">${formatDate(r.created_at || r.createdAt)}</td>
-                  <td>
-                    <div style="display:flex; gap:6px;">
-                      ${!isApproved ? `
-                        <button class="btn btn-sm btn-success" onclick="Admin.approveReview('${esc(r.id)}')">
-                          ✓ Approve
-                        </button>
-                      ` : ''}
-                      <button class="btn btn-sm btn-danger" onclick="Admin.deleteReview('${esc(r.id)}')">
-                        🗑️ Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  },
-
-  async approveReview(id) {
-    try {
-      if (typeof DB !== 'undefined' && DB.approveReview) {
-        await DB.approveReview(id);
-      }
-      Toast.success('Review approved successfully!');
-      await this.renderReviews();
-    } catch (e) {
-      console.error('[Admin] Failed to approve review:', e);
-      Toast.error('Failed to approve review.');
-    }
-  },
-
-  async deleteReview(id) {
-    this.confirm('Are you sure you want to delete this review?', 'Delete Review', async () => {
-      try {
-        if (typeof DB !== 'undefined' && DB.deleteReview) {
-          await DB.deleteReview(id);
-        }
-        Toast.success('Review deleted.');
-        await this.renderReviews();
-      } catch (e) {
-        console.error('[Admin] Failed to delete review:', e);
-        Toast.error('Failed to delete review.');
-      }
-    });
   },
 
   // ══════════════════════════════════════════

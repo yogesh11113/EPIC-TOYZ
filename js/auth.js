@@ -165,34 +165,6 @@ const Auth = {
         });
         if (error) throw error;
         const user = this._normaliseUser(data.user);
-
-        // Sync profile into Supabase profiles table
-        if (data.user?.id) {
-          try {
-            await window.EpicSupabase.from('profiles').upsert([{
-              id: data.user.id,
-              full_name: userData.name || user.name || '',
-              phone: userData.phone || ''
-            }], { onConflict: 'id' });
-          } catch (pErr) {
-            console.warn('[Auth] Syncing profile to Supabase failed:', pErr);
-          }
-        }
-
-        // Also append to local et_users for offline/fallback consistency
-        const users = JSON.parse(localStorage.getItem('et_users') || '[]');
-        if (!users.find(u => u.email.toLowerCase() === normalEmail)) {
-          users.push({
-            id: user.id,
-            email: normalEmail,
-            name: userData.name || user.name || '',
-            phone: userData.phone || '',
-            role: 'customer',
-            createdAt: new Date().toISOString()
-          });
-          localStorage.setItem('et_users', JSON.stringify(users));
-        }
-
         this._storeSession(user, data.session?.access_token);
         this.updateNavbarAuth();
         return { user, error: null };
