@@ -262,10 +262,10 @@ function injectNavbar() {
   // User Account Redirect
   const navAccountBtn = document.getElementById('navAccountBtn');
   if (navAccountBtn) {
-    navAccountBtn.addEventListener('click', () => {
+    navAccountBtn.addEventListener('click', async () => {
       // Check auth state
       if (typeof Auth !== 'undefined') {
-        const currentUser = Auth.getCurrentUser();
+        const currentUser = await Auth.getCurrentUser();
         if (currentUser) {
           if (Auth.isAdmin(currentUser.email)) {
             window.location.href = `${prefix}admin/dashboard.html`;

@@ -201,72 +201,65 @@ const Auth = {
 
   /**
    * Fetch the currently authenticated user directly from Supabase Auth server.
+   * When Supabase is configured, this queries window.EpicSupabase.auth.getUser().
+   * Local storage authentication is ONLY used when Supabase is NOT configured.
    * @returns {Promise<object|null>}
    */
-  async getUser() {
+  async getCurrentUser() {
+    // ── Supabase path (when configured) ──
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
         const { data: { user }, error } = await window.EpicSupabase.auth.getUser();
         if (user && !error) {
+          console.log('[Auth] getCurrentUser: ✅ Authenticated Supabase user:', user.email);
           return this._normaliseUser(user);
         }
-      } catch (e) {
-        console.warn('[Auth] getUser error:', e.message);
-      }
-    }
-    return this.getCurrentUser();
-  },
-
-  /**
-   * Get the currently authenticated user object synchronously, or null.
-   * @returns {object|null}
-   */
-  getCurrentUser() {
-    // Try Supabase session first
-    if (isSupabaseConfigured() && window.EpicSupabase) {
-      try {
-        const sbKey = 'sb-' + (window.SUPABASE_CONFIG?.url?.split('//')[1]?.split('.')[0]) + '-auth-token';
-        const raw = localStorage.getItem(sbKey);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed?.user) {
-            console.log('[Auth] getCurrentUser: found Supabase session for:', parsed.user.email);
-            return this._normaliseUser(parsed.user);
-          }
+        if (error) {
+          console.log('[Auth] getCurrentUser: Supabase auth.getUser() returned error:', error.message);
         }
       } catch (e) {
-        console.warn('[Auth] getCurrentUser: error reading Supabase session:', e.message);
+        console.warn('[Auth] getCurrentUser: Error fetching Supabase user:', e.message);
       }
+      console.log('[Auth] getCurrentUser: No active Supabase Auth session found');
+      return null;
     }
 
-    // Local session fallback
+    // ── Local storage fallback (ONLY when Supabase is NOT configured) ──
     try {
       const session = JSON.parse(localStorage.getItem(this.SESSION_KEY));
       if (session && session.user) {
-        // Check if session has expired
         if (session.expiresAt && Date.now() > session.expiresAt) {
-          console.warn('[Auth] getCurrentUser: local session expired, clearing');
+          console.warn('[Auth] getCurrentUser: Offline local session expired, clearing');
           localStorage.removeItem(this.SESSION_KEY);
           localStorage.removeItem(this.USER_KEY);
           return null;
         }
-        console.log('[Auth] getCurrentUser: found local session for:', session.user.email, '(role:', session.user.role, ')');
+        console.log('[Auth] getCurrentUser: Found offline local session for:', session.user.email);
         return session.user;
       }
     } catch (e) {
-      console.warn('[Auth] getCurrentUser: error reading local session:', e.message);
+      console.warn('[Auth] getCurrentUser: Error reading offline local session:', e.message);
     }
 
-    console.log('[Auth] getCurrentUser: no session found');
+    console.log('[Auth] getCurrentUser: No offline session found');
     return null;
   },
 
   /**
-   * Returns true when a user is logged in.
-   * @returns {boolean}
+   * Alias for getCurrentUser().
+   * @returns {Promise<object|null>}
    */
-  isLoggedIn() {
-    return !!this.getCurrentUser();
+  async getUser() {
+    return await this.getCurrentUser();
+  },
+
+  /**
+   * Returns true when a user is logged in.
+   * @returns {Promise<boolean>}
+   */
+  async isLoggedIn() {
+    const user = await this.getCurrentUser();
+    return !!user;
   },
 
   /**
@@ -280,41 +273,42 @@ const Auth = {
 
   /**
    * Returns true when the currently logged-in user is the admin.
-   * @returns {boolean}
+   * @returns {Promise<boolean>}
    */
-  isCurrentUserAdmin() {
-    const user = this.getCurrentUser();
+  async isCurrentUserAdmin() {
+    const user = await this.getCurrentUser();
     return user ? this.isAdmin(user.email) : false;
   },
 
   /**
    * Redirect to admin login if the current user is not an admin.
-   * @returns {boolean} true if allowed to continue
+   * @returns {Promise<boolean>} true if allowed to continue
    */
-  requireAdmin() {
+  async requireAdmin() {
     console.log('[Auth] requireAdmin() check...');
-    const user = this.getCurrentUser();
+    const user = await this.getCurrentUser();
     if (!user) {
-      console.warn('[Auth] requireAdmin: no user found — redirecting to admin login');
+      console.warn('[Auth] requireAdmin: No user found — redirecting to admin login');
       window.location.href = this._getPath('admin-login');
       return false;
     }
     if (!this.isAdmin(user.email)) {
-      console.warn('[Auth] requireAdmin: user is not admin — redirecting to home');
+      console.warn('[Auth] requireAdmin: User is not admin — redirecting to home');
       window.location.href = this._getPath('home');
       return false;
     }
-    console.log('[Auth] requireAdmin: ✅ admin access granted for:', user.email);
+    console.log('[Auth] requireAdmin: ✅ Admin access granted for authenticated Supabase user:', user.email);
     return true;
   },
 
   /**
    * Redirect to checkout/login if not authenticated.
    * @param {string} [redirectPath='/checkout.html?login=true']
-   * @returns {boolean} true if allowed to continue
+   * @returns {Promise<boolean>} true if allowed to continue
    */
-  requireLogin(redirectPath = '/checkout.html?login=true') {
-    if (!this.isLoggedIn()) {
+  async requireLogin(redirectPath = '/checkout.html?login=true') {
+    const loggedIn = await this.isLoggedIn();
+    if (!loggedIn) {
       window.location.href = this._getPath(redirectPath);
       return false;
     }
@@ -355,8 +349,8 @@ const Auth = {
    * Update all navbar user/login icon elements based on auth state.
    * Call this after login, logout, or on DOMContentLoaded.
    */
-  updateNavbarAuth() {
-    const user = this.getCurrentUser();
+  async updateNavbarAuth() {
+    const user = await this.getCurrentUser();
     const loginBtns  = document.querySelectorAll('[data-auth="login"]');
     const logoutBtns = document.querySelectorAll('[data-auth="logout"]');
     const userNames  = document.querySelectorAll('[data-auth="username"]');
@@ -443,11 +437,12 @@ const Auth = {
    * @param {string} token
    */
   _storeSession(user, token) {
-    console.log('[Auth] _storeSession: storing session for:', user.email, '(role:', user.role, ')');
-    const session = { user, token, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 };
-    localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
-    localStorage.setItem(this.USER_KEY,    JSON.stringify(user));
-    console.log('[Auth] _storeSession: ✅ session stored in', this.SESSION_KEY);
+    if (!isSupabaseConfigured()) {
+      console.log('[Auth] _storeSession: Storing offline local session for:', user.email);
+      const session = { user, token, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 };
+      localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
+      localStorage.setItem(this.USER_KEY,    JSON.stringify(user));
+    }
   },
 };
 

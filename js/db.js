@@ -170,7 +170,7 @@ async function queryProductsSafe(buildQueryFn, isSingle = false) {
   try {
     // First try with the categories relation join (aliased to avoid overwriting the categories column)
     const qJoin = buildQueryFn('*, category_rel:categories(id, name, slug)');
-    const result = isSingle ? await qJoin.single() : await qJoin;
+    const result = isSingle ? await qJoin.maybeSingle() : await qJoin;
     if (!result.error) return result;
 
     const err = result.error;
@@ -186,7 +186,7 @@ async function queryProductsSafe(buildQueryFn, isSingle = false) {
     if (err.code === 'PGRST205' || err.status === 404 || errMsg.includes('categories') || errMsg.includes('relationship')) {
       console.warn('[DB] Supabase categories join failed, retrying without join:', errMsg);
       const qPlain = buildQueryFn('*');
-      const retryResult = isSingle ? await qPlain.single() : await qPlain;
+      const retryResult = isSingle ? await qPlain.maybeSingle() : await qPlain;
       if (retryResult.error) {
         const retryErr = retryResult.error;
         if (retryErr.code === 'PGRST205' || retryErr.status === 404) {
@@ -599,8 +599,7 @@ const DB = {
       let queryResult = await window.EpicSupabase
         .from('products')
         .insert([dbProduct])
-        .select()
-        .single();
+        .select();
 
       if (queryResult.error) {
         const errDetails = JSON.stringify(queryResult.error);
@@ -613,19 +612,36 @@ const DB = {
           queryResult = await window.EpicSupabase
             .from('products')
             .insert([dbProduct])
-            .select()
-            .single();
+            .select();
         }
       }
 
-      const { data: result, error } = queryResult;
+      const { data: rawData, error } = queryResult;
 
       if (error) {
         console.error('[DB] Supabase product insert failed:', error);
         throw new Error(error.message || JSON.stringify(error));
       }
 
-      console.log('[DB] Supabase product insert succeeded. Record:', result, 'ID:', result.id);
+      let result = (Array.isArray(rawData) && rawData.length > 0) ? rawData[0] : null;
+
+      // Strict database verification: if RETURNING * returned 0 rows, perform a direct SELECT lookup
+      if (!result) {
+        console.log('[DB] RETURNING * returned empty array. Verifying database insertion for ID:', dbProduct.id);
+        const { data: verifyRow, error: verifyErr } = await window.EpicSupabase
+          .from('products')
+          .select('*')
+          .eq('id', dbProduct.id)
+          .maybeSingle();
+
+        if (verifyErr || !verifyRow) {
+          console.error('[DB] ❌ Product creation failed: Record was not saved to Supabase.', verifyErr);
+          throw new Error('Database insert failed: Product record was not written to Supabase.');
+        }
+        result = verifyRow;
+      }
+
+      console.log('[DB] ✅ Supabase product insert verified. Record ID:', result.id);
 
       // Also upsert inventory row to keep the inventory table in sync
       const stockQty = dbProduct.stock_quantity ?? 0;
@@ -671,8 +687,7 @@ const DB = {
         .from('products')
         .update(dbProduct)
         .eq('id', id)
-        .select()
-        .single();
+        .select();
 
       if (queryResult.error) {
         const errDetails = JSON.stringify(queryResult.error);
@@ -686,17 +701,36 @@ const DB = {
             .from('products')
             .update(dbProduct)
             .eq('id', id)
-            .select()
-            .single();
+            .select();
         }
       }
 
-      const { data: result, error } = queryResult;
+      const { data: rawData, error } = queryResult;
 
       if (error) {
         console.error('[DB] Supabase product update failed:', error);
         throw new Error(error.message || JSON.stringify(error));
       }
+
+      let result = (Array.isArray(rawData) && rawData.length > 0) ? rawData[0] : null;
+
+      // Strict verification for update
+      if (!result) {
+        console.log('[DB] UPDATE RETURNING * returned empty array. Verifying database record for ID:', id);
+        const { data: verifyRow, error: verifyErr } = await window.EpicSupabase
+          .from('products')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (verifyErr || !verifyRow) {
+          console.error('[DB] ❌ Product update failed: Record not found in Supabase.', verifyErr);
+          throw new Error(`Database update failed: Product ${id} was not updated in Supabase.`);
+        }
+        result = verifyRow;
+      }
+
+      console.log('[DB] ✅ Supabase product update verified. Record:', result);
 
       console.log('[DB] Supabase product update succeeded. Record:', result);
 
@@ -876,9 +910,10 @@ const DB = {
     const newCat = { ...data, id: data.id || uid() };
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const { data: result, error } = await window.EpicSupabase
-          .from('categories').insert([newCat]).select().single();
+        const { data: rawResult, error } = await window.EpicSupabase
+          .from('categories').insert([newCat]).select();
         if (error) throw error;
+        const result = (Array.isArray(rawResult) && rawResult.length > 0) ? rawResult[0] : (rawResult || newCat);
         if (window.ProductCache) window.ProductCache.invalidateCategories();
         return result;
       } catch (err) {
@@ -901,9 +936,10 @@ const DB = {
   async updateCategory(id, data) {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const { data: result, error } = await window.EpicSupabase
-          .from('categories').update(data).eq('id', id).select().single();
+        const { data: rawResult, error } = await window.EpicSupabase
+          .from('categories').update(data).eq('id', id).select();
         if (error) throw error;
+        const result = (Array.isArray(rawResult) && rawResult.length > 0) ? rawResult[0] : (rawResult || data);
         if (window.ProductCache) window.ProductCache.invalidateCategories();
         return result;
       } catch (err) {
@@ -979,7 +1015,8 @@ const DB = {
         const city = parts[parts.length - 3] || 'City';
         const state = parts[parts.length - 2] || 'State';
 
-        let userId = window.Auth?.getCurrentUser?.()?.id || null;
+        let currentUser = window.Auth?.getCurrentUser ? await window.Auth.getCurrentUser() : null;
+        let userId = currentUser?.id || null;
         // Ensure user_id is a valid UUID before sending to Supabase
         if (userId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
           userId = null;
@@ -1005,9 +1042,10 @@ const DB = {
           notes:           orderData.notes || '',
         };
 
-        const { data: insertedOrder, error: orderErr } = await window.EpicSupabase
-          .from('orders').insert([dbOrder]).select().single();
+        const { data: rawOrder, error: orderErr } = await window.EpicSupabase
+          .from('orders').insert([dbOrder]).select();
         if (orderErr) throw orderErr;
+        const insertedOrder = (Array.isArray(rawOrder) && rawOrder.length > 0) ? rawOrder[0] : (rawOrder || dbOrder);
 
         const items = orderData.items || [];
         if (items.length > 0) {
@@ -1068,7 +1106,7 @@ const DB = {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
         const { data, error } = await window.EpicSupabase
-          .from('orders').select('*, order_items(*)').eq('id', id).single();
+          .from('orders').select('*, order_items(*)').eq('id', id).maybeSingle();
         if (error) throw error;
         return mapSupabaseOrder(data);
       } catch (err) {
@@ -1088,9 +1126,10 @@ const DB = {
     const updated = { status, updatedAt: new Date().toISOString() };
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const { data, error } = await window.EpicSupabase
-          .from('orders').update(updated).eq('id', id).select().single();
+        const { data: rawData, error } = await window.EpicSupabase
+          .from('orders').update(updated).eq('id', id).select();
         if (error) throw error;
+        const data = (Array.isArray(rawData) && rawData.length > 0) ? rawData[0] : (rawData || updated);
         return data;
       } catch (err) {
         console.warn('[DB] Supabase updateOrderStatus failed:', err.message);
@@ -1107,15 +1146,6 @@ const DB = {
   /* ══════════════════════════════════════════════════════════
      REVIEWS
      ══════════════════════════════════════════════════════════ */
-
-  /**
-   * Get approved reviews for a product.
-   * @param {string|number} productId
-   * @returns {Promise<object[]>}
-   */
-  async getProductReviews(productId) {
-    return this.getReviews(productId);
-  },
 
   /**
    * Get reviews (optionally filtered by product ID).
@@ -1153,7 +1183,7 @@ const DB = {
   async submitReview(reviewData) {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const user = window.Auth?.getCurrentUser?.();
+        const user = window.Auth?.getCurrentUser ? await window.Auth.getCurrentUser() : null;
         const reviewer_name = user?.name || 'Anonymous';
         const reviewer_email = user?.email || null;
         const user_id = user?.id || null;
@@ -1211,10 +1241,11 @@ const DB = {
   async approveReview(id) {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const { data, error } = await window.EpicSupabase
-          .from('reviews').update({ is_approved: true }).eq('id', id).select().single();
+        const { data: rawResult, error } = await window.EpicSupabase
+          .from('reviews').update({ is_approved: true }).eq('id', id).select();
         if (error) throw error;
-        return mapSupabaseReview(data);
+        const result = (Array.isArray(rawResult) && rawResult.length > 0) ? rawResult[0] : rawResult;
+        return mapSupabaseReview(result);
       } catch (err) {
         console.warn('[DB] Supabase approveReview failed:', err.message);
       }
@@ -1281,7 +1312,7 @@ const DB = {
     const raw = LS.get(KEYS.WISHLIST) || [];
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const user = window.Auth?.getCurrentUser?.();
+        const user = window.Auth?.getCurrentUser ? await window.Auth.getCurrentUser() : null;
         if (user) {
           const { data, error } = await window.EpicSupabase
             .from('wishlist')
@@ -1316,7 +1347,7 @@ const DB = {
     }
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const user = window.Auth?.getCurrentUser?.();
+        const user = window.Auth?.getCurrentUser ? await window.Auth.getCurrentUser() : null;
         if (user) {
           await window.EpicSupabase
             .from('wishlist')
@@ -1338,7 +1369,7 @@ const DB = {
     LS.set(KEYS.WISHLIST, wl);
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const user = window.Auth?.getCurrentUser?.();
+        const user = window.Auth?.getCurrentUser ? await window.Auth.getCurrentUser() : null;
         if (user) {
           await window.EpicSupabase
             .from('wishlist')
@@ -1388,12 +1419,13 @@ const DB = {
   async updateInventory(productId, quantity) {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
-        const { data, error } = await window.EpicSupabase
+        const { data: rawResult, error } = await window.EpicSupabase
           .from('inventory')
           .upsert([{ product_id: productId, quantity }])
-          .select().single();
+          .select();
         if (error) throw error;
-        return data;
+        const result = (Array.isArray(rawResult) && rawResult.length > 0) ? rawResult[0] : rawResult;
+        return result;
       } catch (err) {
         console.warn('[DB] Supabase updateInventory failed:', err.message);
       }

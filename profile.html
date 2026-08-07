@@ -472,9 +472,9 @@
     'use strict';
 
     // Guard: Redirect to login if not authenticated
-    function checkAuthGuard() {
+    async function checkAuthGuard() {
       if (typeof Auth !== 'undefined') {
-        const user = Auth.getCurrentUser();
+        const user = await Auth.getCurrentUser();
         if (!user) {
           console.warn('[Profile] User not authenticated. Redirecting to login page...');
           window.location.href = 'admin/login.html';
@@ -486,8 +486,8 @@
     }
 
     // Initialize page
-    document.addEventListener('DOMContentLoaded', () => {
-      const user = checkAuthGuard();
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await checkAuthGuard();
       if (!user) return;
 
       // Render profile info

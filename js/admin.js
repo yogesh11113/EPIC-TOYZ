@@ -276,21 +276,21 @@ async function safeGetReviews() {
 //  SIMPLE AUTH CHECK (no Auth module dependency)
 // ─────────────────────────────────────────────────────────
 
-function checkAdminAuth() {
+async function checkAdminAuth() {
   console.log('[Admin] checkAdminAuth() running...');
 
   const ADMIN_EMAIL_ADDR = 'epictoyz.in@gmail.com';
   let authenticatedAdmin = false;
 
-  // 1. Check Auth module session (Supabase or local)
+  // 1. Check Auth module session (Supabase Auth server)
   if (window.Auth && typeof Auth.getCurrentUser === 'function') {
     try {
-      const user = Auth.getCurrentUser();
+      const user = await Auth.getCurrentUser();
       if (user) {
         console.log('[Admin] checkAdminAuth: Auth module found user:', user.email);
         if (Auth.isAdmin(user.email)) {
           authenticatedAdmin = true;
-          console.log('[Admin] checkAdminAuth: ✅ Auth module confirms admin');
+          console.log('[Admin] checkAdminAuth: ✅ Auth module confirms authenticated admin:', user.email);
         } else {
           console.warn('[Admin] checkAdminAuth: user is not admin — redirecting home');
           window.location.href = '../index.html';
@@ -352,7 +352,7 @@ const Admin = {
   async init() {
     console.log('[Admin] Admin.init() starting...');
     // Auth guard
-    if (!checkAdminAuth()) {
+    if (!(await checkAdminAuth())) {
       console.warn('[Admin] Auth guard failed — stopping init');
       return;
     }
@@ -366,7 +366,7 @@ const Admin = {
     }, 600);
 
     // Show content
-    this.updateAdminInfo();
+    await this.updateAdminInfo();
     this.initNav();
     this.startClock();
     await this.loadSection('dashboard');
@@ -377,13 +377,13 @@ const Admin = {
   //  ADMIN USER INFO
   // ══════════════════════════════════════════
 
-  updateAdminInfo() {
+  async updateAdminInfo() {
     let email = 'epictoyz.in@gmail.com';
     try {
       if (window.Auth && typeof Auth.getCurrentUser === 'function') {
-        const user = Auth.getCurrentUser();
+        const user = await Auth.getCurrentUser();
         if (user && user.email) email = user.email;
-      } else {
+      } else if (!isSupabaseConfigured()) {
         const session = JSON.parse(localStorage.getItem('et_admin_session') || '{}');
         if (session.email) email = session.email;
       }
@@ -2203,7 +2203,7 @@ const ADMIN_EMAIL = 'epictoyz.in@gmail.com';
 const ADMIN_PASSWORD = 'yogesh123*';
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
 
-function initAdminLogin() {
+async function initAdminLogin() {
   console.log('[Login] initAdminLogin() starting...');
 
   // Check if already logged in → redirect to dashboard
@@ -2211,26 +2211,10 @@ function initAdminLogin() {
   const cameFromDashboard = document.referrer && document.referrer.includes('dashboard');
 
   if (!cameFromDashboard) {
-    // Check et_admin_session
-    const session = localStorage.getItem('et_admin_session');
-    if (session) {
-      try {
-        const parsed = JSON.parse(session);
-        if (parsed.email && parsed.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && Date.now() < parsed.expires) {
-          console.log('[Login] Valid et_admin_session found — redirecting to dashboard');
-          window.location.href = 'dashboard.html';
-          return;
-        }
-      } catch (e) {
-        console.warn('[Login] Error parsing et_admin_session:', e.message);
-      }
-      localStorage.removeItem('et_admin_session');
-    }
-
-    // Check Auth module session
+    // Check Auth module session (Supabase Auth server)
     if (window.Auth && typeof Auth.getCurrentUser === 'function') {
       try {
-        const user = Auth.getCurrentUser();
+        const user = await Auth.getCurrentUser();
         if (user) {
           console.log('[Login] Auth module found existing user:', user.email);
           if (typeof Auth.isAdmin === 'function' && Auth.isAdmin(user.email)) {
@@ -2245,6 +2229,24 @@ function initAdminLogin() {
         }
       } catch (e) {
         console.warn('[Login] Error checking Auth module:', e.message);
+      }
+    }
+
+    // Check et_admin_session ONLY when Supabase is NOT configured
+    if (!isSupabaseConfigured()) {
+      const session = localStorage.getItem('et_admin_session');
+      if (session) {
+        try {
+          const parsed = JSON.parse(session);
+          if (parsed.email && parsed.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && Date.now() < parsed.expires) {
+            console.log('[Login] Valid et_admin_session found (offline mode) — redirecting to dashboard');
+            window.location.href = 'dashboard.html';
+            return;
+          }
+        } catch (e) {
+          console.warn('[Login] Error parsing et_admin_session:', e.message);
+        }
+        localStorage.removeItem('et_admin_session');
       }
     }
   } else {
