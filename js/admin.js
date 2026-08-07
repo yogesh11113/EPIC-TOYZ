@@ -279,14 +279,10 @@ async function safeGetReviews() {
 function checkAdminAuth() {
   console.log('[Admin] checkAdminAuth() running...');
 
-  // ── Strategy: check ALL session sources before redirecting. ──
-  // This prevents redirect loops caused by one store having a session
-  // while the other doesn't.
-
   const ADMIN_EMAIL_ADDR = 'epictoyz.in@gmail.com';
   let authenticatedAdmin = false;
 
-  // 1. Check Auth module session (et_session)
+  // 1. Check Auth module session (Supabase or local)
   if (window.Auth && typeof Auth.getCurrentUser === 'function') {
     try {
       const user = Auth.getCurrentUser();
@@ -306,46 +302,19 @@ function checkAdminAuth() {
     }
   }
 
-  // 2. Check et_admin_session (admin.js's own session)
-  if (!authenticatedAdmin) {
+  // 2. Check local session fallbacks ONLY when Supabase is NOT configured
+  if (!authenticatedAdmin && !isSupabaseConfigured()) {
     try {
       const raw = localStorage.getItem('et_admin_session');
       if (raw) {
         const session = JSON.parse(raw);
         if (session.email && session.email.toLowerCase() === ADMIN_EMAIL_ADDR && Date.now() < session.expires) {
           authenticatedAdmin = true;
-          console.log('[Admin] checkAdminAuth: ✅ et_admin_session is valid');
-
-          // Synchronize: also store in Auth module's session so Auth.getCurrentUser works
-          if (window.Auth && typeof Auth._storeSession === 'function') {
-            const existingAuthSession = localStorage.getItem('et_session');
-            if (!existingAuthSession) {
-              console.log('[Admin] checkAdminAuth: syncing et_admin_session → et_session');
-              Auth._storeSession({
-                id: 'admin-001',
-                email: ADMIN_EMAIL_ADDR,
-                name: 'Admin',
-                role: 'admin',
-                createdAt: session.loginTime || new Date().toISOString(),
-              }, 'local-admin-token');
-            }
-          }
-        } else {
-          console.warn('[Admin] checkAdminAuth: et_admin_session expired or invalid, clearing');
-          localStorage.removeItem('et_admin_session');
+          console.log('[Admin] checkAdminAuth: ✅ et_admin_session is valid (offline mode)');
         }
       }
     } catch (e) {
       console.warn('[Admin] checkAdminAuth: error reading et_admin_session:', e.message);
-    }
-  }
-
-  // 3. Check et_admin_email fallback
-  if (!authenticatedAdmin) {
-    const email = localStorage.getItem('et_admin_email') || '';
-    if (email && email.toLowerCase() === ADMIN_EMAIL_ADDR) {
-      console.log('[Admin] checkAdminAuth: ✅ et_admin_email found, granting access');
-      authenticatedAdmin = true;
     }
   }
 
@@ -2346,9 +2315,9 @@ function initAdminLogin() {
         loginError = authErr.message;
       }
 
-      // ── Fallback: local credential check ──
-      if (!loginOk) {
-        console.log('[Login] Trying direct credential check...');
+      // ── Fallback: local credential check (ONLY when Supabase is NOT configured) ──
+      if (!loginOk && !isSupabaseConfigured()) {
+        console.log('[Login] Trying direct credential check (offline mode)...');
         const normalEmail = email.toLowerCase();
         if (normalEmail === ADMIN_EMAIL.toLowerCase() && password === ADMIN_PASSWORD) {
           loginOk = true;
@@ -2356,7 +2325,7 @@ function initAdminLogin() {
           loginError = null;
           console.log('[Login] ✅ Direct credential match succeeded');
 
-          // CRITICAL: also store in Auth module's session to prevent redirect loop
+          // store in Auth module's session for offline mode
           if (window.Auth && typeof Auth._storeSession === 'function') {
             Auth._storeSession({
               id: 'admin-001',

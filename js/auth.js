@@ -60,34 +60,32 @@ const Auth = {
           password,
         });
         if (error) {
-          // ALL Supabase errors now fall through to local fallback.
-          // This prevents hard-fails from invalid API keys, network errors, etc.
-          console.warn('[Auth] Supabase login error — falling through to local fallback:', error.message, '(status:', error.status, ')');
-        } else if (data && data.user) {
+          console.error('[Auth] ❌ Supabase authentication failed:', error.message);
+          return { user: null, error: error.message };
+        }
+        if (data && data.user) {
           console.log('[Auth] ✅ Supabase login succeeded for:', data.user.email);
           const user = this._normaliseUser(data.user);
           this._storeSession(user, data.session?.access_token);
           this.updateNavbarAuth();
           return { user, error: null };
-        } else {
-          console.warn('[Auth] Supabase login returned no error but no user — falling through to local fallback');
         }
+        return { user: null, error: 'No user returned from Supabase Auth.' };
       } catch (err) {
-        console.warn('[Auth] Supabase signInWithPassword threw — falling through to local fallback:', err.message);
+        console.error('[Auth] Supabase signInWithPassword threw:', err.message);
+        return { user: null, error: err.message || 'Authentication error.' };
       }
-    } else {
-      console.log('[Auth] Supabase not configured or client not available — using local auth');
     }
 
-    // ── localStorage / admin fallback ──────────────────────────────────
+    // ── Offline / Local fallback (ONLY when Supabase is NOT configured) ──
+    console.log('[Auth] Supabase not configured — using local auth mode');
     const normalEmail = email.trim().toLowerCase();
-    console.log('[Auth] Trying local credential check for:', normalEmail);
 
     if (
       normalEmail === this.ADMIN_EMAIL.toLowerCase() &&
       password    === this.ADMIN_PASSWORD
     ) {
-      console.log('[Auth] ✅ Admin credentials matched (local fallback)');
+      console.log('[Auth] ✅ Admin credentials matched (local offline mode)');
       const user = {
         id:        'admin-001',
         email:     this.ADMIN_EMAIL,
@@ -202,7 +200,25 @@ const Auth = {
      ══════════════════════════════════════════════════════════ */
 
   /**
-   * Get the currently authenticated user object, or null.
+   * Fetch the currently authenticated user directly from Supabase Auth server.
+   * @returns {Promise<object|null>}
+   */
+  async getUser() {
+    if (isSupabaseConfigured() && window.EpicSupabase) {
+      try {
+        const { data: { user }, error } = await window.EpicSupabase.auth.getUser();
+        if (user && !error) {
+          return this._normaliseUser(user);
+        }
+      } catch (e) {
+        console.warn('[Auth] getUser error:', e.message);
+      }
+    }
+    return this.getCurrentUser();
+  },
+
+  /**
+   * Get the currently authenticated user object synchronously, or null.
    * @returns {object|null}
    */
   getCurrentUser() {

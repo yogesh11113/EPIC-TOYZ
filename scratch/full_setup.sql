@@ -207,13 +207,17 @@ DROP POLICY IF EXISTS "Admin can view order_items"       ON order_items;
 CREATE POLICY "Products are publicly readable"
   ON products FOR SELECT USING (is_active = TRUE);
 CREATE POLICY "Admin can manage products"
-  ON products FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+  ON products FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Categories: public read, admin manages
 CREATE POLICY "Categories are publicly readable"
   ON categories FOR SELECT USING (TRUE);
 CREATE POLICY "Admin can manage categories"
-  ON categories FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+  ON categories FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Profiles
 CREATE POLICY "Users can view own profile"
@@ -223,7 +227,7 @@ CREATE POLICY "Users can update own profile"
 CREATE POLICY "Users can insert own profile"
   ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "Admin can view all profiles"
-  ON profiles FOR SELECT USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+  ON profiles FOR SELECT USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Orders
 CREATE POLICY "Users can view own orders"
@@ -231,13 +235,17 @@ CREATE POLICY "Users can view own orders"
 CREATE POLICY "Users can create orders"
   ON orders FOR INSERT WITH CHECK (TRUE);
 CREATE POLICY "Admin can view all orders"
-  ON orders FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+  ON orders FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Order items
 CREATE POLICY "Allow anonymous order inserts"
   ON order_items FOR INSERT WITH CHECK (TRUE);
 CREATE POLICY "Admin can view order_items"
-  ON order_items FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+  ON order_items FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Reviews
 CREATE POLICY "Approved reviews are public"
@@ -245,7 +253,9 @@ CREATE POLICY "Approved reviews are public"
 CREATE POLICY "Users can create reviews"
   ON reviews FOR INSERT WITH CHECK (TRUE);
 CREATE POLICY "Admin can manage reviews"
-  ON reviews FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+  ON reviews FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Wishlist
 CREATE POLICY "Users manage own wishlist"
@@ -253,7 +263,9 @@ CREATE POLICY "Users manage own wishlist"
 
 -- Inventory
 CREATE POLICY "Admin manages inventory"
-  ON inventory FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+  ON inventory FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 CREATE POLICY "Public can read inventory"
   ON inventory FOR SELECT USING (TRUE);
 
@@ -284,19 +296,23 @@ CREATE TRIGGER profiles_updated_at
 -- ============================================================
 -- TRIGGER: auto-create profile on signup
 -- ============================================================
-CREATE OR REPLACE FUNCTION handle_new_user()
+CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, full_name)
-  VALUES (NEW.id, NEW.raw_user_meta_data->>'full_name')
-  ON CONFLICT (id) DO NOTHING;
+  BEGIN
+    INSERT INTO public.profiles (id, full_name)
+    VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', ''))
+    ON CONFLICT (id) DO NOTHING;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'handle_new_user error: %', SQLERRM;
+  END;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+  AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 
 -- ============================================================

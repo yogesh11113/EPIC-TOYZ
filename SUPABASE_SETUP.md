@@ -225,33 +225,43 @@ ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
 
 -- Public read for products
 CREATE POLICY "Products are publicly readable" ON products FOR SELECT USING (is_active = TRUE);
-CREATE POLICY "Admin can manage products" ON products FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+CREATE POLICY "Admin can manage products" ON products FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Public read for categories
 CREATE POLICY "Categories are publicly readable" ON categories FOR SELECT USING (TRUE);
-CREATE POLICY "Admin can manage categories" ON categories FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+CREATE POLICY "Admin can manage categories" ON categories FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Profiles: users can read/update own profile
 CREATE POLICY "Users can view own profile" ON profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Admin can view all profiles" ON profiles FOR SELECT USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+CREATE POLICY "Admin can view all profiles" ON profiles FOR SELECT USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Orders: users see own orders, admin sees all
 CREATE POLICY "Users can view own orders" ON orders FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can create orders" ON orders FOR INSERT WITH CHECK (TRUE);
-CREATE POLICY "Admin can view all orders" ON orders FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+CREATE POLICY "Admin can view all orders" ON orders FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Reviews: approved reviews are public
 CREATE POLICY "Approved reviews are public" ON reviews FOR SELECT USING (is_approved = TRUE);
 CREATE POLICY "Users can create reviews" ON reviews FOR INSERT WITH CHECK (TRUE);
-CREATE POLICY "Admin can manage reviews" ON reviews FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+CREATE POLICY "Admin can manage reviews" ON reviews FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 
 -- Wishlist: users manage own wishlist
 CREATE POLICY "Users manage own wishlist" ON wishlist FOR ALL USING (auth.uid() = user_id);
 
 -- Inventory: admin only
-CREATE POLICY "Admin manages inventory" ON inventory FOR ALL USING (auth.jwt() ->> 'email' = 'epictoyz.in@gmail.com');
+CREATE POLICY "Admin manages inventory" ON inventory FOR ALL 
+  USING (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com')
+  WITH CHECK (coalesce(lower((select auth.jwt() ->> 'email')), '') = 'epictoyz.in@gmail.com');
 CREATE POLICY "Public can read inventory" ON inventory FOR SELECT USING (TRUE);
 
 -- ============================================
