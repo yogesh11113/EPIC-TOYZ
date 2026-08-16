@@ -165,54 +165,95 @@ const ImageKitUpload = {
    * @returns {Promise<Blob>}
    * @private
    */
+  /**
+   * Returns true if the file is a HEIC/HEIF image that the browser cannot
+   * natively decode. Detected via MIME type or file extension.
+   * @param {File} file
+   * @returns {boolean}
+   * @private
+   */
+  _isHeic(file) {
+    if (file.type === 'image/heic' || file.type === 'image/heif') return true;
+    const ext = (file.name || '').split('.').pop().toLowerCase();
+    return ext === 'heic' || ext === 'heif';
+  },
+
+  /**
+   * If the file is HEIC/HEIF, load heic2any from CDN (once) and convert to
+   * a JPEG Blob.  Returns the original file unchanged for every other format.
+   * @param {File} file
+   * @returns {Promise<File|Blob>}
+   * @private
+   */
+  async _maybeConvertHeic(file) {
+    if (!this._isHeic(file)) return file;
+
+    // Lazy-load heic2any only when a HEIC file is actually selected
+    if (!window.heic2any) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+        script.onload  = resolve;
+        script.onerror = () => reject(new Error('Could not load heic2any library'));
+        document.head.appendChild(script);
+      });
+    }
+
+    const jpegBlob = await window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 });
+    return jpegBlob;
+  },
+
   _toWebPBlob(file, maxDimension, quality) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+    // Pre-convert HEIC/HEIF → JPEG before the canvas pipeline
+    return this._maybeConvertHeic(file).then((srcBlob) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
 
-      reader.onerror = () => reject(new Error('Could not read image file'));
-      reader.onload = (ev) => {
-        const img = new Image();
-        img.onerror = () => reject(new Error('Invalid image — could not decode'));
-        img.onload = () => {
-          // Compute new dimensions maintaining aspect ratio
-          let w = img.width;
-          let h = img.height;
-          if (w > h) {
-            if (w > maxDimension) { h = Math.round(h * maxDimension / w); w = maxDimension; }
-          } else {
-            if (h > maxDimension) { w = Math.round(w * maxDimension / h); h = maxDimension; }
-          }
+        reader.onerror = () => reject(new Error('Could not read image file'));
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Invalid image — could not decode'));
+          img.onload = () => {
+            // Compute new dimensions maintaining aspect ratio
+            let w = img.width;
+            let h = img.height;
+            if (w > h) {
+              if (w > maxDimension) { h = Math.round(h * maxDimension / w); w = maxDimension; }
+            } else {
+              if (h > maxDimension) { w = Math.round(w * maxDimension / h); h = maxDimension; }
+            }
 
-          const canvas = document.createElement('canvas');
-          canvas.width  = w;
-          canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            const canvas = document.createElement('canvas');
+            canvas.width  = w;
+            canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
 
-          // Try WebP first; fall back to JPEG if browser doesn't support WebP blobs
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                resolve(blob);
-              } else {
-                // Fallback: JPEG blob
-                canvas.toBlob(
-                  (jpegBlob) => {
-                    if (jpegBlob) resolve(jpegBlob);
-                    else reject(new Error('Canvas toBlob failed — no blob produced'));
-                  },
-                  'image/jpeg',
-                  quality
-                );
-              }
-            },
-            'image/webp',
-            quality
-          );
+            // Try WebP first; fall back to JPEG if browser doesn't support WebP blobs
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  resolve(blob);
+                } else {
+                  // Fallback: JPEG blob
+                  canvas.toBlob(
+                    (jpegBlob) => {
+                      if (jpegBlob) resolve(jpegBlob);
+                      else reject(new Error('Canvas toBlob failed — no blob produced'));
+                    },
+                    'image/jpeg',
+                    quality
+                  );
+                }
+              },
+              'image/webp',
+              quality
+            );
+          };
+          img.src = ev.target.result;
         };
-        img.src = ev.target.result;
-      };
 
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(srcBlob);
+      });
     });
   },
 };
