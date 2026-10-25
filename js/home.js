@@ -65,8 +65,14 @@ async function initHomePage() {
     renderBestSellers(),
     renderNewArrivals(),
     renderFeaturedProducts('all'),
-    renderTestimonials(),
+    renderCategoryProductRows(),
   ]);
+
+  // Pre-warm global search product list in the background so
+  // the first Search tap is instant (no wait for a separate fetch).
+  if (typeof loadSearchProducts === 'function') {
+    loadSearchProducts();
+  }
 
   // Setup newsletter after DOM is ready
   setupNewsletterForm();
@@ -280,6 +286,211 @@ function getDefaultCategories() {
     { name: 'Crawlers', description: 'Off-road terrain beasts', icon: '🪨', color: '#e67e22', slug: 'crawlers', productCount: 19 },
     { name: 'Unique RC', description: 'Wall climbers, amphibians & more', icon: '⭐', color: '#9b59b6', slug: 'unique-rc', productCount: 120 },
   ];
+}
+
+/* ------------------------------------------------------------------ */
+/*  CATEGORY PRODUCT ROWS (horizontal carousels)                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Renders a horizontal product carousel section for every active category.
+ * Fetches all categories and their products from the existing data layer.
+ */
+async function renderCategoryProductRows() {
+  const container = document.getElementById('category-product-rows');
+  if (!container) return;
+
+  try {
+    // 1. Fetch all categories
+    let categories = [];
+    if (typeof DB !== 'undefined' && typeof DB.getCategoriesWithCounts === 'function') {
+      categories = await DB.getCategoriesWithCounts();
+    } else if (typeof DB !== 'undefined' && typeof DB.getCategories === 'function') {
+      categories = await DB.getCategories();
+    } else if (typeof SAMPLE_DATA !== 'undefined' && SAMPLE_DATA.categories) {
+      categories = SAMPLE_DATA.categories;
+    }
+
+    if (!categories || categories.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    // 2. Show skeleton loaders first
+    const skeletonCount = 4;
+    container.innerHTML = categories.map(cat => {
+      const slug = cat.slug || cat.id || slugify(cat.name);
+      return `
+        <div class="cat-row" id="cat-row-${slug}">
+          <div class="cat-row-header">
+            <span class="cat-row-title">${escapeHtml(cat.name)}</span>
+            <a class="cat-row-viewall" href="shop.html?category=${slug}">
+              View All
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+          <div class="cat-row-track" id="cat-track-${slug}">
+            ${'<div class="skeleton cat-row-skeleton"></div>'.repeat(skeletonCount)}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // 3. Fetch & render products for each category in parallel
+    const renderPromises = categories.map(async cat => {
+      const slug = cat.slug || cat.id || slugify(cat.name);
+      const track = document.getElementById(`cat-track-${slug}`);
+      if (!track) return;
+
+      try {
+        let products = [];
+
+        if (typeof DB !== 'undefined' && typeof DB.getProducts === 'function') {
+          products = await DB.getProducts({ category: slug, limit: 20 });
+
+          // If slug-based query returns empty, try by category name
+          if (!products || products.length === 0) {
+            products = await DB.getProducts({ category: cat.name, limit: 20 });
+          }
+        } else if (typeof SAMPLE_DATA !== 'undefined' && SAMPLE_DATA.products) {
+          products = (SAMPLE_DATA.products || []).filter(p => {
+            const pCats = Array.isArray(p.categories) ? p.categories : [p.category || ''];
+            return pCats.some(c =>
+              (c || '').toLowerCase() === slug.toLowerCase() ||
+              (c || '').toLowerCase() === (cat.name || '').toLowerCase()
+            );
+          }).slice(0, 20);
+        }
+
+        if (!products || products.length === 0) {
+          // Hide the row if no products
+          const row = document.getElementById(`cat-row-${slug}`);
+          if (row) row.style.display = 'none';
+          return;
+        }
+
+        track.innerHTML = products.map(p => renderCatProductCard(p)).join('');
+        initDragScroll(track);
+
+      } catch (err) {
+        console.warn(`[Home] Category row error for "${cat.name}":`, err);
+        const row = document.getElementById(`cat-row-${slug}`);
+        if (row) row.style.display = 'none';
+      }
+    });
+
+    await Promise.allSettled(renderPromises);
+
+  } catch (err) {
+    console.warn('[Home] renderCategoryProductRows error:', err);
+    const container2 = document.getElementById('category-product-rows');
+    if (container2) container2.innerHTML = '';
+  }
+}
+
+/**
+ * Renders a compact product card for horizontal carousel use.
+ * @param {Object} p - Product data object
+ * @returns {string} HTML string
+ */
+function renderCatProductCard(p) {
+  if (!p) return '';
+
+  const id = p.id;
+  const name = p.name || 'RC Car';
+  const price = p.price || 0;
+  const originalPrice = p.originalPrice || p.original_price || 0;
+  const images = p.images || [];
+  const imgUrl = (images && images[0]) || p.image || p.image_url || 'assets/images/placeholder.svg';
+  const stock = p.stock ?? p.stock_quantity ?? 10;
+  const outOfStock = stock === 0;
+
+  // Badge
+  const badgesArr = Array.isArray(p.badges) ? p.badges : (p.badge ? [p.badge] : []);
+  const badgeMap = {
+    bestseller: { cls: 'badge-bestseller', label: '🔥 Best' },
+    new: { cls: 'badge-new', label: '✨ New' },
+    hot: { cls: 'badge-hot', label: '🔥 Hot' },
+    limited: { cls: 'badge-limited', label: '⏳ Ltd' },
+    sale: { cls: 'badge-sale', label: '💸 Sale' },
+    featured: { cls: 'badge-sale', label: '⭐' },
+  };
+  const firstBadge = badgesArr[0];
+  const badgeInfo = firstBadge ? (badgeMap[firstBadge] || { cls: 'badge-sale', label: firstBadge }) : null;
+
+  // Discount
+  let discountPct = '';
+  if (originalPrice && originalPrice > price) {
+    discountPct = Math.round(((originalPrice - price) / originalPrice) * 100) + '% OFF';
+  }
+
+  return `
+    <div class="cat-prod-card" onclick="viewProduct('${id}')" role="button" tabindex="0" aria-label="${escapeHtml(name)}">
+      <div class="cat-prod-img">
+        ${badgeInfo ? `<span class="cat-prod-badge ${badgeInfo.cls}">${badgeInfo.label}</span>` : ''}
+        <img
+          src="${escapeHtml(imgUrl)}"
+          alt="${escapeHtml(name)}"
+          loading="lazy"
+          onerror="this.src='assets/images/placeholder.svg'"
+        >
+        ${outOfStock ? '<div class="cat-prod-sold-out">Sold Out</div>' : ''}
+      </div>
+      <div class="cat-prod-info">
+        <div class="cat-prod-name">${escapeHtml(name)}</div>
+        <div>
+          <span class="cat-prod-price">₹${formatPrice(price)}</span>
+          ${originalPrice && originalPrice > price ? `<span class="cat-prod-original">₹${formatPrice(originalPrice)}</span>` : ''}
+        </div>
+        ${discountPct ? `<span class="cat-prod-discount">${discountPct}</span>` : ''}
+      </div>
+      <div class="cat-prod-actions">
+        <button
+          class="btn btn-primary btn-sm"
+          onclick="addToCartFromCard(event, '${id}')"
+          ${outOfStock ? 'disabled style="opacity:0.45;cursor:not-allowed;"' : ''}
+        >
+          ${outOfStock ? 'Sold Out' : 'Add to Cart'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Enables mouse drag-to-scroll on a horizontal scroll track.
+ * @param {HTMLElement} track - The scrollable track element
+ */
+function initDragScroll(track) {
+  if (!track) return;
+  let isDown = false;
+  let startX = 0;
+  let scrollLeft = 0;
+
+  track.addEventListener('mousedown', e => {
+    isDown = true;
+    track.classList.add('is-dragging');
+    startX = e.pageX - track.offsetLeft;
+    scrollLeft = track.scrollLeft;
+  }, { passive: true });
+
+  track.addEventListener('mouseleave', () => {
+    isDown = false;
+    track.classList.remove('is-dragging');
+  });
+
+  track.addEventListener('mouseup', () => {
+    isDown = false;
+    track.classList.remove('is-dragging');
+  });
+
+  track.addEventListener('mousemove', e => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - track.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    track.scrollLeft = scrollLeft - walk;
+  });
 }
 
 /* ------------------------------------------------------------------ */

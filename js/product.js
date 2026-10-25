@@ -589,10 +589,21 @@ function addToCart() {
 
 function buyNow() {
   if (!currentProduct) return;
-  if (typeof Store !== 'undefined' && Store.addToCart) {
-    Store.addToCart(currentProduct, selectedQuantity);
-  }
-  window.location.href = 'checkout.html';
+
+  // Save the single Buy Now item to localStorage so checkout.js can read it
+  const buyNowItem = {
+    id: currentProduct.id,
+    name: currentProduct.name,
+    price: currentProduct.price,
+    originalPrice: currentProduct.originalPrice || currentProduct.original_price || null,
+    image: currentProduct.image || (currentProduct.images && currentProduct.images[0]) || 'assets/images/placeholder.svg',
+    quantity: selectedQuantity,
+    category: currentProduct.category || '',
+  };
+  localStorage.setItem('et_buy_now', JSON.stringify(buyNowItem));
+
+  // Navigate directly to checkout, skipping the login/guest step
+  window.location.href = 'checkout.html?buynow=true';
 }
 
 function orderViaWhatsApp() {

@@ -47,10 +47,11 @@
   }
   </script>
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts — loaded non-blocking to avoid render-blocking on mobile -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"></noscript>
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/base.css">
@@ -382,7 +383,24 @@
     /* ====== NAVBAR PLACEHOLDER ====== */
     #navbar-placeholder { min-height: 108px; /* marquee (38px) + navbar (70px) */ }
 
-    /* ====== HERO ====== */
+    /* ====== HERO BANNER ====== */
+    .hero-banner-section {
+      width: 100%;
+      background: #000;
+      line-height: 0;
+      overflow: hidden;
+    }
+
+    .hero-banner-section img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+      object-position: center center;
+      max-width: 100%;
+    }
+
+    /* ====== HERO (legacy — kept for hero grid references below) ====== */
     .hero {
       position: relative;
       display: flex;
@@ -393,32 +411,7 @@
     }
 
     .hero-bg-animated {
-      background: linear-gradient(180deg, #060810 0%, #0a0c18 30%, #0D0E1A 60%, #0f0a10 100%);
-    }
-
-    /* Ambient glow behind car */
-    .hero-bg-animated::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 60%;
-      top: 5%;
-      left: 0;
-      background: radial-gradient(ellipse at center 40%, rgba(230,57,70,0.08) 0%, rgba(230,57,70,0.03) 35%, transparent 70%);
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .hero-bg-animated::after {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      background: radial-gradient(ellipse at 50% 30%, rgba(20,25,50,0.4) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 1;
+      background: transparent;
     }
 
     .hero-grid {
@@ -621,6 +614,242 @@
     /* Glow dot decorations — hidden in redesign */
     .hero-dot { display: none; }
 
+
+    /* ====== CATEGORY PRODUCT ROWS (horizontal carousels) ====== */
+    .category-rows-section {
+      padding: 0;
+    }
+
+    .cat-row {
+      padding: 32px 0 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    .cat-row:first-child {
+      border-top: none;
+    }
+
+    .cat-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      margin-bottom: 16px;
+    }
+
+    .cat-row-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.2px;
+    }
+
+    .cat-row-viewall {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--red);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+
+    .cat-row-viewall:hover {
+      color: var(--red-light);
+    }
+
+    .cat-row-viewall svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    /* Horizontal scroll track */
+    .cat-row-track {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding: 4px 20px 16px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      cursor: grab;
+    }
+
+    .cat-row-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-row-track.is-dragging {
+      cursor: grabbing;
+      scroll-snap-type: none;
+    }
+
+    /* Product card in horizontal carousel */
+    .cat-prod-card {
+      flex: 0 0 156px;
+      width: 156px;
+      min-width: 156px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      scroll-snap-align: start;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      position: relative;
+    }
+
+    .cat-prod-card:hover {
+      border-color: rgba(230,57,70,0.35);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    .cat-prod-img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      background: var(--surface);
+      position: relative;
+    }
+
+    .cat-prod-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+
+    .cat-prod-card:hover .cat-prod-img img {
+      transform: scale(1.06);
+    }
+
+    .cat-prod-badge {
+      position: absolute;
+      top: 7px;
+      left: 7px;
+      z-index: 2;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 3px 7px;
+      border-radius: 5px;
+    }
+
+    .cat-prod-sold-out {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #aaa;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .cat-prod-info {
+      padding: 10px 10px 8px;
+    }
+
+    .cat-prod-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+      margin-bottom: 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .cat-prod-price {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .cat-prod-original {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-decoration: line-through;
+      margin-left: 4px;
+    }
+
+    .cat-prod-discount {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--success);
+      margin-top: 2px;
+    }
+
+    .cat-prod-actions {
+      padding: 0 10px 10px;
+    }
+
+    .cat-prod-actions .btn-sm {
+      width: 100%;
+      justify-content: center;
+      font-size: 11px;
+      padding: 7px 10px;
+      border-radius: 8px;
+    }
+
+    /* Loading skeleton for carousel */
+    .cat-row-skeleton {
+      flex: 0 0 156px;
+      width: 156px;
+      min-width: 156px;
+      height: 240px;
+      border-radius: 14px;
+      flex-shrink: 0;
+    }
+
+    /* Desktop: wider cards and no side padding */
+    @media (min-width: 768px) {
+      .cat-prod-card {
+        flex: 0 0 190px;
+        width: 190px;
+        min-width: 190px;
+      }
+      .cat-row-skeleton {
+        flex: 0 0 190px;
+        width: 190px;
+        min-width: 190px;
+      }
+      .cat-row-header {
+        padding: 0;
+      }
+      .cat-row-track {
+        padding: 4px 0 16px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .cat-prod-card {
+        flex: 0 0 210px;
+        width: 210px;
+        min-width: 210px;
+      }
+      .cat-row-skeleton {
+        flex: 0 0 210px;
+        width: 210px;
+        min-width: 210px;
+        height: 280px;
+      }
+      .cat-prod-name { font-size: 13px; }
+      .cat-prod-price { font-size: 15px; }
+    }
 
 
     /* ====== CATEGORIES ====== */
@@ -1425,55 +1654,17 @@
   <div id="navbar-placeholder"></div>
 
   <!-- ================================================================
-       1. HERO SECTION
+       1. HERO BANNER
   ================================================================ -->
-  <section class="hero hero-bg-animated" id="hero">
-    <div class="container custom-hero-container">
-      <div class="hero-grid">
-
-        <!-- Hero Image -->
-        <div class="hero-visual">
-          <div class="hero-image-container">
-            <div class="hero-image-box">
-              <img src="assets/images/hero-rc-chassis-new.jpg"
-                   alt="Premium RC Car - Epic Toyz"
-                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-              <div class="hero-image-placeholder">
-                <div class="car-icon">🏎️</div>
-                <p class="placeholder-text">Premium RC Cars</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Hero Content -->
-        <div class="hero-content">
-
-          <h1 class="hero-title">
-            <span class="line-1">Experience The</span>
-            <span class="line-2">ULTIMATE SPEED</span>
-          </h1>
-
-          <p class="hero-subtitle">
-            Discover India's biggest collection of professional RC cars, drift machines,
-            rock crawlers &amp; hobby-grade vehicles. Blazing fast delivery, 100% genuine products.
-          </p>
-
-          <div class="hero-buttons">
-            <a href="shop.html" class="btn btn-primary btn-lg">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-              Shop Now
-            </a>
-            <a href="#categories" class="btn btn-ghost btn-lg">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-              Explore Categories
-            </a>
-          </div>
-
-        </div>
-
-      </div><!-- hero-grid -->
-    </div><!-- container -->
+  <section class="hero-banner-section" id="hero">
+    <a href="shop.html" aria-label="Shop Epic Toyz RC Cars">
+      <img
+        src="assets/images/epic-toyz-banner.jpg"
+        alt="Epic Toyz – India's Premium RC Car Store | Follow us on Instagram @epictoyz.in | Facebook: Epic Toyzin | WhatsApp: +91 63837 93890"
+        fetchpriority="high"
+        decoding="async"
+      >
+    </a>
   </section>
 
 
@@ -1506,43 +1697,17 @@
     </div>
   </section>
 
+
   <!-- ================================================================
-       2.5 BRAND HIGHLIGHTS SECTION
+       2.6 CATEGORY PRODUCT ROWS (horizontal carousels, rendered by JS)
   ================================================================ -->
-  <section class="section bg-dark-900 reveal" id="brand-highlights-section" style="padding: 48px 0; border-bottom: 1px solid var(--border);">
-    <div class="container">
-      <div class="brand-highlights">
-        <div class="brand-highlight">
-          <span class="highlight-icon">🏆</span>
-          <div class="highlight-text-group">
-            <span class="highlight-title">Premium RC Collection</span>
-            <span class="highlight-desc">Curated elite models</span>
-          </div>
-        </div>
-        <div class="brand-highlight">
-          <span class="highlight-icon">⚡</span>
-          <div class="highlight-text-group">
-            <span class="highlight-title">High Performance Models</span>
-            <span class="highlight-desc">Engineered for speed &amp; power</span>
-          </div>
-        </div>
-        <div class="brand-highlight">
-          <span class="highlight-icon">🛡️</span>
-          <div class="highlight-text-group">
-            <span class="highlight-title">Trusted RC Store</span>
-            <span class="highlight-desc">100% verified service</span>
-          </div>
-        </div>
-        <div class="brand-highlight">
-          <span class="highlight-icon">💎</span>
-          <div class="highlight-text-group">
-            <span class="highlight-title">Authentic RC Products</span>
-            <span class="highlight-desc">Genuine brands &amp; spares</span>
-          </div>
-        </div>
-      </div>
+  <section class="section category-rows-section" id="category-rows" style="padding: 0 0 16px;">
+    <div class="container" id="category-product-rows">
+      <!-- Populated dynamically by renderCategoryProductRows() in home.js -->
     </div>
   </section>
+
+  <!-- Brand Highlights section removed per redesign spec -->
 
 
   <!-- ================================================================
@@ -1641,25 +1806,7 @@
   </section>
 
 
-  <!-- ================================================================
-       8. TESTIMONIALS
-  ================================================================ -->
-  <section class="section bg-dark-800" id="testimonials">
-    <div class="container">
-      <div class="section-header reveal">
-        <span class="section-badge">❤️ REVIEWS</span>
-        <h2 class="section-title">What Our <span>Customers Say</span></h2>
-        <p class="section-subtitle">Don't just take our word for it. Real reviews from real RC enthusiasts across India.</p>
-      </div>
-
-      <div class="testimonials-grid" id="testimonials-grid">
-        <!-- Rendered by JS from SAMPLE_DATA.testimonials -->
-        <div class="skeleton skeleton-card"></div>
-        <div class="skeleton skeleton-card"></div>
-        <div class="skeleton skeleton-card"></div>
-      </div>
-    </div>
-  </section>
+  <!-- Testimonials section removed per redesign spec -->
   <!-- ================================================================
        10. CTA BANNER
   ================================================================ -->
@@ -1700,41 +1847,7 @@
   </section>
 
 
-  <!-- ================================================================
-       11. NEWSLETTER
-  ================================================================ -->
-  <section class="section newsletter" id="newsletter">
-    <div class="container">
-      <div class="newsletter-card reveal">
-        <span class="section-badge" style="margin-bottom:20px;">📧 NEWSLETTER</span>
-        <h2 class="newsletter-title">
-          Get Exclusive Deals &amp;<br><span class="text-gradient">RC Updates</span>
-        </h2>
-        <p class="newsletter-subtitle">
-          Be the first to know about new arrivals, flash sales, and exclusive deals for RC enthusiasts.
-        </p>
-
-        <form class="newsletter-form" id="newsletter-form" onsubmit="handleNewsletterSubmit(event)">
-          <input
-            type="email"
-            class="newsletter-input"
-            placeholder="Enter your email address"
-            required
-            id="newsletter-email"
-            autocomplete="email"
-          >
-          <button type="submit" class="btn btn-primary">
-            Subscribe
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-        </form>
-
-        <p class="newsletter-privacy">
-          🔒 We respect your privacy. No spam — only epic RC deals. Unsubscribe anytime.
-        </p>
-      </div>
-    </div>
-  </section>
+  <!-- Newsletter section removed per redesign spec -->
 
 
   <!-- FOOTER PLACEHOLDER -->

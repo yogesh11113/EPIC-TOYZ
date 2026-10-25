@@ -52,18 +52,44 @@ async function initCheckoutPage() {
   renderSidebar();
   updateStandardShippingLabel();
 
+  const params = new URLSearchParams(window.location.search);
+  const isBuyNow = params.get('buynow') === 'true';
+
   // Check if user is already logged in
+  let currentUser = null;
   try {
-    const user = await Auth.getCurrentUser();
-    if (user) {
-      CheckoutState.user = user;
-      prefillDeliveryFromUser(user);
+    currentUser = await Auth.getCurrentUser();
+  } catch (e) {
+    currentUser = null;
+  }
+
+  if (isBuyNow) {
+    // ── BUY NOW FLOW: skip the login/guest choice screen ──────────────────
+    // Go straight to delivery details for everyone.
+    if (currentUser) {
+      CheckoutState.user = currentUser;
+      CheckoutState.isGuest = false;
+      prefillDeliveryFromUser(currentUser);
+      // Hide the guest mini-form since the user is logged in
+      const guestSection = document.getElementById('buynow-guest-details');
+      if (guestSection) guestSection.style.display = 'none';
+    } else {
+      // Guest: show a compact name/phone block at the top of the delivery form
+      CheckoutState.isGuest = true;
+      CheckoutState.user = { isGuest: true };
+      const guestSection = document.getElementById('buynow-guest-details');
+      if (guestSection) guestSection.style.display = 'block';
+    }
+    showStep(2);
+  } else {
+    // ── NORMAL CART CHECKOUT FLOW: existing behaviour unchanged ───────────
+    if (currentUser) {
+      CheckoutState.user = currentUser;
+      prefillDeliveryFromUser(currentUser);
       showStep(2);
     } else {
       showStep(1);
     }
-  } catch (e) {
-    showStep(1);
   }
 
   // Delivery method change listener

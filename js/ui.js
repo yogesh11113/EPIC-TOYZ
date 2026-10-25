@@ -214,11 +214,12 @@ function injectNavbar() {
     if (typeof initGlobalSearchLogic === 'function') initGlobalSearchLogic();
   }
 
-  // Intercept Search Button click to open overlay
+  // Intercept Search Button click to open overlay instead of navigating
   const searchBtn = navbarPlaceholder.querySelector('a[aria-label="Search"]');
   if (searchBtn) {
     searchBtn.addEventListener('click', (e) => {
       e.preventDefault();
+      e.stopImmediatePropagation(); // prevent page-transition interceptor from navigating away
       if (typeof openGlobalSearchOverlay === 'function') openGlobalSearchOverlay();
     });
   }
@@ -593,7 +594,8 @@ function initPageTransitions() {
   document.querySelectorAll('a').forEach(anchor => {
     anchor.addEventListener('click', (e) => {
       const href = anchor.getAttribute('href');
-      if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || anchor.target === '_blank') {
+      // Skip: external links, hash-only, special schemes, blank targets, or the search button
+      if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || anchor.target === '_blank' || anchor.getAttribute('aria-label') === 'Search') {
         return;
       }
       
