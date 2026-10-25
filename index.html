@@ -391,6 +391,11 @@
       overflow: hidden;
     }
 
+    .hero-banner-section picture {
+      display: block;
+      width: 100%;
+    }
+
     .hero-banner-section img {
       width: 100%;
       height: auto;
@@ -1658,12 +1663,15 @@
   ================================================================ -->
   <section class="hero-banner-section" id="hero">
     <a href="shop.html" aria-label="Shop Epic Toyz RC Cars">
-      <img
-        src="assets/images/epic-toyz-banner.jpg"
-        alt="Epic Toyz – India's Premium RC Car Store | Follow us on Instagram @epictoyz.in | Facebook: Epic Toyzin | WhatsApp: +91 63837 93890"
-        fetchpriority="high"
-        decoding="async"
-      >
+      <picture>
+        <source srcset="assets/images/epic-toyz-banner.webp" type="image/webp">
+        <img
+          src="assets/images/epic-toyz-banner.jpg"
+          alt="Epic Toyz – India's Premium RC Car Store | Follow us on Instagram @epictoyz.in | Facebook: Epic Toyzin | WhatsApp: +91 63837 93890"
+          fetchpriority="high"
+          decoding="async"
+        >
+      </picture>
     </a>
   </section>
 
