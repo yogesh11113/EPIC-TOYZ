@@ -485,6 +485,7 @@ const Admin = {
       orders: ['Orders', 'Manage Orders'],
       reviews: ['Reviews', 'Manage Reviews'],
       inventory: ['Inventory', 'Stock Management'],
+      videos: ['Videos', 'Video Showcase'],
       users: ['Users', 'Registered Users'],
       settings: ['Settings', 'Store Settings'],
     };
@@ -499,6 +500,9 @@ const Admin = {
       case 'orders':     await this.renderOrders();      break;
       case 'reviews':    await this.renderReviews();     break;
       case 'inventory':  await this.renderInventory();   break;
+      case 'videos':
+        if (window.VideoAdmin) await VideoAdmin.renderSection();
+        break;
       case 'users':      await this.renderUsers();       break;
       case 'settings':   await this.renderSettings();    break;
     }

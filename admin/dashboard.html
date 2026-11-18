@@ -723,6 +723,108 @@
       gap: 16px;
     }
 
+    /* ── ADMIN VIDEO GRID ───────────────────────────────── */
+    .admin-video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 4px 0 24px;
+    }
+
+    .admin-video-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+      position: relative;
+    }
+
+    .admin-video-card:hover { border-color: rgba(230,57,70,0.3); }
+
+    .admin-video-thumb {
+      position: relative;
+      aspect-ratio: 9 / 16;
+      background: var(--surface);
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .admin-video-thumb img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+
+    .admin-video-thumb .play-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.3);
+      transition: background 0.2s;
+      font-size: 36px;
+    }
+
+    .admin-video-thumb:hover .play-overlay { background: rgba(0,0,0,0.1); }
+
+    .admin-video-status-pill {
+      position: absolute; top: 10px; left: 10px;
+      font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 100px; letter-spacing: 0.5px;
+    }
+
+    .admin-video-status-pill.active {
+      background: rgba(46,204,113,0.2); color: #2ecc71;
+      border: 1px solid rgba(46,204,113,0.3);
+    }
+
+    .admin-video-status-pill.inactive {
+      background: rgba(173,181,189,0.15); color: #adb5bd;
+      border: 1px solid rgba(173,181,189,0.2);
+    }
+
+    .admin-video-info { padding: 14px 16px; }
+
+    .admin-video-title {
+      font-size: 13px; font-weight: 700; color: #fff;
+      margin-bottom: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .admin-video-product {
+      font-size: 11px; color: #ADB5BD;
+      margin-bottom: 10px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .admin-video-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .admin-video-actions .btn { flex: 1; min-width: 60px; padding: 7px 10px; font-size: 12px; }
+
+    /* ── Video upload progress bar ─────────────────────── */
+    .video-upload-progress { display: none; margin-top: 10px; }
+    .video-upload-progress.show { display: block; }
+    .video-upload-progress-bar {
+      height: 4px; background: rgba(255,255,255,0.08);
+      border-radius: 2px; overflow: hidden; margin-bottom: 6px;
+    }
+    .video-upload-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #E63946, #ff6b6b);
+      border-radius: 2px; transition: width 0.3s ease; width: 0%;
+    }
+    .video-upload-progress-label { font-size: 11px; color: var(--text-muted); }
+
+    /* ── Inline video preview in modal ─────────────────── */
+    .admin-video-preview-wrap {
+      position: relative; aspect-ratio: 9 / 16;
+      max-height: 300px; background: #000;
+      border-radius: 10px; overflow: hidden;
+      margin-top: 12px; display: none;
+    }
+
+    .admin-video-preview-wrap.show { display: block; }
+
+    .admin-video-preview-wrap video {
+      width: 100%; height: 100%; object-fit: contain;
+    }
+
     .category-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -1633,6 +1735,11 @@
         <span class="nav-label">Inventory</span>
       </div>
 
+      <div class="nav-item" data-section="videos">
+        <span class="nav-icon">🎬</span>
+        <span class="nav-label">Videos</span>
+      </div>
+
       <div class="nav-separator"></div>
       <div class="nav-section-label">Management</div>
 
@@ -1908,6 +2015,29 @@
               <tr><td colspan="5"><div class="table-empty"><div class="empty-icon">📊</div><div>Loading inventory...</div></div></td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           SECTION: VIDEOS
+      ============================================================ -->
+      <div id="section-videos" class="admin-section">
+        <div class="section-header">
+          <div>
+            <div class="section-title">🎬 Video Showcase</div>
+            <div class="section-subtitle">Manage the "Watch. Explore. Drive." section on your homepage.</div>
+          </div>
+          <button class="btn btn-primary" onclick="VideoAdmin.openAddModal()">
+            ➕ Add Video
+          </button>
+        </div>
+
+        <!-- Video cards grid -->
+        <div class="admin-video-grid" id="videos-grid">
+          <div style="grid-column:1/-1; text-align:center; padding:64px 24px; color:var(--text-muted);">
+            <div style="font-size:36px;margin-bottom:12px;opacity:0.4">🎬</div>
+            <div>Loading videos...</div>
+          </div>
         </div>
       </div>
 
@@ -2188,6 +2318,117 @@
   </div>
 
   <!-- ============================================================
+       MODAL: VIDEO ADD/EDIT
+  ============================================================ -->
+  <div class="modal-backdrop" id="video-modal-backdrop">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-title" id="video-modal-title">Add Video</div>
+        <button class="modal-close" onclick="Admin.closeModal('video-modal-backdrop')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="video-id">
+
+        <!-- Title -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label required" style="display:block;margin-bottom:6px;color:#ADB5BD;font-weight:600;">
+            Video Title
+          </label>
+          <input type="text" class="form-control" id="video-title"
+            placeholder="e.g. Land Rover Defender Off-Road Reel" required>
+        </div>
+
+        <!-- Product Select -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label required" style="display:block;margin-bottom:6px;color:#ADB5BD;font-weight:600;">
+            Associated Product
+          </label>
+          <select class="form-control" id="video-product-select"
+            onchange="VideoAdmin.handleProductSelect(this)" required>
+            <option value="">— Loading products... —</option>
+          </select>
+          <small id="video-product-slug-hint" style="color:var(--text-dim);font-size:11px;display:block;margin-top:4px;"></small>
+        </div>
+
+        <!-- MP4 Video Upload -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label required" style="display:block;margin-bottom:6px;color:#ADB5BD;font-weight:600;">
+            MP4 Video File
+          </label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <label style="cursor:pointer;flex:1;">
+              <div class="form-control" id="video-file-label"
+                style="cursor:pointer;display:flex;align-items:center;gap:8px;color:#ADB5BD;">
+                📁 Choose MP4 video file
+              </div>
+              <input type="file" id="video-file-input" accept="video/mp4,video/quicktime,video/webm"
+                style="display:none;" onchange="VideoAdmin.handleVideoFileSelect(this)">
+            </label>
+          </div>
+          <small id="video-current-url" style="color:var(--text-dim);font-size:11px;display:none;margin-top:4px;"></small>
+
+          <!-- Upload progress bar -->
+          <div class="video-upload-progress" id="video-upload-progress">
+            <div class="video-upload-progress-bar">
+              <div class="video-upload-progress-fill" id="video-upload-fill"></div>
+            </div>
+            <span class="video-upload-progress-label" id="video-upload-label">Uploading...</span>
+          </div>
+
+          <!-- Inline video preview -->
+          <div class="admin-video-preview-wrap" id="video-preview-wrap"></div>
+        </div>
+
+        <!-- Poster / Thumbnail -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label" style="display:block;margin-bottom:6px;color:#ADB5BD;font-weight:600;">
+            Poster / Thumbnail <small style="font-weight:400;opacity:0.6">(optional)</small>
+          </label>
+          <label style="cursor:pointer;">
+            <div class="form-control"
+              style="cursor:pointer;display:flex;align-items:center;gap:8px;color:#ADB5BD;">
+              🖼️ Choose poster image (JPG, PNG, WebP)
+            </div>
+            <input type="file" id="video-poster-input" accept="image/*"
+              style="display:none;" onchange="VideoAdmin.handlePosterFileSelect(this)">
+          </label>
+          <img id="video-poster-preview" src="" alt="Poster Preview"
+            style="display:none;margin-top:10px;max-height:120px;border-radius:8px;object-fit:cover;">
+        </div>
+
+        <!-- Order + Active -->
+        <div style="display:flex;gap:16px;margin-bottom:16px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" style="display:block;margin-bottom:6px;color:#ADB5BD;font-weight:600;">
+              Display Order
+            </label>
+            <input type="number" class="form-control" id="video-order" value="0" min="0">
+            <small style="color:var(--text-dim);font-size:11px;display:block;margin-top:4px;">
+              Lower = shown first. Use 1, 2, 3... for manual ordering.
+            </small>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" style="display:block;margin-bottom:6px;color:#ADB5BD;font-weight:600;">
+              Visibility
+            </label>
+            <label class="form-check" style="margin-top:12px;">
+              <input type="checkbox" id="video-active" checked>
+              <span class="form-check-label">✅ Active (visible on homepage)</span>
+            </label>
+          </div>
+        </div>
+
+      </div><!-- /modal-body -->
+      <div class="modal-footer" style="display:flex;justify-content:space-between;width:100%;">
+        <button class="btn btn-secondary" onclick="Admin.closeModal('video-modal-backdrop')">Cancel</button>
+        <button class="btn btn-primary" id="video-save-btn" onclick="VideoAdmin.saveVideo()">
+          💾 Save Video
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
        MODAL: CONFIRM
   ============================================================ -->
   <div class="modal-backdrop" id="confirm-modal-backdrop">
@@ -2213,6 +2454,7 @@
   <script src="../js/auth.js"></script>
   <script src="../js/imagekit.js"></script>
   <script src="../js/admin.js"></script>
+  <script src="../js/admin-videos.js"></script>
 
   <script>
 

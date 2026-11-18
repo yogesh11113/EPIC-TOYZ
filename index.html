@@ -58,6 +58,7 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/reels.css">
 
   <style>
     /* ===== INLINE CRITICAL STYLES FOR STANDALONE VIEWING ===== */
@@ -1719,6 +1720,53 @@
 
 
   <!-- ================================================================
+       2.7 WATCH. EXPLORE. DRIVE. — Instagram Reels-style Video Showcase
+       Placed immediately after the All Products / Category Rows section.
+  ================================================================ -->
+  <section class="reels-section" id="reels">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-badge">🎬 IN ACTION</span>
+        <h2 class="section-title">Watch. <span>Explore.</span> Drive.</h2>
+        <p class="section-subtitle">See your favourite RC cars in action.</p>
+      </div>
+
+      <!-- Track wrapper: horizontal swipe on mobile, grid on desktop -->
+      <div class="reels-track-wrapper">
+        <!-- Cards injected by js/reels.js — skeletons shown while loading -->
+        <div class="reels-track" id="reels-track" role="list" aria-label="RC Car Video Showcase">
+          <!-- Loading skeletons (3 visible on mobile, 5 on desktop) -->
+          <div class="reel-card" aria-hidden="true" style="opacity:0.4">
+            <div class="reel-video-wrap"><div class="reel-skeleton"></div></div>
+            <div class="reel-card-info">
+              <div style="height:14px;background:rgba(255,255,255,0.08);border-radius:4px;margin-bottom:12px;"></div>
+              <div style="height:36px;background:rgba(255,255,255,0.05);border-radius:10px;"></div>
+            </div>
+          </div>
+          <div class="reel-card" aria-hidden="true" style="opacity:0.25">
+            <div class="reel-video-wrap"><div class="reel-skeleton"></div></div>
+            <div class="reel-card-info">
+              <div style="height:14px;background:rgba(255,255,255,0.08);border-radius:4px;margin-bottom:12px;"></div>
+              <div style="height:36px;background:rgba(255,255,255,0.05);border-radius:10px;"></div>
+            </div>
+          </div>
+          <div class="reel-card" aria-hidden="true" style="opacity:0.1">
+            <div class="reel-video-wrap"><div class="reel-skeleton"></div></div>
+            <div class="reel-card-info">
+              <div style="height:14px;background:rgba(255,255,255,0.08);border-radius:4px;margin-bottom:12px;"></div>
+              <div style="height:36px;background:rgba(255,255,255,0.05);border-radius:10px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dot navigation indicators (mobile only, populated by JS) -->
+        <div class="reels-dots" id="reels-dots" role="tablist" aria-label="Video navigation"></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ================================================================
        3. BEST SELLERS SECTION
   ================================================================ -->
   <section class="section bg-dark-800" id="bestsellers">
@@ -1880,6 +1928,7 @@
   <script src="js/store.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/home.js"></script>
+  <script src="js/reels.js"></script>
 
 </body>
 </html>

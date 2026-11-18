@@ -351,7 +351,7 @@ function generateWhatsAppOrder() {
 📦 *ORDERED PRODUCTS:*
 ${itemLines}
 
-💰 *Total Amount:* ₹${total.toLocaleString('en-IN')} (including flat ₹50 shipping)
+💰 *Total Amount:* ₹${total.toLocaleString('en-IN')}
 
 💳 *Payment Details (Direct UPI):*
 UPI ID: 9363114113@sbi
