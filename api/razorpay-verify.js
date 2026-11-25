@@ -13,7 +13,6 @@
 'use strict';
 
 const crypto = require('crypto');
-const webpush = require('web-push');
 
 function getEnvConfig() {
   const keyId = process.env.RAZORPAY_KEY_ID || '';
@@ -88,7 +87,15 @@ async function sendAdminPushNotifications(cfg, order) {
     return { status: 'skipped_no_vapid' };
   }
 
-  webpush.setVapidDetails(cfg.vapidSubject, cfg.vapidPublic, cfg.vapidPrivate);
+  let webpush;
+  try {
+    const webpushMod = await import('web-push');
+    webpush = webpushMod.default || webpushMod;
+    webpush.setVapidDetails(cfg.vapidSubject, cfg.vapidPublic, cfg.vapidPrivate);
+  } catch (importErr) {
+    console.warn('[razorpay-verify] Failed to load web-push:', importErr.message);
+    return { status: 'retry_needed', error: importErr.message };
+  }
 
   let subscriptions = [];
   try {
@@ -274,20 +281,25 @@ module.exports = async function handler(req, res) {
     // 7. Send Admin Web Push only if not already marked [PUSH_SENT]
     let pushRetryNeeded = false;
     if (!updatedNotes.includes('[PUSH_SENT]')) {
-      const pushResult = await sendAdminPushNotifications(cfg, order);
-      if (pushResult.status === 'sent') {
-        const cleanNotes = updatedNotes.replace(/\s*\|\s*\[PUSH_PENDING_RETRY\]/g, '').replace(/\[PUSH_PENDING_RETRY\]/g, '').trim();
-        updatedNotes = appendNoteMarker(cleanNotes, '[PUSH_SENT]');
-      } else if (pushResult.status === 'retry_needed') {
+      try {
+        const pushResult = await sendAdminPushNotifications(cfg, order);
+        if (pushResult.status === 'sent') {
+          const cleanNotes = updatedNotes.replace(/\s*\|\s*\[PUSH_PENDING_RETRY\]/g, '').replace(/\[PUSH_PENDING_RETRY\]/g, '').trim();
+          updatedNotes = appendNoteMarker(cleanNotes, '[PUSH_SENT]');
+        } else if (pushResult.status === 'retry_needed') {
+          pushRetryNeeded = true;
+          updatedNotes = appendNoteMarker(updatedNotes, '[PUSH_PENDING_RETRY]');
+        }
+        await supabaseRest(
+          cfg.supabaseUrl,
+          cfg.serviceKey,
+          `orders?id=eq.${encodeURIComponent(dbOrderId)}`,
+          { method: 'PATCH', body: { notes: updatedNotes } }
+        ).catch(() => {});
+      } catch (pushFatalErr) {
         pushRetryNeeded = true;
-        updatedNotes = appendNoteMarker(updatedNotes, '[PUSH_PENDING_RETRY]');
+        console.warn('[razorpay-verify] Push notification error (non-fatal):', pushFatalErr.message);
       }
-      await supabaseRest(
-        cfg.supabaseUrl,
-        cfg.serviceKey,
-        `orders?id=eq.${encodeURIComponent(dbOrderId)}`,
-        { method: 'PATCH', body: { notes: updatedNotes } }
-      ).catch(() => {});
     }
 
     return res.status(200).json({

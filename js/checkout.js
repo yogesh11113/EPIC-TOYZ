@@ -408,6 +408,20 @@ async function sha256Hex(str) {
   return Array.from(new Uint8Array(hashBuf), b => b.toString(16).padStart(2, '0')).join('');
 }
 
+async function parseApiResponse(res) {
+  const rawText = await res.text();
+  if (!rawText) return { data: {}, isJson: true };
+  try {
+    return { data: JSON.parse(rawText), isJson: true };
+  } catch (e) {
+    return {
+      data: { error: `Server returned non-JSON response (${res.status}). Please contact support if payment was deducted.` },
+      isJson: false,
+      rawText
+    };
+  }
+}
+
 async function getSupabaseAccessToken() {
   try {
     if (window.EpicSupabase && window.EpicSupabase.auth) {
@@ -505,7 +519,7 @@ async function payWithRazorpay() {
         customerPhone: CheckoutState.delivery?.phone || ''
       })
     });
-    const createData = await createRes.json();
+    const { data: createData } = await parseApiResponse(createRes);
     const rzpOrderId = createData.order_id || createData.razorpayOrderId;
     const rzpKeyId = createData.key_id || createData.keyId;
     if (!createRes.ok || !rzpOrderId || !rzpKeyId) {
@@ -533,6 +547,10 @@ async function payWithRazorpay() {
       },
       handler: async (rzpResponse) => {
         try {
+          const freshAccessToken = await getSupabaseAccessToken();
+          const verifyHeaders = { 'Content-Type': 'application/json' };
+          if (freshAccessToken) verifyHeaders.Authorization = `Bearer ${freshAccessToken}`;
+
           const verifyPayload = {
             razorpay_order_id: rzpResponse.razorpay_order_id,
             razorpay_payment_id: rzpResponse.razorpay_payment_id,
@@ -541,18 +559,18 @@ async function payWithRazorpay() {
             guestToken
           };
 
-          let verifyRes = await fetch('/api/razorpay-verify', {
+          const verifyRes = await fetch('/api/razorpay-verify', {
             method: 'POST',
-            headers,
+            headers: verifyHeaders,
             body: JSON.stringify(verifyPayload)
           });
-          let verifyData = await verifyRes.json();
+          const { data: verifyData } = await parseApiResponse(verifyRes);
 
           // Safe idempotent retry if admin push notification had a transient failure
           if (verifyRes.ok && verifyData.verified && verifyData.retryNeeded && verifyData.retryNeeded.push) {
             await fetch('/api/razorpay-verify', {
               method: 'POST',
-              headers,
+              headers: verifyHeaders,
               body: JSON.stringify(verifyPayload)
             }).catch(() => {});
           }
