@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Checkout | Epic Toyz</title>
-  <meta name="description" content="Secure checkout. Complete your delivery details and choose your payment method to finalize your order.">
-  <meta name="keywords" content="RC cars India, remote control cars, hobby grade RC, drift cars, RC crawlers, best RC cars online India">
+  <meta name="description"
+    content="Secure checkout. Complete your delivery details and choose your payment method to finalize your order.">
+  <meta name="keywords"
+    content="RC cars India, remote control cars, hobby grade RC, drift cars, RC crawlers, best RC cars online India">
 
   <!-- Favicons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -16,14 +19,16 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://epictoyz.in/checkout.html">
   <meta property="og:title" content="Checkout | Epic Toyz">
-  <meta property="og:description" content="Secure checkout. Complete your delivery details and choose your payment method to finalize your order.">
+  <meta property="og:description"
+    content="Secure checkout. Complete your delivery details and choose your payment method to finalize your order.">
   <meta property="og:image" content="https://epictoyz.in/og-image.jpg">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://epictoyz.in/checkout.html">
   <meta name="twitter:title" content="Checkout | Epic Toyz">
-  <meta name="twitter:description" content="Secure checkout. Complete your delivery details and choose your payment method to finalize your order.">
+  <meta name="twitter:description"
+    content="Secure checkout. Complete your delivery details and choose your payment method to finalize your order.">
   <meta name="twitter:image" content="https://epictoyz.in/og-image.jpg">
 
   <!-- JSON-LD Organization Schema -->
@@ -61,9 +66,10 @@
     /* Breadcrumb */
     .breadcrumb-bar {
       background: var(--surface, #1A1E2E);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       padding: 12px 0;
     }
+
     .breadcrumb {
       display: flex;
       align-items: center;
@@ -74,10 +80,25 @@
       margin: 0 auto;
       padding: 0 24px;
     }
-    .breadcrumb a { color: var(--text-muted,#ADB5BD); text-decoration: none; transition: color 0.2s; }
-    .breadcrumb a:hover { color: var(--primary-red,#E63946); }
-    .breadcrumb .sep { opacity: 0.4; }
-    .breadcrumb .current { color: #fff; font-weight: 500; }
+
+    .breadcrumb a {
+      color: var(--text-muted, #ADB5BD);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .breadcrumb a:hover {
+      color: var(--primary-red, #E63946);
+    }
+
+    .breadcrumb .sep {
+      opacity: 0.4;
+    }
+
+    .breadcrumb .current {
+      color: #fff;
+      font-weight: 500;
+    }
 
     /* Page header */
     .checkout-header {
@@ -85,6 +106,7 @@
       margin: 36px auto 24px;
       padding: 0 24px;
     }
+
     .checkout-header h1 {
       font-size: 1.9rem;
       font-weight: 700;
@@ -98,12 +120,14 @@
       margin: 0 auto 36px;
       padding: 0 24px;
     }
+
     .steps-bar {
       display: flex;
       align-items: center;
       gap: 0;
       position: relative;
     }
+
     .step-item {
       display: flex;
       flex-direction: column;
@@ -112,6 +136,7 @@
       position: relative;
       z-index: 1;
     }
+
     .step-item:not(:last-child)::after {
       content: '';
       position: absolute;
@@ -119,19 +144,21 @@
       left: 50%;
       width: 100%;
       height: 2px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       z-index: -1;
       transition: background 0.4s;
     }
+
     .step-item.completed:not(:last-child)::after {
       background: var(--primary-red, #E63946);
     }
+
     .step-circle {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.08);
-      border: 2px solid rgba(255,255,255,0.12);
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(255, 255, 255, 0.12);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -140,17 +167,20 @@
       color: #ADB5BD;
       transition: all 0.3s;
     }
+
     .step-item.active .step-circle {
       background: var(--primary-red, #E63946);
       border-color: var(--primary-red, #E63946);
       color: #fff;
-      box-shadow: 0 0 0 4px rgba(230,57,70,0.2);
+      box-shadow: 0 0 0 4px rgba(230, 57, 70, 0.2);
     }
+
     .step-item.completed .step-circle {
       background: #2ecc71;
       border-color: #2ecc71;
       color: #fff;
     }
+
     .step-label {
       font-size: 0.75rem;
       font-weight: 600;
@@ -159,8 +189,14 @@
       text-align: center;
       transition: color 0.3s;
     }
-    .step-item.active .step-label { color: #fff; }
-    .step-item.completed .step-label { color: #2ecc71; }
+
+    .step-item.active .step-label {
+      color: #fff;
+    }
+
+    .step-item.completed .step-label {
+      color: #2ecc71;
+    }
 
     /* Layout */
     .checkout-layout {
@@ -177,37 +213,46 @@
     .checkout-steps-container {
       position: relative;
     }
+
     .checkout-step {
       display: none;
       background: var(--card-bg, #12151F);
       border-radius: 16px;
       padding: 32px;
-      border: 1px solid rgba(255,255,255,0.07);
+      border: 1px solid rgba(255, 255, 255, 0.07);
       animation: fadeInUp 0.35s ease both;
     }
-    .checkout-step.active { display: block; }
+
+    .checkout-step.active {
+      display: block;
+    }
+
     .checkout-step h2 {
       font-size: 1.2rem;
       font-weight: 700;
       color: #fff;
       margin: 0 0 24px;
       padding-bottom: 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .checkout-step h2 svg { color: var(--primary-red, #E63946); }
+
+    .checkout-step h2 svg {
+      color: var(--primary-red, #E63946);
+    }
 
     /* ===== STEP 1: LOGIN / REGISTER ===== */
     .auth-tabs {
       display: flex;
       gap: 0;
-      background: rgba(255,255,255,0.04);
+      background: rgba(255, 255, 255, 0.04);
       border-radius: 10px;
       padding: 4px;
       margin-bottom: 24px;
     }
+
     .auth-tab {
       flex: 1;
       padding: 10px;
@@ -220,17 +265,25 @@
       border-radius: 8px;
       transition: all 0.2s;
     }
+
     .auth-tab.active {
       background: var(--primary-red, #E63946);
       color: #fff;
     }
-    .auth-form { display: none; }
-    .auth-form.active { display: block; }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+    }
 
     /* Forms */
     .form-group {
       margin-bottom: 18px;
     }
+
     .form-group label {
       display: block;
       font-size: 0.82rem;
@@ -240,12 +293,17 @@
       letter-spacing: 0.04em;
       margin-bottom: 7px;
     }
-    .form-group label .required { color: var(--primary-red,#E63946); margin-left:2px; }
+
+    .form-group label .required {
+      color: var(--primary-red, #E63946);
+      margin-left: 2px;
+    }
+
     .form-control {
       width: 100%;
       padding: 12px 16px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       color: #fff;
       font-size: 0.95rem;
@@ -253,20 +311,31 @@
       transition: border-color 0.2s, background 0.2s;
       box-sizing: border-box;
     }
+
     .form-control:focus {
       outline: none;
       border-color: var(--primary-red, #E63946);
-      background: rgba(255,255,255,0.07);
+      background: rgba(255, 255, 255, 0.07);
     }
-    .form-control::placeholder { color: rgba(255,255,255,0.25); }
-    .form-control.error { border-color: #e74c3c; }
+
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.25);
+    }
+
+    .form-control.error {
+      border-color: #e74c3c;
+    }
+
     .field-error {
       font-size: 0.78rem;
       color: #e74c3c;
       margin-top: 4px;
       display: none;
     }
-    .field-error.visible { display: block; }
+
+    .field-error.visible {
+      display: block;
+    }
 
     .form-row {
       display: grid;
@@ -281,7 +350,11 @@
       background-position: right 14px center;
       padding-right: 36px;
     }
-    select.form-control option { background: #12151F; color: #fff; }
+
+    select.form-control option {
+      background: #FFFFFF;
+      color: #0F172A;
+    }
 
     /* Guest divider */
     .auth-divider {
@@ -290,19 +363,26 @@
       gap: 12px;
       margin: 20px 0;
     }
-    .auth-divider::before, .auth-divider::after {
+
+    .auth-divider::before,
+    .auth-divider::after {
       content: '';
       flex: 1;
       height: 1px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
     }
-    .auth-divider span { color: #ADB5BD; font-size: 0.82rem; white-space: nowrap; }
+
+    .auth-divider span {
+      color: #ADB5BD;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
 
     .btn-guest {
       width: 100%;
       padding: 12px;
       background: transparent;
-      border: 1px solid rgba(255,255,255,0.15);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 8px;
       color: #ADB5BD;
       font-size: 0.9rem;
@@ -311,19 +391,27 @@
       transition: border-color 0.2s, color 0.2s, background 0.2s;
       font-family: inherit;
     }
-    .btn-guest:hover { border-color: rgba(255,255,255,0.35); color: #fff; background: rgba(255,255,255,0.04); }
+
+    .btn-guest:hover {
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+    }
 
     .social-proof {
       margin-top: 20px;
       padding: 14px;
-      background: rgba(69,123,157,0.1);
-      border: 1px solid rgba(69,123,157,0.2);
+      background: rgba(69, 123, 157, 0.1);
+      border: 1px solid rgba(69, 123, 157, 0.2);
       border-radius: 8px;
       font-size: 0.82rem;
       color: #ADB5BD;
       text-align: center;
     }
-    .social-proof strong { color: #457B9D; }
+
+    .social-proof strong {
+      color: #457B9D;
+    }
 
     /* ===== DELIVERY OPTIONS ===== */
     .delivery-options {
@@ -332,40 +420,47 @@
       gap: 12px;
       margin-bottom: 20px;
     }
+
     .delivery-option {
       position: relative;
       cursor: pointer;
     }
+
     .delivery-option input[type="radio"] {
       position: absolute;
       opacity: 0;
       width: 0;
       height: 0;
     }
+
     .delivery-option-label {
       display: flex;
       flex-direction: column;
       gap: 4px;
       padding: 14px 16px;
-      background: rgba(255,255,255,0.04);
-      border: 2px solid rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.04);
+      border: 2px solid rgba(255, 255, 255, 0.1);
       border-radius: 10px;
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
     }
-    .delivery-option input:checked + .delivery-option-label {
+
+    .delivery-option input:checked+.delivery-option-label {
       border-color: var(--primary-red, #E63946);
-      background: rgba(230,57,70,0.06);
+      background: rgba(230, 57, 70, 0.06);
     }
+
     .delivery-option-label .del-name {
       font-size: 0.9rem;
       font-weight: 700;
       color: #fff;
     }
+
     .delivery-option-label .del-time {
       font-size: 0.78rem;
       color: #ADB5BD;
     }
+
     .delivery-option-label .del-price {
       font-size: 0.85rem;
       font-weight: 600;
@@ -380,30 +475,35 @@
       gap: 14px;
       margin-bottom: 24px;
     }
+
     .payment-method {
       position: relative;
     }
+
     .payment-method input[type="radio"] {
       position: absolute;
       opacity: 0;
       width: 0;
       height: 0;
     }
+
     .payment-method-label {
       display: flex;
       align-items: center;
       gap: 14px;
       padding: 16px 18px;
-      background: rgba(255,255,255,0.04);
-      border: 2px solid rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.04);
+      border: 2px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
     }
-    .payment-method input:checked + .payment-method-label {
+
+    .payment-method input:checked+.payment-method-label {
       border-color: var(--primary-red, #E63946);
-      background: rgba(230,57,70,0.06);
+      background: rgba(230, 57, 70, 0.06);
     }
+
     .payment-icon {
       width: 40px;
       height: 40px;
@@ -414,14 +514,25 @@
       font-size: 1.3rem;
       flex-shrink: 0;
     }
-    .payment-icon.whatsapp { background: rgba(37,211,102,0.15); }
-    .payment-icon.upi { background: rgba(69,123,157,0.15); }
-    .payment-icon.cod { background: rgba(255,215,0,0.12); }
+
+    .payment-icon.whatsapp {
+      background: rgba(37, 211, 102, 0.15);
+    }
+
+    .payment-icon.upi {
+      background: rgba(69, 123, 157, 0.15);
+    }
+
+    .payment-icon.cod {
+      background: rgba(255, 215, 0, 0.12);
+    }
+
     .payment-method-info .pay-name {
       font-size: 0.95rem;
       font-weight: 700;
       color: #fff;
     }
+
     .payment-method-info .pay-desc {
       font-size: 0.78rem;
       color: #ADB5BD;
@@ -433,22 +544,26 @@
       display: none;
       margin-top: 16px;
       padding: 18px;
-      background: rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.03);
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.07);
+      border: 1px solid rgba(255, 255, 255, 0.07);
       animation: fadeInUp 0.25s ease;
     }
-    .payment-details-panel.visible { display: block; }
+
+    .payment-details-panel.visible {
+      display: block;
+    }
 
     .upi-id-box {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(255,255,255,0.06);
+      background: rgba(255, 255, 255, 0.06);
       border-radius: 8px;
       padding: 12px 16px;
       margin-bottom: 14px;
     }
+
     .upi-id {
       font-family: monospace;
       font-size: 1rem;
@@ -456,9 +571,10 @@
       color: #fff;
       letter-spacing: 0.04em;
     }
+
     .copy-btn {
-      background: rgba(69,123,157,0.2);
-      border: 1px solid rgba(69,123,157,0.3);
+      background: rgba(69, 123, 157, 0.2);
+      border: 1px solid rgba(69, 123, 157, 0.3);
       color: #457B9D;
       padding: 5px 12px;
       border-radius: 6px;
@@ -468,7 +584,10 @@
       transition: background 0.2s;
       font-family: inherit;
     }
-    .copy-btn:hover { background: rgba(69,123,157,0.35); }
+
+    .copy-btn:hover {
+      background: rgba(69, 123, 157, 0.35);
+    }
 
     .qr-placeholder {
       width: 140px;
@@ -485,11 +604,13 @@
       padding: 10px;
       box-sizing: border-box;
     }
+
     .upi-steps {
       list-style: none;
       padding: 0;
       margin: 0;
     }
+
     .upi-steps li {
       font-size: 0.82rem;
       color: #ADB5BD;
@@ -498,9 +619,10 @@
       align-items: flex-start;
       gap: 8px;
     }
+
     .upi-steps li::before {
       content: attr(data-step);
-      background: var(--primary-red,#E63946);
+      background: var(--primary-red, #E63946);
       color: #fff;
       font-size: 0.7rem;
       font-weight: 700;
@@ -520,6 +642,7 @@
       border-collapse: collapse;
       margin-bottom: 20px;
     }
+
     .order-review-table thead th {
       font-size: 0.75rem;
       font-weight: 600;
@@ -528,17 +651,26 @@
       letter-spacing: 0.05em;
       padding: 8px 10px;
       text-align: left;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .order-review-table thead th:last-child { text-align: right; }
+
+    .order-review-table thead th:last-child {
+      text-align: right;
+    }
+
     .order-review-table tbody td {
       padding: 12px 10px;
       font-size: 0.88rem;
       color: #fff;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       vertical-align: middle;
     }
-    .order-review-table tbody td:last-child { text-align: right; font-weight: 600; }
+
+    .order-review-table tbody td:last-child {
+      text-align: right;
+      font-weight: 600;
+    }
+
     .review-item-img {
       width: 40px;
       height: 40px;
@@ -566,16 +698,19 @@
       justify-content: center;
       gap: 8px;
     }
+
     .btn-primary-full:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(230,57,70,0.4);
+      box-shadow: 0 8px 24px rgba(230, 57, 70, 0.4);
     }
+
     .btn-primary-full:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
     }
+
     .btn-back {
       background: none;
       border: none;
@@ -590,45 +725,63 @@
       transition: color 0.2s;
       font-family: inherit;
     }
-    .btn-back:hover { color: #fff; }
+
+    .btn-back:hover {
+      color: #fff;
+    }
 
     /* ===== ORDER SIDEBAR ===== */
     .order-sidebar {
       position: sticky;
       top: 100px;
     }
+
     .order-sidebar-card {
       background: var(--card-bg, #12151F);
       border-radius: 16px;
       padding: 24px;
-      border: 1px solid rgba(255,255,255,0.07);
+      border: 1px solid rgba(255, 255, 255, 0.07);
     }
+
     .order-sidebar-card h3 {
       font-size: 1rem;
       font-weight: 700;
       color: #fff;
       margin: 0 0 16px;
       padding-bottom: 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .sidebar-items { margin-bottom: 16px; }
+
+    .sidebar-items {
+      margin-bottom: 16px;
+    }
+
     .sidebar-item {
       display: flex;
       align-items: center;
       gap: 12px;
       padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
-    .sidebar-item:last-child { border-bottom: none; }
+
+    .sidebar-item:last-child {
+      border-bottom: none;
+    }
+
     .sidebar-item-img {
       width: 46px;
       height: 46px;
       border-radius: 6px;
       object-fit: cover;
-      background: var(--surface,#1A1E2E);
+      background: var(--surface, #1A1E2E);
       flex-shrink: 0;
     }
-    .sidebar-item-info { flex: 1; min-width: 0; }
+
+    .sidebar-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
     .sidebar-item-name {
       font-size: 0.82rem;
       font-weight: 600;
@@ -637,42 +790,71 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .sidebar-item-qty { font-size: 0.75rem; color: #ADB5BD; }
+
+    .sidebar-item-qty {
+      font-size: 0.75rem;
+      color: #ADB5BD;
+    }
+
     .sidebar-item-price {
       font-size: 0.88rem;
       font-weight: 700;
       color: #fff;
       flex-shrink: 0;
     }
+
     .sidebar-summary-row {
       display: flex;
       justify-content: space-between;
       font-size: 0.85rem;
       margin-bottom: 8px;
     }
-    .sidebar-summary-row .lbl { color: #ADB5BD; }
-    .sidebar-summary-row .val { color: #fff; font-weight: 500; }
-    .sidebar-summary-row .free { color: #2ecc71; font-weight: 600; }
+
+    .sidebar-summary-row .lbl {
+      color: #ADB5BD;
+    }
+
+    .sidebar-summary-row .val {
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .sidebar-summary-row .free {
+      color: #2ecc71;
+      font-weight: 600;
+    }
+
     .sidebar-total {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding-top: 12px;
-      border-top: 1px solid rgba(255,255,255,0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       margin-top: 8px;
     }
-    .sidebar-total .lbl { font-size: 0.95rem; font-weight: 700; color: #fff; }
-    .sidebar-total .val { font-size: 1.3rem; font-weight: 800; color: #E63946; }
+
+    .sidebar-total .lbl {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .sidebar-total .val {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #E63946;
+    }
 
     /* Success state */
     .order-success {
       text-align: center;
       padding: 60px 40px;
     }
+
     .success-icon {
       width: 80px;
       height: 80px;
-      background: rgba(46,204,113,0.15);
+      background: rgba(46, 204, 113, 0.15);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -680,22 +862,25 @@
       margin: 0 auto 20px;
       font-size: 2.5rem;
     }
+
     .order-success h2 {
       font-size: 1.6rem;
       font-weight: 700;
       color: #fff;
       margin: 0 0 10px;
     }
+
     .order-success p {
       color: #ADB5BD;
       font-size: 0.95rem;
       margin: 0 0 28px;
       line-height: 1.6;
     }
+
     .order-id-tag {
       display: inline-block;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 8px;
       padding: 8px 20px;
       font-family: monospace;
@@ -708,37 +893,70 @@
 
     /* Animations */
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Loading spinner */
     .spinner {
       width: 20px;
       height: 20px;
-      border: 2px solid rgba(255,255,255,0.3);
+      border: 2px solid rgba(255, 255, 255, 0.3);
       border-top-color: #fff;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       display: inline-block;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     /* Responsive */
     @media (max-width: 860px) {
       .checkout-layout {
         grid-template-columns: 1fr;
       }
-      .order-sidebar { position: static; order: -1; }
-      .form-row { grid-template-columns: 1fr; gap: 0; }
+
+      .order-sidebar {
+        position: static;
+        order: -1;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
     }
+
     @media (max-width: 500px) {
-      .checkout-step { padding: 20px 16px; }
-      .checkout-header h1 { font-size: 1.5rem; }
-      .delivery-options { grid-template-columns: 1fr; }
+      .checkout-step {
+        padding: 20px 16px;
+      }
+
+      .checkout-header h1 {
+        font-size: 1.5rem;
+      }
+
+      .delivery-options {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
+  <link rel="stylesheet" href="css/light-theme.css">
+  <link rel="stylesheet" href="css/brand-theme.css">
+  <link rel="stylesheet" href="css/brand-theme-addendum.css">
 </head>
+
 <body class="checkout-page">
   <div id="navbar-placeholder"></div>
 
@@ -784,7 +1002,10 @@
       <!-- STEP 1: Account -->
       <div class="checkout-step active" id="checkout-step-1">
         <h2>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
           Account Details
         </h2>
 
@@ -802,10 +1023,13 @@
           </div>
           <div class="form-group">
             <label>Password <span class="required">*</span></label>
-            <input type="password" class="form-control" id="login-password" placeholder="Your password" autocomplete="current-password">
+            <input type="password" class="form-control" id="login-password" placeholder="Your password"
+              autocomplete="current-password">
             <div class="field-error" id="login-password-error">Password is required</div>
           </div>
-          <div id="login-error-msg" style="display:none; background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.25); border-radius:8px; padding:12px; font-size:0.85rem; color:#e74c3c; margin-bottom:16px;"></div>
+          <div id="login-error-msg"
+            style="display:none; background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.25); border-radius:8px; padding:12px; font-size:0.85rem; color:#e74c3c; margin-bottom:16px;">
+          </div>
           <button class="btn-primary-full" onclick="handleLogin()" id="btn-login">
             Login &amp; Continue
           </button>
@@ -826,23 +1050,28 @@
             </div>
             <div class="form-group">
               <label>Phone <span class="required">*</span></label>
-              <input type="tel" class="form-control" id="reg-phone" placeholder="10-digit number" autocomplete="tel" maxlength="10">
+              <input type="tel" class="form-control" id="reg-phone" placeholder="10-digit number" autocomplete="tel"
+                maxlength="10">
               <div class="field-error" id="reg-phone-error">Valid phone required</div>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Password <span class="required">*</span></label>
-              <input type="password" class="form-control" id="reg-password" placeholder="Min 6 characters" autocomplete="new-password">
+              <input type="password" class="form-control" id="reg-password" placeholder="Min 6 characters"
+                autocomplete="new-password">
               <div class="field-error" id="reg-password-error">Min 6 characters required</div>
             </div>
             <div class="form-group">
               <label>Confirm Password <span class="required">*</span></label>
-              <input type="password" class="form-control" id="reg-confirm" placeholder="Re-enter password" autocomplete="new-password">
+              <input type="password" class="form-control" id="reg-confirm" placeholder="Re-enter password"
+                autocomplete="new-password">
               <div class="field-error" id="reg-confirm-error">Passwords do not match</div>
             </div>
           </div>
-          <div id="reg-error-msg" style="display:none; background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.25); border-radius:8px; padding:12px; font-size:0.85rem; color:#e74c3c; margin-bottom:16px;"></div>
+          <div id="reg-error-msg"
+            style="display:none; background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.25); border-radius:8px; padding:12px; font-size:0.85rem; color:#e74c3c; margin-bottom:16px;">
+          </div>
           <button class="btn-primary-full" onclick="handleRegister()" id="btn-register">
             Create Account &amp; Continue
           </button>
@@ -859,7 +1088,8 @@
             <input type="email" class="form-control" id="guest-email" placeholder="Email address" autocomplete="email">
           </div>
           <div class="form-group" style="margin-bottom:0;">
-            <input type="tel" class="form-control" id="guest-phone" placeholder="Phone number" autocomplete="tel" maxlength="10">
+            <input type="tel" class="form-control" id="guest-phone" placeholder="Phone number" autocomplete="tel"
+              maxlength="10">
           </div>
         </div>
         <button class="btn-guest" onclick="continueAsGuest()">Continue as Guest →</button>
@@ -872,49 +1102,129 @@
       <!-- STEP 2: Delivery -->
       <div class="checkout-step" id="checkout-step-2">
         <button class="btn-back" onclick="showStep(1)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
           Back
         </button>
         <h2>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="3" width="15" height="13" />
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+            <circle cx="5.5" cy="18.5" r="2.5" />
+            <circle cx="18.5" cy="18.5" r="2.5" />
+          </svg>
           Delivery Details
         </h2>
 
-        <div class="form-group">
-          <label>Full Name <span class="required">*</span></label>
-          <input type="text" class="form-control" id="d-name" placeholder="Recipient name" autocomplete="name">
-          <div class="field-error" id="d-name-error">Name is required</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="d-first-name">First Name <span class="required">*</span></label>
+            <input type="text" class="form-control" id="d-first-name" placeholder="First name" autocomplete="given-name"
+              required>
+            <div class="field-error" id="d-first-name-error">First name is required</div>
+          </div>
+          <div class="form-group">
+            <label for="d-last-name">Last Name <span class="required">*</span></label>
+            <input type="text" class="form-control" id="d-last-name" placeholder="Last name" autocomplete="family-name"
+              required>
+            <div class="field-error" id="d-last-name-error">Last name is required</div>
+          </div>
         </div>
         <div class="form-group">
-          <label>Phone Number <span class="required">*</span></label>
-          <input type="tel" class="form-control" id="d-phone" placeholder="10-digit number" autocomplete="tel" maxlength="10">
-          <div class="field-error" id="d-phone-error">Valid phone required</div>
+          <label for="d-phone">Phone Number <span class="required">*</span></label>
+          <input type="tel" class="form-control" id="d-phone" placeholder="10-digit mobile number" autocomplete="tel"
+            maxlength="10" required>
+          <div class="field-error" id="d-phone-error">Valid 10-digit phone number is required</div>
         </div>
         <div class="form-group">
-          <label>Delivery Address <span class="required">*</span></label>
-          <textarea class="form-control" id="d-address" rows="4" placeholder="House/Flat number, building, street, area, city, state, pincode" style="resize: vertical; min-height: 100px; font-family: inherit; line-height: 1.5;"></textarea>
-          <div class="field-error" id="d-address-error">Full delivery address is required</div>
+          <label for="d-address1">Address Line 1 <span class="required">*</span></label>
+          <input type="text" class="form-control" id="d-address1" placeholder="House/Flat No., Building, Street, Area"
+            autocomplete="address-line1" required>
+          <div class="field-error" id="d-address1-error">Address Line 1 is required</div>
+        </div>
+        <div class="form-group">
+          <label for="d-address2">Address Line 2 <span style="font-weight:400; opacity:0.75;">(Optional)</span></label>
+          <input type="text" class="form-control" id="d-address2" placeholder="Landmark, Apartment, Locality (Optional)"
+            autocomplete="address-line2">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="d-city">City <span class="required">*</span></label>
+            <input type="text" class="form-control" id="d-city" placeholder="City / Town" autocomplete="address-level2"
+              required>
+            <div class="field-error" id="d-city-error">City is required</div>
+          </div>
+          <div class="form-group">
+            <label for="d-state">State <span class="required">*</span></label>
+            <select class="form-control" id="d-state" autocomplete="address-level1" required>
+              <option value="">Select State</option>
+              <option value="Andhra Pradesh">Andhra Pradesh</option>
+              <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+              <option value="Assam">Assam</option>
+              <option value="Bihar">Bihar</option>
+              <option value="Chhattisgarh">Chhattisgarh</option>
+              <option value="Goa">Goa</option>
+              <option value="Gujarat">Gujarat</option>
+              <option value="Haryana">Haryana</option>
+              <option value="Himachal Pradesh">Himachal Pradesh</option>
+              <option value="Jharkhand">Jharkhand</option>
+              <option value="Karnataka">Karnataka</option>
+              <option value="Kerala">Kerala</option>
+              <option value="Madhya Pradesh">Madhya Pradesh</option>
+              <option value="Maharashtra">Maharashtra</option>
+              <option value="Manipur">Manipur</option>
+              <option value="Meghalaya">Meghalaya</option>
+              <option value="Mizoram">Mizoram</option>
+              <option value="Nagaland">Nagaland</option>
+              <option value="Odisha">Odisha</option>
+              <option value="Punjab">Punjab</option>
+              <option value="Rajasthan">Rajasthan</option>
+              <option value="Sikkim">Sikkim</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+              <option value="Telangana">Telangana</option>
+              <option value="Tripura">Tripura</option>
+              <option value="Uttar Pradesh">Uttar Pradesh</option>
+              <option value="Uttarakhand">Uttarakhand</option>
+              <option value="West Bengal">West Bengal</option>
+            </select>
+            <div class="field-error" id="d-state-error">Please select a state</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="d-phone2">Secondary Phone Number <span
+              style="font-weight:400; opacity:0.75;">(Optional)</span></label>
+          <input type="tel" class="form-control" id="d-phone2" placeholder="Alternate 10-digit number (Optional)"
+            maxlength="10">
+          <div class="field-error" id="d-phone2-error">Please enter a valid 10-digit phone number</div>
         </div>
 
         <button class="btn-primary-full" onclick="handleDeliverySubmit()" id="btn-delivery">
-          Continue to Review →
+          Proceed to Payment →
         </button>
       </div>
 
       <!-- STEP 3: Review Order -->
       <div class="checkout-step" id="checkout-step-3">
         <button class="btn-back" onclick="showStep(2)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
           Back
         </button>
         <h2>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          Review Order
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          Review Order &amp; Payment
         </h2>
 
         <!-- Order Review -->
         <div style="margin-bottom:24px;">
-          <h3 style="font-size:0.9rem; font-weight:700; color:#ADB5BD; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 14px;">Order Items</h3>
+          <h3
+            style="font-size:0.9rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 14px;">
+            Order Items</h3>
           <div class="order-review-table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
             <table class="order-review-table" id="order-review-table">
               <!-- Filled by JS -->
@@ -923,19 +1233,22 @@
         </div>
 
         <!-- Address Review -->
-        <div style="margin-bottom:24px; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px;">
-          <h3 style="font-size:0.85rem; font-weight:700; color:#ADB5BD; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 10px;">Delivery Details</h3>
-          <div id="review-delivery-info" style="font-size:0.9rem; color:#fff; line-height:1.6;">
+        <div
+          style="margin-bottom:24px; padding: 16px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px;">
+          <h3
+            style="font-size:0.85rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 10px;">
+            Delivery Details</h3>
+          <div id="review-delivery-info" style="font-size:0.92rem; color:#0F172A; line-height:1.65;">
             <!-- Filled by JS -->
           </div>
         </div>
 
-        <button class="btn-primary-full" onclick="placeOrder()" id="btn-place-order" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); box-shadow: 0 4px 20px rgba(37,211,102,0.3);">
-          💬 Confirm &amp; Continue to WhatsApp
+        <button class="btn-primary-full" onclick="payWithRazorpay()" id="btn-razorpay-pay" style="margin-bottom:12px;">
+          🔒 Pay Securely with Razorpay
         </button>
 
-        <p style="text-align:center; font-size:0.78rem; color:#ADB5BD; margin-top:12px;">
-          🔒 Your order details are prepared securely
+        <p style="text-align:center; font-size:0.82rem; color:#475569; margin-top:12px;">
+          🔒 Your order details and payment are encrypted and verified securely
         </p>
       </div>
 
@@ -954,15 +1267,20 @@
       </div>
 
       <!-- Secure checkout badges -->
-      <div style="margin-top:16px; background:var(--card-bg,#12151F); border-radius:12px; padding:16px; border:1px solid rgba(255,255,255,0.07);">
+      <div style="margin-top:16px; background:#FFFFFF; border-radius:12px; padding:16px; border:1px solid #E2E8F0;">
         <div style="display:flex; flex-direction:column; gap:10px;">
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.8rem; color:#ADB5BD;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div style="display:flex; align-items:center; gap:10px; font-size:0.82rem; color:#334155; font-weight:500;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
             SSL Secured Checkout
           </div>
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.8rem; color:#ADB5BD;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            WhatsApp Support: 6383793890
+          <div style="display:flex; align-items:center; gap:10px; font-size:0.82rem; color:#334155; font-weight:500;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            WhatsApp Support: <a href="https://wa.me/916383793890" target="_blank" rel="noopener"
+              style="color:#0F172A; font-weight:600; text-decoration:none;">6383793890</a>
           </div>
         </div>
       </div>
@@ -971,6 +1289,7 @@
 
   <div id="footer-placeholder"></div>
 
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/supabase.js?v=1.1"></script>
   <script src="js/data.js?v=1.1"></script>
@@ -978,6 +1297,7 @@
   <script src="js/auth.js?v=1.1"></script>
   <script src="js/store.js?v=1.1"></script>
   <script src="js/ui.js?v=1.1"></script>
-  <script src="js/checkout.js?v=1.1"></script>
+  <script src="js/checkout.js?v=1.2"></script>
 </body>
+
 </html>

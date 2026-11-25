@@ -254,9 +254,8 @@ function continueAsGuest() {
   CheckoutState.user = { name, email, phone, isGuest: true };
 
   // Prefill delivery
-  const dName = document.getElementById('d-name');
+  prefillDeliveryName(name);
   const dPhone = document.getElementById('d-phone');
-  if (dName && name) dName.value = name;
   if (dPhone && phone) dPhone.value = phone;
 
   showStep(2);
@@ -266,28 +265,55 @@ function continueAsGuest() {
    STEP 2: DELIVERY FORM
    ============================================================ */
 function handleDeliverySubmit() {
-  clearFieldErrors(['d-name', 'd-phone', 'd-address']);
+  clearFieldErrors(['d-first-name', 'd-last-name', 'd-phone', 'd-address1', 'd-city', 'd-state', 'd-phone2']);
 
   const getValue = id => document.getElementById(id)?.value?.trim() || '';
-  const name    = getValue('d-name');
-  const phone   = getValue('d-phone');
-  const address = getValue('d-address');
+  const firstName = getValue('d-first-name');
+  const lastName  = getValue('d-last-name');
+  const phone     = getValue('d-phone');
+  const address1  = getValue('d-address1');
+  const address2  = getValue('d-address2');
+  const city      = getValue('d-city');
+  const state     = getValue('d-state');
+  const phone2    = getValue('d-phone2');
 
   let valid = true;
-  if (!name) { showFieldError('d-name', 'd-name-error'); valid = false; }
+  if (!firstName) { showFieldError('d-first-name', 'd-first-name-error'); valid = false; }
+  if (!lastName)  { showFieldError('d-last-name', 'd-last-name-error'); valid = false; }
   if (!isValidPhone(phone)) { showFieldError('d-phone', 'd-phone-error'); valid = false; }
-  if (!address) { showFieldError('d-address', 'd-address-error'); valid = false; }
+  if (!address1)  { showFieldError('d-address1', 'd-address1-error'); valid = false; }
+  if (!city)      { showFieldError('d-city', 'd-city-error'); valid = false; }
+  if (!state)     { showFieldError('d-state', 'd-state-error'); valid = false; }
+  if (phone2 && !isValidPhone(phone2)) { showFieldError('d-phone2', 'd-phone2-error'); valid = false; }
   if (!valid) return;
 
-  CheckoutState.delivery = { name, phone, address };
+  const fullName = `${firstName} ${lastName}`.trim();
+  const fullAddress = [address1, address2, city, state].filter(Boolean).join(', ');
+
+  // Reset cached pending Razorpay order if delivery details were updated
+  CheckoutState.pendingOrder = null;
+
+  CheckoutState.delivery = {
+    firstName,
+    lastName,
+    name: fullName,
+    phone,
+    secondaryPhone: phone2,
+    addressLine1: address1,
+    addressLine2: address2,
+    city,
+    state,
+    address: fullAddress
+  };
 
   // Populate address review box
   const reviewDiv = document.getElementById('review-delivery-info');
   if (reviewDiv) {
     reviewDiv.innerHTML = `
-      <strong>${escapeHtml(name)}</strong><br>
-      📞 ${escapeHtml(phone)}<br>
-      📍 ${escapeHtml(address).replace(/\n/g, '<br>')}
+      <strong>${escapeHtml(fullName)}</strong><br>
+      📞 ${escapeHtml(phone)}${phone2 ? ` &nbsp;|&nbsp; Alt: ${escapeHtml(phone2)}` : ''}<br>
+      📍 ${escapeHtml(address1)}${address2 ? `, ${escapeHtml(address2)}` : ''}<br>
+      ${escapeHtml(city)}, ${escapeHtml(state)}
     `;
   }
 
@@ -310,7 +336,7 @@ function populateOrderReview() {
         <img src="${img}" alt="${escapeHtml(item.name)}" class="review-item-img" onerror="this.src='assets/images/placeholder.svg'">
         ${escapeHtml(item.name)}
       </td>
-      <td style="color:#ADB5BD; text-align:center;">×${item.quantity}</td>
+      <td style="color:#536273; text-align:center;">×${item.quantity}</td>
       <td>₹${lineTotal}</td>
     </tr>`;
   }).join('');
@@ -335,22 +361,27 @@ function generateWhatsAppOrder() {
   const { delivery } = CheckoutState;
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = 50;
+  const shipping = 150;
   const total = subtotal + shipping;
 
   const itemLines = cart.map(item =>
     `  • ${item.name} ×${item.quantity} = ₹${(item.price * item.quantity).toLocaleString('en-IN')}`
   ).join('\n');
 
+  const addressLines = [delivery.addressLine1, delivery.addressLine2, delivery.city, delivery.state]
+    .filter(Boolean)
+    .join(', ') || delivery.address || '—';
+
   const message = `🛒 *New Order Request - Epic Toyz*
 
 👤 *Customer Name:* ${delivery.name || '—'}
-📞 *Phone Number:* ${delivery.phone || '—'}
-📍 *Address:* ${delivery.address || '—'}
+📞 *Phone Number:* ${delivery.phone || '—'}${delivery.secondaryPhone ? `\n📱 *Secondary Phone:* ${delivery.secondaryPhone}` : ''}
+📍 *Address:* ${addressLines}
 
 📦 *ORDERED PRODUCTS:*
 ${itemLines}
 
+🚚 *Delivery Charge:* ₹${shipping}
 💰 *Total Amount:* ₹${total.toLocaleString('en-IN')}
 
 💳 *Payment Details (Direct UPI):*
@@ -363,7 +394,207 @@ Please complete the payment and send the payment screenshot along with this orde
 }
 
 /* ============================================================
-   PLACE ORDER
+   RAZORPAY TEST MODE CHECKOUT
+   ============================================================ */
+function generateGuestToken() {
+  const bytes = new Uint8Array(16);
+  window.crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function sha256Hex(str) {
+  const buf = new TextEncoder().encode(str);
+  const hashBuf = await window.crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hashBuf), b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function getSupabaseAccessToken() {
+  try {
+    if (window.EpicSupabase && window.EpicSupabase.auth) {
+      const { data } = await window.EpicSupabase.auth.getSession();
+      return data?.session?.access_token || null;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function clearCheckoutCart() {
+  const params = new URLSearchParams(window.location.search);
+  const isBuyNow = params.get('buynow') === 'true';
+  if (isBuyNow) {
+    localStorage.removeItem('et_buy_now');
+  } else if (typeof Store !== 'undefined') {
+    Store.clearCart();
+    if (Store.syncCartBadge) Store.syncCartBadge();
+  }
+  if (typeof UI !== 'undefined' && UI.updateCartBadge) UI.updateCartBadge();
+}
+
+async function payWithRazorpay() {
+  const cart = getCheckoutItems();
+  if (!cart || cart.length === 0) {
+    showToast('Your cart is empty!', 'error');
+    return;
+  }
+  if (cart.some(i => i.paymentMethod === 'whatsapp')) {
+    showToast('One or more items require WhatsApp Enquiry before payment. Please use the Ask on WhatsApp button on the product page.', 'error');
+    return;
+  }
+  if (typeof window.Razorpay === 'undefined') {
+    showToast('Razorpay SDK failed to load. Please refresh and try again.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-razorpay-pay');
+  setLoading(btn, true);
+
+  try {
+    const subtotal = cart.reduce((s, i) => s + Number(i.price) * Number(i.quantity), 0);
+    const shipping = 150;
+    const total = subtotal + shipping;
+
+    const accessToken = await getSupabaseAccessToken();
+    let dbOrderId = CheckoutState.pendingOrder?.id || null;
+    let dbOrderNumber = CheckoutState.pendingOrder?.orderNumber || null;
+    let guestToken = CheckoutState.pendingOrder?.guestToken || null;
+
+    if (!dbOrderId) {
+      guestToken = accessToken ? null : generateGuestToken();
+      const guestHashNote = guestToken ? `[GUEST_TOKEN:${await sha256Hex(guestToken)}]` : '';
+
+      const orderData = {
+        items: cart.map(item => ({
+          id: item.id || item.productId,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image
+        })),
+        delivery: CheckoutState.delivery,
+        subtotal,
+        shipping,
+        total,
+        paymentMethod: 'razorpay',
+        user: CheckoutState.user,
+        notes: guestHashNote
+      };
+
+      if (typeof DB === 'undefined' || !DB.createOrder) {
+        throw new Error('Order database service is unavailable.');
+      }
+
+      const createdOrder = await DB.createOrder(orderData);
+      if (!createdOrder || !createdOrder.id) {
+        throw new Error('Could not create pending order.');
+      }
+      dbOrderId = createdOrder.id;
+      dbOrderNumber = createdOrder.orderNumber || createdOrder.id;
+      CheckoutState.pendingOrder = { id: dbOrderId, orderNumber: dbOrderNumber, guestToken };
+    }
+    CheckoutState.orderId = dbOrderId;
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+    const createRes = await fetch('/api/razorpay-create-order', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        dbOrderId,
+        guestToken,
+        customerPhone: CheckoutState.delivery?.phone || ''
+      })
+    });
+    const createData = await createRes.json();
+    const rzpOrderId = createData.order_id || createData.razorpayOrderId;
+    const rzpKeyId = createData.key_id || createData.keyId;
+    if (!createRes.ok || !rzpOrderId || !rzpKeyId) {
+      throw new Error(createData.error || 'Failed to initialize Razorpay payment.');
+    }
+
+    const rzpOptions = {
+      key: rzpKeyId,
+      amount: createData.amount,
+      currency: createData.currency || 'INR',
+      name: 'Epic Toyz',
+      description: `Order ${dbOrderNumber}`,
+      order_id: rzpOrderId,
+      prefill: {
+        name: CheckoutState.delivery?.name || '',
+        contact: CheckoutState.delivery?.phone || '',
+        email: CheckoutState.user?.email || ''
+      },
+      theme: { color: '#E63946' },
+      modal: {
+        ondismiss: () => {
+          setLoading(btn, false, '🔒 Pay Securely with Razorpay');
+          showToast('Payment was cancelled before completion. Your cart is still saved.', 'error');
+        }
+      },
+      handler: async (rzpResponse) => {
+        try {
+          const verifyPayload = {
+            razorpay_order_id: rzpResponse.razorpay_order_id,
+            razorpay_payment_id: rzpResponse.razorpay_payment_id,
+            razorpay_signature: rzpResponse.razorpay_signature,
+            dbOrderId,
+            guestToken
+          };
+
+          let verifyRes = await fetch('/api/razorpay-verify', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(verifyPayload)
+          });
+          let verifyData = await verifyRes.json();
+
+          // Safe idempotent retry if admin push notification had a transient failure
+          if (verifyRes.ok && verifyData.verified && verifyData.retryNeeded && verifyData.retryNeeded.push) {
+            await fetch('/api/razorpay-verify', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify(verifyPayload)
+            }).catch(() => {});
+          }
+
+          if (!verifyRes.ok || !verifyData.verified) {
+            throw new Error(verifyData.error || 'Payment signature verification failed.');
+          }
+
+          sessionStorage.setItem('et_verified_order', JSON.stringify({
+            verified: true,
+            orderId: verifyData.orderId,
+            orderNumber: verifyData.orderNumber || dbOrderNumber,
+            paymentId: verifyData.paymentId,
+            total: verifyData.total || total
+          }));
+
+          clearCheckoutCart();
+          window.location.href = 'order-confirmed.html';
+        } catch (verifyErr) {
+          console.error('[Checkout] Razorpay verify failed:', verifyErr);
+          setLoading(btn, false, '🔒 Pay Securely with Razorpay');
+          showToast(verifyErr.message || 'Payment verification failed. Contact support: 6383793890', 'error');
+        }
+      }
+    };
+
+    const rzp = new window.Razorpay(rzpOptions);
+    rzp.on('payment.failed', (resp) => {
+      console.error('[Checkout] Razorpay payment failed:', resp.error);
+      setLoading(btn, false, '🔒 Pay Securely with Razorpay');
+      showToast((resp.error && resp.error.description) || 'Payment failed. Please try again.', 'error');
+    });
+    rzp.open();
+  } catch (err) {
+    console.error('[Checkout] payWithRazorpay error:', err);
+    setLoading(btn, false, '🔒 Pay Securely with Razorpay');
+    showToast(err.message || 'Could not start Razorpay checkout.', 'error');
+  }
+}
+
+/* ============================================================
+   PLACE ORDER (WHATSAPP)
    ============================================================ */
 async function placeOrder() {
   const cart = getCheckoutItems();
@@ -377,7 +608,7 @@ async function placeOrder() {
 
   // Save the order to DB
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = 50;
+  const shipping = 150;
   const total = subtotal + shipping;
 
   const orderData = {
@@ -451,11 +682,11 @@ function renderSidebar() {
         <div class="sidebar-item-price">₹${(item.price * item.quantity).toLocaleString('en-IN')}</div>
       </div>
     `;
-  }).join('') || '<p style="font-size:0.85rem; color:#ADB5BD; text-align:center; padding:10px 0;">Cart is empty</p>';
+  }).join('') || '<p style="font-size:0.85rem; color:#536273; text-align:center; padding:10px 0;">Cart is empty</p>';
 
   // Summary
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = 50;
+  const shipping = 150;
   const total = subtotal + shipping;
 
   sidebarSummary.innerHTML = `
@@ -477,17 +708,28 @@ function renderSidebar() {
 /* ============================================================
    HELPERS
    ============================================================ */
+function prefillDeliveryName(fullName) {
+  if (!fullName) return;
+  const parts = String(fullName).trim().split(/\s+/);
+  const first = parts[0] || '';
+  const last = parts.slice(1).join(' ');
+  const fEl = document.getElementById('d-first-name');
+  const lEl = document.getElementById('d-last-name');
+  if (fEl && first) fEl.value = first;
+  if (lEl && last) lEl.value = last;
+}
+
 function prefillDeliveryFromUser(user) {
   if (!user) return;
   const safe = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
-  safe('d-name',  user.name || user.user_metadata?.name || user.user_metadata?.full_name);
+  prefillDeliveryName(user.name || user.user_metadata?.name || user.user_metadata?.full_name);
   safe('d-phone', user.phone || user.user_metadata?.phone);
 }
 
 function updateStandardShippingLabel() {
   const el = document.getElementById('standard-price-label');
   if (!el) return;
-  el.textContent = '₹50';
+  el.textContent = '₹150';
   el.style.color = '#ADB5BD';
 }
 
