@@ -63,7 +63,7 @@ function injectNavbar() {
         <!-- Logo -->
         <a href="${prefix}index.html" class="navbar-logo">
           <img
-            src="${prefix}assets/images/epictoyz-logo.png"
+            src="${prefix}assets/images/logo-transparent.png"
             alt="Epic Toyz Logo"
             class="navbar-logo-img"
             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
@@ -318,10 +318,10 @@ function injectFooter() {
         <div class="footer-brand">
           <a href="${prefix}index.html" class="footer-logo" style="margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px;">
             <img
-              src="${prefix}assets/images/epictoyz-logo.png"
+              src="${prefix}assets/images/logo-transparent.png"
               alt="Epic Toyz Logo"
               class="footer-logo-img"
-              style="height:auto;width:140px;object-fit:contain;"
+              style="height:auto;width:150px;object-fit:contain;background:transparent;"
               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
             >
             <div class="logo-fallback" style="display:none;align-items:center;gap:8px;">
@@ -695,7 +695,7 @@ function generateWhatsAppMessage(cart, customer) {
     subtotal += item.price * item.quantity;
   });
   
-  const shipping = 50;
+  const shipping = 150;
   const total = subtotal + shipping;
   
   message += `\n*Subtotal:* ${formatPrice(subtotal)}`;
@@ -940,7 +940,7 @@ function renderSearchResults(products, query) {
     const catName = p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1).replace('-', ' ') : 'RC Car';
     
     return `
-      <a href="${prefix}product.html?id=${p.id}" class="search-result-item" style="display: flex; align-items: center; gap: 16px; padding: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 12px; text-decoration: none; transition: all 0.25s ease;">
+      <a href="${prefix}product.html?id=${encodeURIComponent(String(p.id))}" class="search-result-item" style="display: flex; align-items: center; gap: 16px; padding: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 12px; text-decoration: none; transition: all 0.25s ease;">
         <img src="${prefix}${img}" alt="" class="search-result-img" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: rgba(255, 255, 255, 0.05);" onerror="this.src='${prefix}assets/images/placeholder.svg'">
         <div class="search-result-info" style="flex: 1;">
           <div class="search-result-name" style="font-weight: 600; color: #fff; font-size: 0.95rem; margin-bottom: 2px;">${escapeHtml(p.name)}</div>

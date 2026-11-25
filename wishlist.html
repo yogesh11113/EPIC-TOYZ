@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -296,20 +296,6 @@
       overflow: hidden;
       line-height: 1.4;
     }
-    .wish-rating {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-bottom: 10px;
-    }
-    .wish-stars { color: #FFD700; font-size: 0.8rem; }
-    .wish-review-count { font-size: 0.75rem; color: #ADB5BD; }
-    .wish-price-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
     .wish-price {
       font-size: 1.05rem;
       font-weight: 800;
@@ -449,6 +435,9 @@
       .wishlist-header { flex-direction: column; align-items: flex-start; }
     }
   </style>
+  <link rel="stylesheet" href="css/light-theme.css">
+  <link rel="stylesheet" href="css/brand-theme.css">
+  <link rel="stylesheet" href="css/brand-theme-addendum.css">
 </head>
 <body class="wishlist-page">
   <div id="navbar-placeholder"></div>
@@ -489,7 +478,6 @@
         <option value="price-asc">Price: Low to High</option>
         <option value="price-desc">Price: High to Low</option>
         <option value="name-asc">Name: A–Z</option>
-        <option value="rating-desc">Rating</option>
       </select>
     </div>
   </div>
@@ -518,3 +506,4 @@
   <script src="js/wishlist.js"></script>
 </body>
 </html>
+

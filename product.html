@@ -219,19 +219,6 @@
       margin: 0 0 16px;
     }
 
-    /* Rating */
-    .product-rating-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .rating-stars { font-size: 18px; letter-spacing: 2px; color: #FFD700; }
-    .rating-score { font-size: 15px; font-weight: 700; color: #fff; }
-    .rating-reviews { font-size: 13px; color: #ADB5BD; }
-    .write-review-link { font-size: 13px; color: #457B9D; text-decoration: none; transition: color 0.2s; }
-    .write-review-link:hover { color: #E63946; }
 
     /* Price */
     .product-price-block { margin-bottom: 20px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -506,80 +493,7 @@
       font-size: 12px;
       font-weight: 700;
     }
-
-    /* Reviews Tab */
-    .reviews-container { display: flex; flex-direction: column; gap: 20px; }
-    .review-card {
-      background: #12151F;
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 14px;
-      padding: 20px;
-    }
-    .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
-    .reviewer-name { font-size: 15px; font-weight: 700; color: #fff; }
-    .review-date { font-size: 12px; color: #555; }
-    .review-stars { font-size: 14px; color: #FFD700; letter-spacing: 1px; margin-bottom: 8px; }
-    .review-text { font-size: 14px; color: #ADB5BD; line-height: 1.7; }
-    .verified-badge { font-size: 11px; color: #2ecc71; background: rgba(46,204,113,0.12); padding: 2px 8px; border-radius: 10px; font-weight: 600; }
-
-    /* Review Form */
-    .review-form-wrap {
-      background: #12151F;
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 14px;
-      padding: 24px;
-      margin-top: 24px;
-    }
-    .review-form-title { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 20px; }
-    .star-rating-input { display: flex; gap: 6px; margin-bottom: 16px; }
-    .star-input {
-      font-size: 28px;
-      cursor: pointer;
-      color: #333;
-      transition: color 0.15s;
-      line-height: 1;
-    }
-    .star-input.hovered, .star-input.selected { color: #FFD700; }
-    .form-group { margin-bottom: 16px; }
-    .form-label { display: block; font-size: 12px; font-weight: 600; color: #ADB5BD; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .form-input, .form-textarea {
-      width: 100%;
-      padding: 12px 14px;
-      background: #1A1E2E;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      color: #fff;
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s;
-      box-sizing: border-box;
-    }
-    .form-input:focus, .form-textarea:focus { border-color: #E63946; }
-    .form-textarea { min-height: 100px; resize: vertical; }
-    .btn-submit-review {
-      padding: 12px 28px;
-      background: linear-gradient(135deg, #E63946, #c0392b);
-      border: none;
-      border-radius: 10px;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-submit-review:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(230,57,70,0.4); }
-    .login-prompt {
-      text-align: center;
-      padding: 30px;
-      color: #ADB5BD;
-      font-size: 14px;
-    }
-    .login-prompt a { color: #E63946; text-decoration: none; font-weight: 600; }
-    .no-reviews { text-align: center; padding: 40px; color: #555; }
-    .no-reviews .emoji { font-size: 40px; display: block; margin-bottom: 12px; }
-
-    /* ===== RELATED / RECENTLY VIEWED ===== */
+* ===== RELATED / RECENTLY VIEWED ===== */
     .products-row-section {
       max-width: 1280px;
       margin: 0 auto;
@@ -705,6 +619,9 @@
       .gallery-thumb { width: 64px; height: 48px; }
     }
   </style>
+  <link rel="stylesheet" href="css/light-theme.css">
+  <link rel="stylesheet" href="css/brand-theme.css">
+  <link rel="stylesheet" href="css/brand-theme-addendum.css">
 </head>
 <body class="product-page">
   <div id="navbar-placeholder"></div>
@@ -760,14 +677,6 @@
         <div id="product-badge-pill"></div>
         <h1 id="product-name">Loading product...</h1>
 
-        <!-- Rating -->
-        <div class="product-rating-row">
-          <div class="rating-stars" id="product-rating-stars" style="display: none !important;">☆☆☆☆☆</div>
-          <div class="rating-score" id="product-rating-score" style="display: none !important;">0.0</div>
-          <div class="rating-reviews" id="product-review-count">(0 reviews)</div>
-          <a href="#tab-reviews" class="write-review-link" onclick="switchToReviewTab()">Write a Review</a>
-        </div>
-
         <!-- Price -->
         <div class="product-price-block">
           <span id="product-price-current">₹0</span>
@@ -806,6 +715,10 @@
               Add to Cart
             </button>
           </div>
+          <button class="btn-ask-whatsapp" id="btn-ask-whatsapp" onclick="askOnWhatsApp()" style="display:none; width:100%; padding:14px 24px; border-radius:12px; border:none; background:linear-gradient(135deg, #25D366 0%, #128C7E 100%); color:#fff; font-size:1rem; font-weight:700; cursor:pointer; align-items:center; justify-content:center; gap:10px; box-shadow:0 6px 20px rgba(37,211,102,0.3);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            Ask on WhatsApp
+          </button>
         </div>
 
         <!-- Wishlist + Share -->
@@ -820,21 +733,108 @@
           </button>
         </div>
 
-        <!-- Delivery Badges -->
+        <!-- Trust Indicators -->
         <div class="delivery-badges">
-          <div class="delivery-badge"><span class="icon">⚡</span> Fast dispatch</div>
-          <div class="delivery-badge"><span class="icon">✅</span> Genuine products</div>
+          <div class="delivery-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E63946" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Fast Dispatch</span>
+          </div>
+          <div class="delivery-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D6FD8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            <span>Genuine Product</span>
+          </div>
+        </div>
+
+        <!-- Three Information Sections -->
+        <div class="product-info-accordions">
+          <!-- A. Refund & Return Policy -->
+          <details class="info-accordion">
+            <summary class="info-accordion-summary">
+              <div class="info-accordion-title-wrap">
+                <span class="info-accordion-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                </span>
+                <div>
+                  <div class="info-accordion-heading">Refund &amp; Return Policy</div>
+                  <div class="info-accordion-sub">Mandatory continuous unboxing video policy</div>
+                </div>
+              </div>
+              <svg class="info-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="info-accordion-body">
+              <p>Please review our mandatory return, refund, and replacement requirements:</p>
+              <ul>
+                <li><strong>Continuous Unboxing Video Mandatory:</strong> A continuous unboxing video is strictly mandatory for any refund, return, or replacement claim.</li>
+                <li><strong>No Cuts, Edits, or Pauses:</strong> The video must be recorded in one continuous take with no cuts, edits, or pauses.</li>
+                <li><strong>Start With Sealed Outer Box:</strong> Recording must begin by clearly showing the sealed outer shipping box before opening.</li>
+                <li><strong>Batteries Ready Beforehand:</strong> Required Duracell batteries for the remote control must be ready before opening the package.</li>
+                <li><strong>Full Testing on Video:</strong> Recording must continue without interruption while inserting the batteries, turning on the controller, and testing the RC car.</li>
+                <li><strong>Spare Parts &amp; Electronics:</strong> Spare parts, electronics, and accessories are non-returnable once delivered unless a defect is proven through the required continuous unboxing video.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- B. Fast & Reliable Delivery -->
+          <details class="info-accordion">
+            <summary class="info-accordion-summary">
+              <div class="info-accordion-title-wrap">
+                <span class="info-accordion-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                </span>
+                <div>
+                  <div class="info-accordion-heading">Fast &amp; Reliable Delivery</div>
+                  <div class="info-accordion-sub">Carefully packed &amp; shipped via DTDC, Delhivery &amp; India Post</div>
+                </div>
+              </div>
+              <svg class="info-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="info-accordion-body">
+              <p>All products are carefully packed with protective cushioning and dispatched through suitable courier services so your package is handled carefully and delivered safely.</p>
+              <p>Our trusted courier partners include <strong>DTDC</strong>, <strong>Delhivery</strong>, and <strong>India Post</strong>.</p>
+            </div>
+          </details>
+
+          <!-- C. Guaranteed Safe Checkout -->
+          <details class="info-accordion">
+            <summary class="info-accordion-summary">
+              <div class="info-accordion-title-wrap">
+                <span class="info-accordion-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+                <div>
+                  <div class="info-accordion-heading">Guaranteed Safe Checkout</div>
+                  <div class="info-accordion-sub">Secure prepaid payments via Razorpay &amp; UPI</div>
+                </div>
+              </div>
+              <svg class="info-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="info-accordion-body">
+              <p>Payments are securely processed through trusted payment gateways with encrypted checkout protection.</p>
+              <div class="safe-checkout-logos">
+                <div class="razorpay-badge" title="Razorpay">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M14.5 2L7.5 14.5H12L9.5 22L18.5 9.5H13.5L14.5 2Z" fill="#072654"/>
+                    <path d="M14.5 2L11 9.5H13.5L18.5 9.5L14.5 2Z" fill="#3395FF"/>
+                  </svg>
+                  <span class="razorpay-wordmark">Razorpay</span>
+                </div>
+                <span class="pay-method-pill" title="UPI">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                  UPI (GPay / PhonePe / Paytm)
+                </span>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
     </div>
 
-    <!-- ===== TABS SECTION ===== -->
+    <!-- ===== TABS SECTION (Customer-facing: Description only) ===== -->
     <div class="product-tabs-section">
-      <div class="tab-nav" role="tablist" id="tab-reviews">
+      <div class="tab-nav" role="tablist" id="product-tablist">
         <button class="tab-btn active" data-tab="description" role="tab" aria-selected="true" onclick="switchTab(this, 'tab-description')">Description</button>
-        <button class="tab-btn" data-tab="specifications" role="tab" aria-selected="false" onclick="switchTab(this, 'tab-specifications')">Specifications</button>
-        <button class="tab-btn" data-tab="features" role="tab" aria-selected="false" onclick="switchTab(this, 'tab-features')">Features</button>
-        <button class="tab-btn" data-tab="reviews" role="tab" aria-selected="false" onclick="switchTab(this, 'tab-reviews-panel')">Reviews <span id="review-tab-count" style="font-size:11px;color:#ADB5BD;"></span></button>
+        <button class="tab-btn" data-tab="specifications" role="tab" aria-selected="false" onclick="switchTab(this, 'tab-specifications')" style="display:none;">Specifications</button>
+        <button class="tab-btn" data-tab="features" role="tab" aria-selected="false" onclick="switchTab(this, 'tab-features')" style="display:none;">Features</button>
       </div>
 
       <div id="tab-description" class="tab-panel active" role="tabpanel">
@@ -843,56 +843,22 @@
         </div>
       </div>
 
-      <div id="tab-specifications" class="tab-panel" role="tabpanel">
+      <div id="tab-specifications" class="tab-panel" role="tabpanel" style="display:none;">
         <table class="specs-table" id="specs-table">
           <tbody id="specs-tbody"></tbody>
         </table>
       </div>
 
-      <div id="tab-features" class="tab-panel" role="tabpanel">
+      <div id="tab-features" class="tab-panel" role="tabpanel" style="display:none;">
         <ul class="features-list" id="features-list"></ul>
       </div>
 
-      <div id="tab-reviews-panel" class="tab-panel" role="tabpanel">
-        <div class="reviews-container" id="reviews-container">
-          <div class="no-reviews"><span class="emoji">📝</span>No reviews yet. Be the first!</div>
-        </div>
-        <!-- Review Form -->
-        <div class="review-form-wrap" id="review-form-wrap">
-          <h3 class="review-form-title">Write a Review</h3>
-          <form id="review-form" onsubmit="submitReview(event)">
-            <div class="form-group">
-              <label class="form-label">Your Rating *</label>
-              <div class="star-rating-input" id="star-rating-input" role="group" aria-label="Rating">
-                <span class="star-input" data-value="1" onclick="setReviewRating(1)" aria-label="1 star">★</span>
-                <span class="star-input" data-value="2" onclick="setReviewRating(2)" aria-label="2 stars">★</span>
-                <span class="star-input" data-value="3" onclick="setReviewRating(3)" aria-label="3 stars">★</span>
-                <span class="star-input" data-value="4" onclick="setReviewRating(4)" aria-label="4 stars">★</span>
-                <span class="star-input" data-value="5" onclick="setReviewRating(5)" aria-label="5 stars">★</span>
-              </div>
-              <input type="hidden" id="review-rating-value" value="0">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="review-title">Review Title</label>
-              <input type="text" class="form-input" id="review-title" placeholder="Summarize your experience" maxlength="100">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="review-text">Your Review *</label>
-              <textarea class="form-textarea" id="review-text" placeholder="Share your experience with this product..." required minlength="20" maxlength="1000"></textarea>
-            </div>
-            <button type="submit" class="btn-submit-review">Submit Review</button>
-          </form>
-        </div>
-        <div class="login-prompt" id="review-login-prompt" style="display:none;">
-          Please <a href="checkout.html?login=true">log in</a> to write a review.
-        </div>
-      </div>
     </div>
 
-    <!-- Related Products -->
+    <!-- Similar Products -->
     <div class="products-row-section" id="related-section">
       <div class="section-header-row">
-        <h2 class="section-title-h2">Related Products</h2>
+        <h2 class="section-title-h2">Similar Products</h2>
         <a href="shop.html" class="see-all-link" id="related-see-all">See all →</a>
       </div>
       <div class="products-row-grid" id="related-products-grid">

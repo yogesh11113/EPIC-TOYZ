@@ -350,15 +350,9 @@ function sortProducts(products, sort) {
       return arr.sort((a, b) => (b.price || 0) - (a.price || 0));
     case 'newest':
       return arr.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-    case 'rating':
-      return arr.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     case 'popular':
     default:
-      return arr.sort((a, b) => {
-        const scoreB = (b.review_count || b.reviewCount || 0) + (b.rating || 0) * 10;
-        const scoreA = (a.review_count || a.reviewCount || 0) + (a.rating || 0) * 10;
-        return scoreB - scoreA;
-      });
+      return arr;
   }
 }
 
@@ -398,14 +392,12 @@ function renderProducts(products) {
 }
 
 function renderProductCard(product) {
-  const slug = product.slug || product.id;
+  const productUrl = `product.html?id=${encodeURIComponent(String(product.id))}`;
   const name = product.name || 'Unnamed Product';
   const price = product.price || 0;
   const originalPrice = product.original_price || product.originalPrice || 0;
   const discount = originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
   const image = (product.images && product.images[0]) || product.image || 'assets/images/placeholder.svg';
-  const rating = product.rating || 0;
-  const reviewCount = product.review_count || product.reviewCount || 0;
   const stock = product.stock !== undefined ? product.stock : 10;
 
   let stockHtml = '';
@@ -442,12 +434,10 @@ function renderProductCard(product) {
     }</div>`;
   }
 
-  const starsHtml = renderStars(rating);
-
   const isOutOfStock = stock <= 0;
 
   return `
-    <div class="product-card" data-product-id="${product.id}">
+    <div class="product-card" data-product-id="${product.id}" onclick="if (!event.target.closest('button,a')) window.location.href='${productUrl}'" role="link" tabindex="0" onkeydown="if (event.key === 'Enter' || event.key === ' ') window.location.href='${productUrl}'">
       <div class="product-card-img-wrap">
         ${badgeHtml}
         <img
@@ -456,7 +446,7 @@ function renderProductCard(product) {
           alt="${name}"
           loading="lazy"
           onerror="this.src='assets/images/placeholder.svg'"
-          onclick="window.location.href='product.html?slug=${slug}'"
+          onclick="window.location.href='${productUrl}'"
         >
         <button
           class="wishlist-btn-card"
@@ -471,25 +461,30 @@ function renderProductCard(product) {
       </div>
       <div class="product-card-body">
         ${stockHtml}
-        <h3 class="product-name" onclick="window.location.href='product.html?slug=${slug}'">${name}</h3>
-        <div class="product-card-rating">
-          <span class="stars" style="display: none !important;">${starsHtml}</span>
-          <span class="rating-count">${rating.toFixed(1)} (${reviewCount})</span>
-        </div>
+        <h3 class="product-name" onclick="window.location.href='${productUrl}'">${name}</h3>
         <div class="product-card-price">
           <span class="price-current">₹${price.toLocaleString('en-IN')}</span>
           ${originalPrice > price ? `<span class="price-original">₹${originalPrice.toLocaleString('en-IN')}</span>` : ''}
           ${discount > 0 ? `<span class="price-discount">${discount}% OFF</span>` : ''}
         </div>
         <div class="product-card-actions">
-          <button
-            class="btn-add-cart"
-            onclick="addToCartFromCard(event, '${product.id}')"
-            ${isOutOfStock ? 'disabled' : ''}
-          >
-            ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
-          </button>
-          <a class="btn-view-product" href="product.html?slug=${slug}" aria-label="View product details">
+          ${product.paymentMethod === 'whatsapp'
+            ? `<button
+                class="btn-add-cart"
+                style="background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;"
+                onclick="askOnWhatsAppFromCard(event, '${product.id}')"
+              >
+                Ask on WhatsApp
+              </button>`
+            : `<button
+                class="btn-add-cart"
+                onclick="addToCartFromCard(event, '${product.id}')"
+                ${isOutOfStock ? 'disabled' : ''}
+              >
+                ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+              </button>`
+          }
+          <a class="btn-view-product" href="${productUrl}" aria-label="View product details">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
               <circle cx="12" cy="12" r="3"/>
@@ -501,17 +496,6 @@ function renderProductCard(product) {
   `;
 }
 
-function renderStars(rating) {
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.5;
-  let html = '';
-  for (let i = 1; i <= 5; i++) {
-    if (i <= full) html += '★';
-    else if (i === full + 1 && half) html += '½';
-    else html += '☆';
-  }
-  return html;
-}
 
 function renderEmptyState() {
   const hasFilters = activeFilters.categories.length || activeFilters.badges.length ||
@@ -926,6 +910,17 @@ function initMobileFilterDrawer() {
 /* =====================================================================
    CART / WISHLIST (card actions)
    ===================================================================== */
+function askOnWhatsAppFromCard(e, productId) {
+  e.stopPropagation();
+  const product = allProducts.find(p => String(p.id) === String(productId));
+  if (!product) return;
+  const link = `${window.location.origin}/product.html?id=${encodeURIComponent(product.id)}`;
+  const msg = encodeURIComponent(
+    `Hi! I would like to enquire about *${product.name}* (₹${Number(product.price || 0).toLocaleString('en-IN')}).\n${link}`
+  );
+  window.open(`https://wa.me/916383793890?text=${msg}`, '_blank', 'noopener,noreferrer');
+}
+
 function addToCartFromCard(e, productId) {
   e.stopPropagation();
   const product = allProducts.find(p => p.id == productId);

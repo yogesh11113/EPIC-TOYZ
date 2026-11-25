@@ -1,0 +1,1094 @@
+/*
+ * =====================================================================
+ * EPIC TOYZ — BRAND THEME v2.0
+ * Premium Dark-and-Light Mixed Theme
+ * Logo-integrated header, full UI audit corrections, mobile-first
+ * =====================================================================
+ */
+
+/* =====================================================================
+   1. HEADER / ANNOUNCEMENT BAR — Pure black to blend logo perfectly
+   ===================================================================== */
+
+/* Announcement bar: deep black with red accent strip */
+.announcement-marquee {
+  background: #000000 !important;
+  border-bottom: 2px solid #E63946 !important;
+}
+
+.marquee-content span {
+  color: #e8e8e8 !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0.14em !important;
+}
+
+.marquee-content span .sep {
+  color: #E63946 !important;
+}
+
+/* =====================================================================
+   2. NAVBAR — Pure black background so logo rectangle disappears
+   ===================================================================== */
+
+.navbar {
+  background: #000000 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid rgba(230, 57, 70, 0.20) !important;
+}
+
+.navbar.scrolled {
+  background: #000000 !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(230, 57, 70, 0.3) !important;
+}
+
+/* Logo: use transparent PNG, make it taller for the square logo format */
+.navbar-logo-img {
+  width: auto !important;
+  height: 56px !important;
+  max-height: 56px !important;
+  max-width: 220px !important;
+  object-fit: contain !important;
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
+  /* NO background, NO border, NO box-shadow — pure seamless blend */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* Nav links: white text, red underline on hover */
+.nav-link {
+  color: rgba(255,255,255,0.80) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+  text-transform: uppercase !important;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #ffffff !important;
+}
+
+/* Nav icon buttons: subtle dark surface */
+.nav-icon-btn {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: rgba(255,255,255,0.80) !important;
+}
+
+.nav-icon-btn:hover {
+  background: rgba(230,57,70,0.15) !important;
+  border-color: rgba(230,57,70,0.35) !important;
+  color: #ffffff !important;
+}
+
+/* Badge */
+.nav-badge {
+  background: #E63946 !important;
+  border-color: #000000 !important;
+}
+
+/* Hamburger */
+.hamburger {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+
+.hamburger span {
+  background: rgba(255,255,255,0.90) !important;
+}
+
+/* =====================================================================
+   3. DROPDOWN MENU
+   ===================================================================== */
+
+.nav-dropdown-menu {
+  background: #111111 !important;
+  border-color: rgba(230,57,70,0.20) !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.7) !important;
+}
+
+.nav-dropdown-item {
+  color: rgba(255,255,255,0.75) !important;
+}
+
+.nav-dropdown-label {
+  color: rgba(255,255,255,0.90) !important;
+  font-weight: 600 !important;
+}
+
+.nav-dropdown-sublabel {
+  color: rgba(255,255,255,0.45) !important;
+}
+
+.nav-dropdown-item:hover {
+  background: rgba(230,57,70,0.12) !important;
+  color: #ffffff !important;
+}
+
+/* =====================================================================
+   4. MOBILE NAV DRAWER
+   ===================================================================== */
+
+.mobile-nav {
+  background: #0a0a0a !important;
+  border-bottom-color: rgba(230,57,70,0.20) !important;
+}
+
+.mobile-nav .nav-link {
+  background: rgba(255,255,255,0.03) !important;
+  color: rgba(255,255,255,0.80) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+.mobile-nav .nav-link:hover,
+.mobile-nav .nav-link.active {
+  background: rgba(230,57,70,0.12) !important;
+  color: #ffffff !important;
+  border-color: rgba(230,57,70,0.25) !important;
+}
+
+/* =====================================================================
+   5. MOBILE LOGO — Centre-aligned, properly sized
+   ===================================================================== */
+
+@media (max-width: 1023px) {
+  .navbar-logo-img {
+    width: auto !important;
+    height: 44px !important;
+    max-height: 44px !important;
+    max-width: 160px !important;
+  }
+}
+
+@media (max-width: 575px) {
+  .navbar-logo-img {
+    height: 38px !important;
+    max-width: 130px !important;
+  }
+}
+
+/* =====================================================================
+   6. BODY / PAGE BACKGROUND — Dark outer canvas
+   ===================================================================== */
+
+body {
+  background: #0D0E1A !important;
+}
+
+/* =====================================================================
+   7. HERO SECTION — stays dark, premium dark navy
+   ===================================================================== */
+
+.hero,
+.hero-banner-section {
+  background: linear-gradient(135deg, #000000 0%, #0D0E1A 50%, #0d1a2e 100%) !important;
+}
+
+/* =====================================================================
+   8. SHOP / PRODUCT SECTIONS — Light content surfaces
+   ===================================================================== */
+
+/* Main content areas: white background, dark text */
+main,
+.product-page,
+.cart-page,
+.checkout-page,
+.wishlist-page,
+.profile-page,
+.shop-page {
+  background: #f8fafc !important;
+  color: #182230 !important;
+}
+
+/* Section backgrounds alternating pattern */
+.section-products,
+.all-products-section,
+.products-section {
+  background: #ffffff !important;
+}
+
+/* =====================================================================
+   9. PRODUCT CARDS — Clean white cards with proper contrast
+   ===================================================================== */
+
+.product-card {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #182230 !important;
+  box-shadow: 0 2px 12px rgba(20,35,55,0.07) !important;
+}
+
+.product-card:hover {
+  border-color: rgba(230,57,70,0.30) !important;
+  box-shadow: 0 8px 32px rgba(20,35,55,0.12), 0 0 0 1px rgba(230,57,70,0.15) !important;
+}
+
+.product-card-title {
+  color: #182230 !important;
+}
+
+.product-card-category {
+  color: #2563eb !important;
+}
+
+.product-price {
+  color: #E63946 !important;
+}
+
+.product-price-original {
+  color: #8899aa !important;
+}
+
+.product-card-footer {
+  border-top-color: #e8edf2 !important;
+}
+
+/* =====================================================================
+   10. CATEGORY CARDS — White surface
+   ===================================================================== */
+
+.category-card {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #182230 !important;
+  box-shadow: 0 2px 10px rgba(20,35,55,0.06) !important;
+}
+
+.category-card-name {
+  color: #182230 !important;
+  font-weight: 700 !important;
+}
+
+.category-card-desc {
+  color: #536273 !important;
+}
+
+/* =====================================================================
+   11. SECTION HEADERS — Dark text on light sections, white on dark
+   ===================================================================== */
+
+/* Sections inside light areas */
+.products-section .section-title,
+.all-products-section .section-title,
+.section-light .section-title {
+  color: #182230 !important;
+}
+
+.products-section .section-subtitle,
+.all-products-section .section-subtitle,
+.section-light .section-subtitle {
+  color: #536273 !important;
+}
+
+/* Dark sections keep white titles */
+.hero .section-title,
+.hero .hero-title,
+.reels-section .section-title {
+  color: #ffffff !important;
+}
+
+/* =====================================================================
+   12. BUTTONS — Consistent, high-contrast
+   ===================================================================== */
+
+.btn-primary {
+  background: linear-gradient(135deg, #E63946, #CC2936) !important;
+  color: #ffffff !important;
+}
+
+.btn-secondary {
+  background: #1D3557 !important;
+  color: #ffffff !important;
+  border-color: #2E5073 !important;
+}
+
+/* On light sections, ghost button needs dark treatment */
+.section-light .btn-ghost,
+.product-card .btn-ghost,
+.cart-item .btn-ghost {
+  color: #536273 !important;
+  border-color: #d6dee7 !important;
+  background: transparent !important;
+}
+
+.section-light .btn-ghost:hover,
+.product-card .btn-ghost:hover {
+  background: #f0f4f8 !important;
+  color: #182230 !important;
+  border-color: #c0cad5 !important;
+}
+
+/* =====================================================================
+   13. CART PAGE
+   ===================================================================== */
+
+.cart-page,
+.cart-items-wrapper,
+.cart-summary {
+  background: #f8fafc !important;
+  color: #182230 !important;
+}
+
+.cart-item {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #182230 !important;
+}
+
+.cart-item h4,
+.cart-item-details h4,
+.cart-item-price {
+  color: #182230 !important;
+}
+
+.cart-item-category,
+.item-category {
+  background: #f0f4f8 !important;
+  color: #536273 !important;
+}
+
+.cart-summary {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+}
+
+.cart-summary h2,
+.cart-summary h3,
+.cart-summary p,
+.cart-summary span {
+  color: #182230 !important;
+}
+
+.cart-header h1 {
+  color: #182230 !important;
+}
+
+.cart-items-header {
+  color: #536273 !important;
+}
+
+/* =====================================================================
+   14. CHECKOUT PAGE
+   ===================================================================== */
+
+.checkout-page .checkout-step,
+.checkout-page .order-summary-card {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #182230 !important;
+}
+
+.checkout-page h1,
+.checkout-page h2,
+.checkout-page h3,
+.checkout-page h4,
+.checkout-page p,
+.checkout-page label,
+.checkout-page .step-label {
+  color: #182230 !important;
+}
+
+/* =====================================================================
+   15. PRODUCT DETAIL PAGE
+   ===================================================================== */
+
+.product-page {
+  background: #f8fafc !important;
+}
+
+.product-page h1,
+.product-page h2,
+.product-page h3,
+.product-page h4,
+.product-page #product-name {
+  color: #182230 !important;
+}
+
+.product-page p,
+.product-page #product-short-desc,
+.product-page .tab-description,
+.product-page .tab-description p {
+  color: #3d4f63 !important;
+}
+
+/* Specs table */
+.product-page .specs-table th,
+.product-page .specs-table td:first-child {
+  background: #f0f4f8 !important;
+  color: #3d4f63 !important;
+}
+
+.product-page .specs-table td:last-child {
+  color: #182230 !important;
+}
+
+.product-page .specs-table {
+  border-color: #e3e8ee !important;
+}
+
+.product-page .specs-table tr:nth-child(even) td {
+  background: #f8fafc !important;
+}
+
+/* Tab buttons */
+.product-page .tab-btn {
+  color: #536273 !important;
+  border-color: #e3e8ee !important;
+  background: #f8fafc !important;
+}
+
+.product-page .tab-btn.active {
+  color: #E63946 !important;
+  border-color: #E63946 !important;
+  background: rgba(230,57,70,0.05) !important;
+}
+
+/* Features list */
+.product-page .features-list li {
+  background: #f0f4f8 !important;
+  border-color: #e3e8ee !important;
+  color: #3d4f63 !important;
+}
+
+/* Stock label */
+.product-page .stock-label,
+.product-page #product-stock-label {
+  font-weight: 700 !important;
+}
+
+/* Delivery badges */
+.delivery-badge {
+  background: #f0f4f8 !important;
+  border-color: #e3e8ee !important;
+  color: #536273 !important;
+}
+
+/* Quantity controls */
+.quantity-btn {
+  background: #f0f4f8 !important;
+  border-color: #e3e8ee !important;
+  color: #182230 !important;
+}
+
+.quantity-btn:hover {
+  background: #E63946 !important;
+  border-color: #E63946 !important;
+  color: #ffffff !important;
+}
+
+.quantity-input {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #182230 !important;
+}
+
+/* =====================================================================
+   16. FORMS AND INPUTS — Properly visible everywhere
+   ===================================================================== */
+
+input,
+textarea,
+select,
+.form-control,
+.form-input,
+.form-textarea,
+.form-select {
+  background: #ffffff !important;
+  color: #182230 !important;
+  border-color: #d6dee7 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8899aa !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #E63946 !important;
+  box-shadow: 0 0 0 3px rgba(230,57,70,0.12) !important;
+  outline: none !important;
+}
+
+.form-group label,
+.form-label {
+  color: #3d4f63 !important;
+  font-weight: 600 !important;
+}
+
+/* =====================================================================
+   17. PROFILE / ACCOUNT PAGE
+   ===================================================================== */
+
+.profile-page {
+  background: #f8fafc !important;
+}
+
+.profile-sidebar,
+.profile-content,
+.profile-card {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #182230 !important;
+}
+
+.profile-sidebar h1,
+.profile-sidebar h2,
+.profile-sidebar h3,
+.profile-sidebar p,
+.profile-sidebar span,
+.profile-content h1,
+.profile-content h2,
+.profile-content h3,
+.profile-content h4,
+.profile-content p,
+.profile-content span,
+.panel-title,
+.detail-val,
+.detail-label {
+  color: #182230 !important;
+}
+
+/* =====================================================================
+   18. WISHLIST PAGE
+   ===================================================================== */
+
+.wishlist-page {
+  background: #f8fafc !important;
+}
+
+.wishlist-card {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #182230 !important;
+}
+
+.wishlist-page h1,
+.wishlist-page h2,
+.wishlist-page h3,
+.wishlist-page h4,
+.wishlist-page p,
+.wish-name a,
+.wish-category,
+.wish-price-row {
+  color: #182230 !important;
+}
+
+/* =====================================================================
+   19. PAGE HERO (About, Contact, FAQ) — Light
+   ===================================================================== */
+
+.page-hero {
+  background: #f0f4f8 !important;
+  border-bottom: 1px solid #e3e8ee !important;
+}
+
+.page-hero h1 {
+  color: #182230 !important;
+}
+
+.page-hero p {
+  color: #536273 !important;
+}
+
+/* Breadcrumb */
+.breadcrumb-bar {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e8edf2 !important;
+}
+
+.breadcrumb,
+.breadcrumb a,
+.breadcrumb span {
+  color: #536273 !important;
+}
+
+.breadcrumb a:hover {
+  color: #E63946 !important;
+}
+
+/* =====================================================================
+   20. ABOUT / CONTACT / FAQ / PRIVACY / TERMS pages
+   ===================================================================== */
+
+.pages-content,
+.about-page,
+.contact-page,
+.faq-page,
+.privacy-page,
+.terms-page {
+  background: #f8fafc !important;
+  color: #182230 !important;
+}
+
+.feature-card,
+.why-card,
+.delivery-card {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #182230 !important;
+}
+
+/* FAQ accordion */
+.faq-item {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+}
+
+.faq-question {
+  color: #182230 !important;
+  font-weight: 600 !important;
+}
+
+.faq-answer {
+  color: #536273 !important;
+}
+
+/* Contact form section */
+.contact-form-section {
+  background: #ffffff !important;
+}
+
+/* =====================================================================
+   21. SHOP PAGE — Light filter sidebar + product grid
+   ===================================================================== */
+
+.shop-page {
+  background: #f8fafc !important;
+}
+
+.filter-sidebar {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #182230 !important;
+}
+
+.filter-section-title {
+  color: #182230 !important;
+  font-weight: 700 !important;
+}
+
+.filter-option {
+  color: #536273 !important;
+}
+
+.filter-option:hover {
+  color: #182230 !important;
+}
+
+.filter-option input[type="checkbox"]:checked + span {
+  color: #E63946 !important;
+}
+
+.shop-page .result-count,
+.shop-page .result-count strong {
+  color: #536273 !important;
+}
+
+/* Sort select */
+.shop-page .sort-select,
+.shop-page select {
+  background: #ffffff !important;
+  color: #182230 !important;
+  border-color: #d6dee7 !important;
+}
+
+/* =====================================================================
+   22. FOOTER — Deep dark, logo blends
+   ===================================================================== */
+
+.footer,
+.site-footer {
+  background: #000000 !important;
+  color: #e2e8f0 !important;
+  border-top: 1px solid rgba(230,57,70,0.20) !important;
+}
+
+.footer-title {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.footer-description {
+  color: #94a3b8 !important;
+}
+
+.footer-link {
+  color: #94a3b8 !important;
+  transition: color 0.2s ease !important;
+}
+
+.footer-link:hover {
+  color: #E63946 !important;
+}
+
+.footer-contact-item,
+.footer-bottom p {
+  color: #94a3b8 !important;
+}
+
+.footer-bottom {
+  border-top-color: rgba(255,255,255,0.08) !important;
+}
+
+/* Footer logo: same transparent png on black = seamless */
+.footer-logo-img {
+  height: auto !important;
+  width: 150px !important;
+  object-fit: contain !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Social icons */
+.social-icon {
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  color: #94a3b8 !important;
+  transition: all 0.2s ease !important;
+}
+
+.social-icon:hover {
+  background: rgba(230,57,70,0.20) !important;
+  border-color: rgba(230,57,70,0.40) !important;
+  color: #ffffff !important;
+}
+
+/* =====================================================================
+   23. MODALS & OVERLAYS — Properly dark
+   ===================================================================== */
+
+.modal {
+  background: #1a1e2e !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: #ffffff !important;
+}
+
+.modal-header {
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+}
+
+.modal-title {
+  color: #ffffff !important;
+}
+
+.modal-body,
+.modal-body p {
+  color: rgba(255,255,255,0.80) !important;
+}
+
+/* =====================================================================
+   24. TOAST NOTIFICATIONS
+   ===================================================================== */
+
+.toast {
+  background: #1a1e2e !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: #ffffff !important;
+}
+
+.toast-title {
+  color: #ffffff !important;
+}
+
+.toast-message {
+  color: rgba(255,255,255,0.75) !important;
+}
+
+/* =====================================================================
+   25. SEARCH OVERLAY
+   ===================================================================== */
+
+.search-overlay,
+.search-modal {
+  background: #0a0a0a !important;
+}
+
+.search-input {
+  background: rgba(255,255,255,0.06) !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+
+.search-input::placeholder {
+  color: rgba(255,255,255,0.40) !important;
+}
+
+.search-result-item {
+  color: rgba(255,255,255,0.80) !important;
+}
+
+.search-result-item:hover {
+  background: rgba(230,57,70,0.10) !important;
+}
+
+/* =====================================================================
+   26. REELS / VIDEO SECTION — Dark cinematic
+   ===================================================================== */
+
+.reels-section {
+  background: #000000 !important;
+}
+
+.reels-section .section-title {
+  color: #ffffff !important;
+}
+
+.reels-section .section-subtitle {
+  color: rgba(255,255,255,0.65) !important;
+}
+
+/* =====================================================================
+   27. LOADING / SKELETON
+   ===================================================================== */
+
+.skeleton-card {
+  background: #ffffff !important;
+  border-color: #e8edf2 !important;
+}
+
+.skeleton-image {
+  background: #f0f4f8 !important;
+}
+
+.skeleton-line {
+  background: #e8edf2 !important;
+}
+
+/* =====================================================================
+   28. SCROLLBAR — Match brand
+   ===================================================================== */
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333 !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #E63946 !important;
+}
+
+/* =====================================================================
+   29. PAGINATION
+   ===================================================================== */
+
+.page-btn {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #536273 !important;
+}
+
+.page-btn:hover {
+  background: #f0f4f8 !important;
+  color: #182230 !important;
+  border-color: #c8d4e0 !important;
+}
+
+.page-btn.active {
+  background: linear-gradient(135deg, #E63946, #CC2936) !important;
+  border-color: #CC2936 !important;
+  color: #ffffff !important;
+}
+
+/* =====================================================================
+   30. SHOP PAGE FILTER CHIPS
+   ===================================================================== */
+
+.chip {
+  background: #ffffff !important;
+  border-color: #e3e8ee !important;
+  color: #536273 !important;
+}
+
+.chip:hover,
+.chip.active {
+  background: rgba(230,57,70,0.08) !important;
+  border-color: rgba(230,57,70,0.30) !important;
+  color: #E63946 !important;
+}
+
+/* =====================================================================
+   31. HOME PAGE SECTIONS — Alternating dark/light
+   ===================================================================== */
+
+/* Featured products on homepage: white section */
+#products-section,
+.products-section-wrap {
+  background: #ffffff !important;
+}
+
+/* Category section on homepage: very light grey */
+#categories-section,
+.categories-section-wrap {
+  background: #f4f7fa !important;
+}
+
+/* Why choose us / features: white */
+#features-section,
+.features-section-wrap {
+  background: #ffffff !important;
+}
+
+/* =====================================================================
+   32. SECTION HEADER contrast fix for light sections
+   ===================================================================== */
+
+/* Any section-title or section-subtitle inside a white/light section */
+.section-title {
+  color: #182230;
+}
+.section-subtitle {
+  color: #536273;
+}
+
+/* Override for explicitly dark sections */
+.hero .section-title,
+.reels-section .section-title,
+.footer .section-title,
+[class*="dark-section"] .section-title {
+  color: #ffffff !important;
+}
+
+/* =====================================================================
+   33. WHATSAPP FLOAT BUTTON
+   ===================================================================== */
+
+.wa-float {
+  background: linear-gradient(135deg, #25D366, #128C7E) !important;
+  box-shadow: 0 8px 24px rgba(37,211,102,0.4) !important;
+}
+
+/* =====================================================================
+   34. SPEC TABLE IN PRODUCT PAGE (light)
+   ===================================================================== */
+
+.specs-table td {
+  border-bottom-color: #e8edf2 !important;
+}
+
+.specs-table td:first-child {
+  color: #536273 !important;
+  background: #f8fafc !important;
+}
+
+.specs-table td:last-child {
+  color: #182230 !important;
+}
+
+/* =====================================================================
+   35. ADMIN DASHBOARD — Keep dark theme
+   ===================================================================== */
+
+.admin-layout,
+.admin-sidebar,
+.admin-content,
+.admin-header,
+.admin-body {
+  background: var(--dark-900) !important;
+  color: #ffffff !important;
+}
+
+/* =====================================================================
+   36. VISIBILITY CORRECTIONS — catch-all for missed contrast issues
+   ===================================================================== */
+
+/* Any text that ended up white on white background */
+main p:not([class*="text-"]):not(.hero *):not(.footer *):not(.reels-section *) {
+  color: #3d4f63;
+}
+
+/* Ensure dark text on any card/surface in light areas */
+.product-card *,
+.category-card *,
+.cart-item *,
+.wishlist-card *,
+.profile-card *,
+.feature-card *,
+.why-card * {
+  --text-primary: #182230;
+  --text-secondary: #536273;
+  --text-muted: #8899aa;
+}
+
+/* =====================================================================
+   37. SECTION BADGE on light sections
+   ===================================================================== */
+
+/* On light sections, the red badge text is fine but the border should be visible */
+.products-section .section-badge,
+.categories-section .section-badge {
+  background: rgba(230,57,70,0.08) !important;
+  border-color: rgba(230,57,70,0.25) !important;
+  color: #CC2936 !important;
+}
+
+/* =====================================================================
+   38. MOBILE MENU — Auth Links
+   ===================================================================== */
+
+.mobile-auth-link {
+  background: rgba(255,255,255,0.03) !important;
+  color: rgba(255,255,255,0.80) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* =====================================================================
+   39. IMAGE GALLERY (Product Page)
+   ===================================================================== */
+
+.gallery-main-wrap {
+  background: #f8fafc !important;
+  border-radius: 16px !important;
+  border: 1px solid #e3e8ee !important;
+}
+
+.gallery-thumb {
+  border-color: #e3e8ee !important;
+  background: #f8fafc !important;
+}
+
+.gallery-thumb.active {
+  border-color: #E63946 !important;
+}
+
+/* =====================================================================
+   40. HERO CAROUSEL (homepage banner)
+   ===================================================================== */
+
+.hero-carousel-control {
+  background: rgba(255,255,255,0.90) !important;
+  color: #182230 !important;
+}
+
+.hero-carousel-control:hover {
+  background: #E63946 !important;
+  color: #ffffff !important;
+}
+
+/* =====================================================================
+   41. DISCOUNT / SALE BADGE — prominent
+   ===================================================================== */
+
+.badge-sale {
+  background: rgba(230,57,70,0.12) !important;
+  color: #E63946 !important;
+  border-color: rgba(230,57,70,0.30) !important;
+  font-weight: 700 !important;
+}
+
+/* =====================================================================
+   42. SELECTION COLOR
+   ===================================================================== */
+
+::selection {
+  background: #E63946 !important;
+  color: #ffffff !important;
+}

@@ -369,8 +369,112 @@ const Admin = {
     await this.updateAdminInfo();
     this.initNav();
     this.startClock();
-    await this.loadSection('dashboard');
+    this.initPushNotificationsUI();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetSection = urlParams.get('section') || 'dashboard';
+    const targetOrderId = urlParams.get('orderId');
+
+    await this.loadSection(targetSection);
+    if (targetOrderId && targetSection === 'orders') {
+      await this.openOrderModal(targetOrderId);
+    }
     console.log('[Admin] ✅ Dashboard fully loaded');
+  },
+
+  urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  },
+
+  async initPushNotificationsUI() {
+    const btn = document.getElementById('btn-enable-push');
+    if (!btn) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      btn.style.display = 'none';
+      return;
+    }
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      const existing = await reg.pushManager.getSubscription();
+      if (existing && Notification.permission === 'granted') {
+        btn.textContent = '🔔 Notifications Active';
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-success');
+      }
+    } catch (e) {
+      console.warn('[Admin] SW check failed:', e);
+    }
+  },
+
+  async enableOrderNotifications() {
+    const btn = document.getElementById('btn-enable-push');
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      Toast.error('Web Push is not supported in this browser.');
+      return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Enabling...'; }
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Notification permission was not granted.');
+      }
+
+      const sessionRes = window.EpicSupabase ? await window.EpicSupabase.auth.getSession() : null;
+      const accessToken = sessionRes?.data?.session?.access_token;
+      if (!accessToken) {
+        throw new Error('Admin Supabase session required. Please log in again.');
+      }
+
+      const vapidRes = await fetch('/api/push-subscribe?type=vapid');
+      const vapidData = await vapidRes.json();
+      if (!vapidRes.ok || !vapidData.publicKey) {
+        throw new Error(vapidData.error || 'Could not load VAPID public key.');
+      }
+
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      await navigator.serviceWorker.ready;
+      let subscription = await reg.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: this.urlBase64ToUint8Array(vapidData.publicKey)
+        });
+      }
+
+      const saveRes = await fetch('/api/push-subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ subscription })
+      });
+      const saveData = await saveRes.json();
+      if (!saveRes.ok || !saveData.subscribed) {
+        throw new Error(saveData.error || 'Failed to save push subscription.');
+      }
+
+      if (btn) {
+        btn.textContent = '🔔 Notifications Active';
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-success');
+      }
+      Toast.success('Admin Order Push Notifications enabled on this device!');
+    } catch (err) {
+      console.error('[Admin] enableOrderNotifications failed:', err);
+      if (btn) btn.textContent = '🔔 Enable Order Notifications';
+      Toast.error(err.message || 'Failed to enable notifications.');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   },
 
   // ══════════════════════════════════════════
@@ -686,7 +790,7 @@ const Admin = {
       shopName: 'Epic Toyz',
       whatsapp: '916383793890',
       upi: '9363114113@sbi',
-      shipping: 50
+      shipping: 150
     };
 
     try {
@@ -708,7 +812,7 @@ const Admin = {
     if (nameInput) nameInput.value = settings.shopName || '';
     if (waInput) waInput.value = settings.whatsapp || '';
     if (upiInput) upiInput.value = settings.upi || '';
-    if (shippingInput) shippingInput.value = settings.shipping ?? 50;
+    if (shippingInput) shippingInput.value = settings.shipping ?? 150;
   },
 
   saveSettings(event) {
@@ -723,7 +827,7 @@ const Admin = {
       shopName: nameInput ? nameInput.value.trim() : 'Epic Toyz',
       whatsapp: waInput ? waInput.value.trim().replace(/[^0-9]/g, '') : '916383793890',
       upi: upiInput ? upiInput.value.trim() : '9363114113@sbi',
-      shipping: shippingInput ? parseInt(shippingInput.value, 10) || 0 : 50
+      shipping: shippingInput ? parseInt(shippingInput.value, 10) || 0 : 150
     };
 
     try {
@@ -801,7 +905,7 @@ const Admin = {
     if (!tbody) return;
 
     if (paginated.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="table-empty"><div class="empty-icon">📦</div><div>No products found</div><div style="margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="Admin.openProductModal()">➕ Add First Product</button></div></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8"><div class="table-empty"><div class="empty-icon">📦</div><div>No products found</div><div style="margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="Admin.openProductModal()">➕ Add First Product</button></div></div></td></tr>`;
     } else {
       tbody.innerHTML = paginated.map(p => {
         const stock = Number(p.stock || p.stockQuantity || 0);
@@ -826,6 +930,8 @@ const Admin = {
           ? `<div class="product-thumb"><img src="${esc(p.image)}" alt="" onerror="this.parentElement.innerHTML='📦'"></div>`
           : `<div class="product-thumb">📦</div>`;
 
+        const pm = p.paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay';
+
         return `
           <tr>
             <td>
@@ -848,6 +954,18 @@ const Admin = {
             <td><div style="display:flex;flex-wrap:wrap;gap:4px;">${getBadgeHTML(p.badges && p.badges.length > 0 ? p.badges : (p.badge || ''))}</div></td>
             <td>${statusHtml}</td>
             <td>
+              <select
+                class="form-control"
+                aria-label="Payment method for ${esc(p.name)}"
+                data-prev-value="${pm}"
+                style="min-width:155px; padding:6px 10px; font-size:12px;"
+                onchange="Admin.changeProductPaymentMethod('${esc(String(p.id))}', this.value, this)"
+              >
+                <option value="razorpay" ${pm === 'razorpay' ? 'selected' : ''}>Razorpay Payment</option>
+                <option value="whatsapp" ${pm === 'whatsapp' ? 'selected' : ''}>WhatsApp Enquiry</option>
+              </select>
+            </td>
+            <td>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="Admin.openProductModal('${esc(String(p.id))}')">✏️ Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="Admin.deleteProduct('${esc(String(p.id))}')">🗑️</button>
@@ -860,6 +978,29 @@ const Admin = {
 
     // Pagination controls
     this.renderPagination('products-pagination', currentPage, totalPages, 'Admin.goToProductPage');
+  },
+
+  async changeProductPaymentMethod(productId, method, selectEl) {
+    const normalized = method === 'whatsapp' ? 'whatsapp' : 'razorpay';
+    const prevValue = selectEl?.dataset?.prevValue || 'razorpay';
+    if (selectEl) selectEl.disabled = true;
+
+    try {
+      if (isSupabaseConfigured() && typeof DB !== 'undefined' && DB.updateProductPaymentMethod) {
+        await DB.updateProductPaymentMethod(productId, normalized);
+      } else {
+        LocalDB.updateProduct(productId, { paymentMethod: normalized, payment_method: normalized });
+      }
+      if (selectEl) selectEl.dataset.prevValue = normalized;
+      const label = normalized === 'whatsapp' ? 'WhatsApp Enquiry' : 'Razorpay Payment';
+      Toast.success(`Payment method updated to ${label}`);
+    } catch (err) {
+      console.error('[Admin] changeProductPaymentMethod failed:', err);
+      if (selectEl) selectEl.value = prevValue;
+      Toast.error('Failed to update payment method: ' + (err.message || 'Unknown error'));
+    } finally {
+      if (selectEl) selectEl.disabled = false;
+    }
   },
 
   handleProductSearch(value) {
@@ -889,6 +1030,8 @@ const Admin = {
     // Reset form
     document.getElementById('product-form').reset();
     document.getElementById('product-id').value = '';
+    const pmSelect = document.getElementById('product-payment-method');
+    if (pmSelect) pmSelect.value = 'razorpay';
     this.clearImageRows();
     this.addImageRow(); // Start with one empty image row
     this.clearSpecRows();
@@ -948,6 +1091,8 @@ const Admin = {
       document.getElementById('product-short-desc').value = product.shortDescription || product.shortDesc || '';
       document.getElementById('product-desc').value = product.description || product.fullDescription || '';
       document.getElementById('product-featured').checked = !!product.featured || !!product.isFeatured;
+      const pmEditSelect = document.getElementById('product-payment-method');
+      if (pmEditSelect) pmEditSelect.value = product.paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay';
 
       // Images
       this.clearImageRows();
@@ -963,9 +1108,10 @@ const Admin = {
       // Specs
       this.clearSpecRows();
       const specs = product.specifications || product.specs || {};
-      const specEntries = Array.isArray(specs)
+      const specEntries = (Array.isArray(specs)
         ? specs
-        : Object.entries(specs).map(([key, value]) => ({ key, value }));
+        : Object.entries(specs).map(([key, value]) => ({ key, value })))
+        .filter(s => s && s.key !== '_payment_method');
       if (specEntries.length > 0) {
         specEntries.forEach(s => this.addSpecRow(s.key || '', s.value || ''));
       } else {
@@ -1213,6 +1359,7 @@ const Admin = {
     const shortDesc = document.getElementById('product-short-desc').value.trim();
     const desc = document.getElementById('product-desc').value.trim();
     const featured = document.getElementById('product-featured').checked;
+    const paymentMethod = document.getElementById('product-payment-method')?.value === 'whatsapp' ? 'whatsapp' : 'razorpay';
     const images = this.getImagesFromForm();
     const imageUrl = images.length > 0 ? images[0] : '';
     const specs = this.getSpecsFromForm();
@@ -1246,6 +1393,8 @@ const Admin = {
       description: desc,
       featured,
       isFeatured: featured,
+      paymentMethod,
+      payment_method: paymentMethod,
       image: imageUrl || null,
       images: images.length > 0 ? images : (imageUrl ? [imageUrl] : []),
       specifications: specs,
@@ -1402,6 +1551,7 @@ const Admin = {
     const shortDesc = document.getElementById('product-short-desc').value.trim();
     const desc = document.getElementById('product-desc').value.trim();
     const featured = document.getElementById('product-featured').checked;
+    const paymentMethod = document.getElementById('product-payment-method')?.value === 'whatsapp' ? 'whatsapp' : 'razorpay';
     const images = this.getImagesFromForm();
     const imageUrl = images.length > 0 ? images[0] : '';
     const specs = this.getSpecsFromForm();
@@ -1436,6 +1586,8 @@ const Admin = {
       description: desc,
       featured,
       isFeatured: featured,
+      paymentMethod,
+      payment_method: paymentMethod,
       image: imageUrl || null,
       images: images.length > 0 ? images : (imageUrl ? [imageUrl] : []),
       specifications: specs,
@@ -1803,7 +1955,19 @@ const Admin = {
     document.getElementById('order-modal-title').textContent = `Order #${orderNum}`;
 
     const items = order.items || order.cartItems || [];
-    const total = order.total || order.totalAmount || 0;
+    const total = Number(order.total || order.totalAmount || 0);
+    const shipping = Number(order.shipping ?? 150);
+    const subtotal = Number(order.subtotal ?? Math.max(0, total - shipping));
+    const fullAddress = [
+      order.addressLine1 || order.address_line1,
+      order.addressLine2 || order.address_line2,
+      order.city,
+      order.state,
+      order.pincode && order.pincode !== '000000' ? order.pincode : ''
+    ].filter(Boolean).join(', ') || order.address || order.deliveryAddress || 'Not provided';
+    const notesStr = String(order.notes || '');
+    const rzpPayMatch = notesStr.match(/Razorpay Payment ID:\s*([A-Za-z0-9_]+)/i);
+    const rzpPaymentId = rzpPayMatch ? rzpPayMatch[1] : null;
 
     const body = document.getElementById('order-modal-body');
     body.innerHTML = `
@@ -1817,13 +1981,14 @@ const Admin = {
         </div>
         <div class="order-detail-section">
           <div class="order-detail-label">Delivery Address</div>
-          <div class="order-detail-value">${esc(order.address || order.deliveryAddress || 'Not provided')}</div>
+          <div class="order-detail-value">${esc(fullAddress)}</div>
         </div>
         <div class="order-detail-section">
           <div class="order-detail-label">Payment</div>
           <div class="order-detail-value">
             Method: <strong>${esc(order.paymentMethod || order.payment || 'COD')}</strong><br>
             Status: ${getStatusBadge(order.paymentStatus || (order.paymentMethod === 'UPI' ? 'paid' : 'pending'))}
+            ${rzpPaymentId ? `<br><span style="font-size:12px; color:var(--text-muted);">Razorpay ID: <code>${esc(rzpPaymentId)}</code></span>` : ''}
           </div>
         </div>
         <div class="order-detail-section">
@@ -1851,6 +2016,14 @@ const Admin = {
               <div class="order-item-price">${formatCurrency((item.price || 0) * (item.quantity || item.qty || 1))}</div>
             </div>
           `).join('') : '<div style="color:var(--text-muted); padding:12px 0;">No items recorded</div>'}
+          <div class="order-item-row" style="border-top:1px dashed var(--border); padding-top:10px; margin-top:6px;">
+            <div style="color:var(--text-muted); font-size:13px;">Subtotal</div>
+            <div style="font-size:13px; font-weight:600;">${formatCurrency(subtotal)}</div>
+          </div>
+          <div class="order-item-row">
+            <div style="color:var(--text-muted); font-size:13px;">Delivery Charge</div>
+            <div style="font-size:13px; font-weight:600;">${formatCurrency(shipping)}</div>
+          </div>
           <div class="order-total-row">
             <span>Total</span>
             <span style="color:var(--red);">${formatCurrency(total)}</span>

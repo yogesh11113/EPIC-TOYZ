@@ -344,16 +344,6 @@
       overflow: hidden;
     }
 
-    .product-card-rating {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 14px;
-    }
-
-    .stars { color: var(--gold); font-size: 13px; letter-spacing: 1px; }
-    .rating-count { font-size: 12px; color: var(--text-dim); }
-
     .product-card-footer {
       display: flex;
       align-items: center;
@@ -1161,80 +1151,6 @@
       line-height: 1.6;
     }
 
-    /* ====== TESTIMONIALS ====== */
-    .testimonials-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-    }
-
-    .testimonial-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 28px;
-      transition: var(--transition);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .testimonial-card:hover {
-      border-color: rgba(230,57,70,0.25);
-      transform: translateY(-4px);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.3);
-    }
-
-    .testimonial-stars { color: var(--gold); font-size: 16px; letter-spacing: 2px; }
-
-    .testimonial-text {
-      font-size: 15px;
-      color: var(--text-muted);
-      line-height: 1.7;
-      flex: 1;
-      font-style: italic;
-    }
-
-    .testimonial-author {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .testimonial-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--red) 0%, var(--blue-accent) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: 700;
-      color: white;
-      flex-shrink: 0;
-    }
-
-    .testimonial-name {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .testimonial-location {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .verified-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      color: var(--success);
-      font-weight: 600;
-      margin-top: 2px;
-    }
 
     /* ====== DELIVERY SECTION ====== */
     .delivery-grid {
@@ -1653,6 +1569,9 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="css/light-theme.css">
+  <link rel="stylesheet" href="css/brand-theme.css">
+  <link rel="stylesheet" href="css/brand-theme-addendum.css">
 </head>
 <body>
 
@@ -1662,18 +1581,19 @@
   <!-- ================================================================
        1. HERO BANNER
   ================================================================ -->
-  <section class="hero-banner-section" id="hero">
-    <a href="shop.html" aria-label="Shop Epic Toyz RC Cars">
-      <picture>
-        <source srcset="assets/images/epic-toyz-banner.webp" type="image/webp">
-        <img
-          src="assets/images/epic-toyz-banner.jpg"
-          alt="Epic Toyz – India's Premium RC Car Store | Follow us on Instagram @epictoyz.in | Facebook: Epic Toyzin | WhatsApp: +91 63837 93890"
-          fetchpriority="high"
-          decoding="async"
-        >
-      </picture>
-    </a>
+  <section class="hero-banner-section" id="hero" aria-label="Featured promotions">
+    <div class="hero-slides" id="hero-slides">
+      <div class="hero-slide">
+        <a href="shop.html" aria-label="Shop Epic Toyz RC Cars"><picture><source srcset="assets/images/epic-toyz-banner.webp" type="image/webp"><img src="assets/images/epic-toyz-banner.jpg" alt="Epic Toyz &mdash; India&#39;s Premium RC Car Store" fetchpriority="high" decoding="async"></picture></a>
+      </div>
+      <div class="hero-slide">
+        <img src="assets/images/hero-rc-chassis-new.jpg" alt="Premium remote control car ready for the track" loading="lazy" decoding="async">
+        <div class="hero-slide-copy"><h2>EXPLORE THE WORLD OF RC</h2><p>Discover Premium RC Cars &amp; More</p><a href="shop.html">Shop Now</a></div>
+      </div>
+    </div>
+    <button class="hero-carousel-control prev" type="button" aria-label="Previous banner">&#8249;</button>
+    <button class="hero-carousel-control next" type="button" aria-label="Next banner">&#8250;</button>
+    <div class="hero-carousel-dots" role="group" aria-label="Choose a banner"><button type="button" aria-label="Show banner 1" aria-current="true"></button><button type="button" aria-label="Show banner 2" aria-current="false"></button></div>
   </section>
 
 

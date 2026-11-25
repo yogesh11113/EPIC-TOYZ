@@ -138,6 +138,15 @@ function mapSupabaseProduct(p) {
     img => img && typeof img === 'string' && !img.startsWith('data:image')
   );
 
+  const rawSpecs = (p.specifications && typeof p.specifications === 'object' && !Array.isArray(p.specifications))
+    ? { ...p.specifications }
+    : (p.specifications || {});
+  const rawPaymentMethod = p.payment_method || rawSpecs._payment_method || 'razorpay';
+  const paymentMethod = rawPaymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay';
+  if (rawSpecs && typeof rawSpecs === 'object' && !Array.isArray(rawSpecs)) {
+    delete rawSpecs._payment_method;
+  }
+
   return {
     ...cleaned,
     originalPrice: p.original_price != null ? Number(p.original_price) : null,
@@ -151,8 +160,10 @@ function mapSupabaseProduct(p) {
     reviewsCount: p.review_count ?? 0,
     image: cleanImages.length > 0 ? cleanImages[0] : 'assets/images/placeholder.jpg',
     images: cleanImages,
-    specs: p.specifications || {},
-    specifications: p.specifications || {},
+    specs: rawSpecs,
+    specifications: rawSpecs,
+    paymentMethod,
+    payment_method: paymentMethod,
     category: resolvedCategory || p.category_id || p.category || '',
     categoryId: p.category_id || '',
     badges: Array.isArray(p.badges) ? p.badges : (p.badge ? [p.badge] : []),
@@ -547,8 +558,14 @@ const DB = {
       p.images = typeof data.images === 'string' ? [data.images] : [];
     }
 
-    if (data.specifications !== undefined) p.specifications = data.specifications;
-    else if (data.specs !== undefined) p.specifications = data.specs;
+    if (data.specifications !== undefined) p.specifications = { ...(data.specifications || {}) };
+    else if (data.specs !== undefined) p.specifications = { ...(data.specs || {}) };
+
+    const pm = (data.paymentMethod || data.payment_method) === 'whatsapp' ? 'whatsapp' : 'razorpay';
+    if (data.paymentMethod !== undefined || data.payment_method !== undefined || p.specifications !== undefined) {
+      p.specifications = p.specifications && typeof p.specifications === 'object' ? { ...p.specifications } : {};
+      p.specifications._payment_method = pm;
+    }
 
     if (data.features !== undefined) p.features = data.features;
 
@@ -760,6 +777,46 @@ const DB = {
     const idx = products.findIndex(p => String(p.id) === String(id));
     if (idx === -1) return null;
     products[idx] = { ...products[idx], ...updated };
+    LS.set(KEYS.PRODUCTS, products);
+    if (window.ProductCache) window.ProductCache.invalidateAll();
+    return products[idx];
+  },
+
+  /**
+   * Update only a product's payment method ('razorpay' | 'whatsapp') in Supabase.
+   * Persists inside specifications._payment_method without altering table schema.
+   */
+  async updateProductPaymentMethod(id, paymentMethod) {
+    const pm = paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay';
+    if (isSupabaseConfigured() && window.EpicSupabase) {
+      const { data: existing, error: fetchErr } = await window.EpicSupabase
+        .from('products')
+        .select('specifications')
+        .eq('id', id)
+        .maybeSingle();
+      if (fetchErr) throw fetchErr;
+
+      const currentSpecs = (existing && existing.specifications && typeof existing.specifications === 'object' && !Array.isArray(existing.specifications))
+        ? { ...existing.specifications }
+        : {};
+      currentSpecs._payment_method = pm;
+
+      const { data: updatedRows, error: updateErr } = await window.EpicSupabase
+        .from('products')
+        .update({ specifications: currentSpecs, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select();
+      if (updateErr) throw updateErr;
+
+      if (window.ProductCache) window.ProductCache.invalidateAll();
+      const row = Array.isArray(updatedRows) ? updatedRows[0] : updatedRows;
+      return row ? mapSupabaseProduct(row) : { id, paymentMethod: pm };
+    }
+
+    const products = lsProducts();
+    const idx = products.findIndex(p => String(p.id) === String(id));
+    if (idx === -1) return null;
+    products[idx] = { ...products[idx], paymentMethod: pm, payment_method: pm };
     LS.set(KEYS.PRODUCTS, products);
     if (window.ProductCache) window.ProductCache.invalidateAll();
     return products[idx];
@@ -1002,7 +1059,7 @@ const DB = {
     if (isSupabaseConfigured() && window.EpicSupabase) {
       try {
         const delivery = orderData.delivery || {};
-        const customerName = delivery.name || orderData.customerName || 'Guest';
+        const customerName = delivery.name || [delivery.firstName, delivery.lastName].filter(Boolean).join(' ') || orderData.customerName || 'Guest';
         const customerPhone = delivery.phone || orderData.customerPhone || '0000000000';
         const customerEmail = orderData.user?.email || orderData.customerEmail || null;
 
@@ -1012,8 +1069,14 @@ const DB = {
         if (pinMatch) pincode = pinMatch[0];
 
         const parts = addressText.split(',').map(s => s.trim());
-        const city = parts[parts.length - 3] || 'City';
-        const state = parts[parts.length - 2] || 'State';
+        const city = delivery.city || parts[parts.length - 3] || 'City';
+        const state = delivery.state || parts[parts.length - 2] || 'State';
+        const line1 = delivery.addressLine1
+          ? [delivery.addressLine1, delivery.addressLine2].filter(Boolean).join(', ')
+          : (addressText || 'N/A');
+        const notesParts = [];
+        if (delivery.secondaryPhone) notesParts.push(`Secondary Phone: ${delivery.secondaryPhone}`);
+        if (orderData.notes) notesParts.push(orderData.notes);
 
         let currentUser = window.Auth?.getCurrentUser ? await window.Auth.getCurrentUser() : null;
         let userId = currentUser?.id || null;
@@ -1029,17 +1092,17 @@ const DB = {
           customer_name:   customerName,
           customer_phone:  customerPhone,
           customer_email:  customerEmail,
-          address_line1:   addressText || 'N/A',
+          address_line1:   line1,
           city:            city,
           state:           state,
           pincode:         pincode || '000000',
-          subtotal:        orderData.subtotal || orderData.total - 50 || 0,
-          shipping:        orderData.shipping || 50,
+          subtotal:        orderData.subtotal || (orderData.total ? orderData.total - 150 : 0) || 0,
+          shipping:        orderData.shipping ?? 150,
           total:           orderData.total || 0,
           payment_method:  orderData.paymentMethod || 'whatsapp',
           payment_status:  'pending',
           order_status:    'pending',
-          notes:           orderData.notes || '',
+          notes:           notesParts.join(' | '),
         };
 
         const { data: rawOrder, error: orderErr } = await window.EpicSupabase

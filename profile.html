@@ -367,6 +367,9 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="css/light-theme.css">
+  <link rel="stylesheet" href="css/brand-theme.css">
+  <link rel="stylesheet" href="css/brand-theme-addendum.css">
 </head>
 <body>
 
@@ -436,7 +439,7 @@
           <!-- TAB PANEL: ORDERS -->
           <div class="tab-panel" id="panel-orders" role="tabpanel" aria-labelledby="tab-btn-orders">
             <h2 class="panel-title">Order History</h2>
-            <div id="orders-loading-msg" style="text-align:center; color:#ADB5BD; padding:20px;">
+            <div id="orders-loading-msg" style="text-align:center; color:#536273; padding:20px;">
               Loading orders...
             </div>
             <div class="orders-list" id="orders-list-container" style="display:none;">
@@ -599,8 +602,8 @@
                     ${itemsHTML}
                   </div>
                   <div class="order-footer">
-                    <div style="color:#ADB5BD; font-size:0.88rem;">
-                      Method: <strong style="color:#fff;">${paymentMethodLabel}</strong>
+                    <div style="color:#536273; font-size:0.88rem;">
+                      Method: <strong style="color:#182230;">${paymentMethodLabel}</strong>
                     </div>
                     <div class="order-total">
                       Total: <span>₹${(order.total || 0).toLocaleString('en-IN')}</span>
@@ -644,3 +647,4 @@
   </script>
 </body>
 </html>
+

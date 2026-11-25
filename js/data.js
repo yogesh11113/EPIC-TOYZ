@@ -144,7 +144,7 @@ const SAMPLE_FAQS = [
     id: 7,
     category: 'shipping',
     question: 'Do you ship to all states in India?',
-    answer: 'Yes! We ship across all 28 states and 8 union territories of India. We ship to all major cities, towns, and most rural areas reachable by courier. A flat shipping charge of ₹50 applies to all orders.'
+    answer: 'Yes! We ship across all 28 states and 8 union territories of India. We ship to all major cities, towns, and most rural areas reachable by courier. A flat shipping charge of ₹150 applies to all orders.'
   },
   {
     id: 8,

@@ -1,6 +1,6 @@
 /**
  * product.js — Epic Toyz Product Detail Page Logic
- * Handles gallery, specs, reviews, related products, recently viewed, cart/wishlist.
+ * Handles gallery, specs, related products, recently viewed, cart/wishlist.
  */
 
 'use strict';
@@ -11,7 +11,6 @@
 let currentProduct = null;
 let currentImageIndex = 0;
 let selectedQuantity = 1;
-let reviewRating = 0;
 let galleryImages = [];
 
 /* =====================================================================
@@ -24,23 +23,50 @@ async function initProductPage() {
   initFooter();
 
   const urlParams = new URLSearchParams(window.location.search);
-  const slug = urlParams.get('slug') || urlParams.get('id');
+  const productId = urlParams.get('id');
+  const slug = urlParams.get('slug');
+  const identifier = productId || slug;
 
-  if (!slug) {
+  if (!identifier) {
     showNotFound();
     return;
   }
 
   try {
-    // Try slug first, then ID fallback
+    // Match the URL parameter to the corresponding lookup first. Homepage and
+    // shop cards use IDs; shared/search links may still use slugs.
     if (typeof DB !== 'undefined') {
-      if (DB.getProductBySlug) currentProduct = await DB.getProductBySlug(slug);
-      if (!currentProduct && DB.getProductById) currentProduct = await DB.getProductById(slug);
+      if (productId && DB.getProductById) currentProduct = await DB.getProductById(productId);
+      if (!currentProduct && slug && DB.getProductBySlug) currentProduct = await DB.getProductBySlug(slug);
+      if (!currentProduct && slug && DB.getProductById) currentProduct = await DB.getProductById(slug);
+
+      // A product can be present in the shared Supabase product cache even if
+      // a single-row slug lookup is unavailable (for example, older records
+      // with no slug). Resolve against the exact list used by the shop.
+      if (!currentProduct && DB.getProducts) {
+        const products = await DB.getProducts();
+        currentProduct = products.find(product =>
+          (productId && String(product.id) === String(productId)) ||
+          (slug && (String(product.id) === String(slug) ||
+            String(product.slug || '').toLowerCase() === slug.toLowerCase() ||
+            slugifyProductName(product.name) === slug.toLowerCase()))
+        ) || null;
+      }
     }
 
-    // Fallback: search in PRODUCTS_DATA
+    // Static sample data is also used in local previews and remains a safe
+    // fallback when Supabase is unavailable.
+    if (!currentProduct && typeof window.SAMPLE_DATA !== 'undefined') {
+      currentProduct = (window.SAMPLE_DATA.products || []).find(product =>
+        (productId && String(product.id) === String(productId)) ||
+        (slug && (product.slug === slug || slugifyProductName(product.name) === slug.toLowerCase()))
+      ) || null;
+    }
     if (!currentProduct && typeof PRODUCTS_DATA !== 'undefined') {
-      currentProduct = PRODUCTS_DATA.find(p => p.slug === slug || String(p.id) === String(slug)) || null;
+      currentProduct = PRODUCTS_DATA.find(product =>
+        (productId && String(product.id) === String(productId)) ||
+        (slug && (product.slug === slug || slugifyProductName(product.name) === slug.toLowerCase()))
+      ) || null;
     }
 
     if (!currentProduct) {
@@ -65,7 +91,6 @@ async function initProductPage() {
     renderGallery(currentProduct);
     renderSpecsTable(currentProduct);
     renderFeatures(currentProduct);
-    await loadReviews(currentProduct.id);
     await loadRelatedProducts(currentProduct.category);
     loadRecentlyViewed();
 
@@ -85,6 +110,10 @@ async function initProductPage() {
     console.error('[product.js] initProductPage error:', err);
     showNotFound();
   }
+}
+
+function slugifyProductName(name) {
+  return String(name || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
 /* =====================================================================
@@ -143,13 +172,7 @@ function renderProductDetails(product) {
   // Name
   setTextContent('product-name', product.name || 'Unnamed Product');
 
-  // Rating
-  const rating = product.rating || 0;
-  const reviewCount = product.review_count || product.reviewCount || 0;
-  setInnerHTML('product-rating-stars', renderStarsFull(rating));
-  setTextContent('product-rating-score', rating.toFixed(1));
-  setTextContent('product-review-count', `(${reviewCount} review${reviewCount !== 1 ? 's' : ''})`);
-  setTextContent('review-tab-count', reviewCount > 0 ? `(${reviewCount})` : '');
+  // Price
 
   // Price
   const price = product.price || 0;
@@ -167,6 +190,13 @@ function renderProductDetails(product) {
   // Stock status
   renderStockStatus(product.stock);
 
+  // Payment method toggle (Razorpay Payment vs WhatsApp Enquiry)
+  const isWhatsApp = product.paymentMethod === 'whatsapp';
+  const actionRow = document.querySelector('.action-buttons .action-row');
+  const askWaBtn = document.getElementById('btn-ask-whatsapp');
+  if (actionRow) actionRow.style.display = isWhatsApp ? 'none' : '';
+  if (askWaBtn) askWaBtn.style.display = isWhatsApp ? 'inline-flex' : 'none';
+
   // Full description (for tab)
   const descEl = document.getElementById('product-full-description');
   if (descEl) {
@@ -180,17 +210,6 @@ function renderProductDetails(product) {
   }
 }
 
-function renderStarsFull(rating) {
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.5;
-  let html = '';
-  for (let i = 1; i <= 5; i++) {
-    if (i <= full) html += '<span style="color:#FFD700">★</span>';
-    else if (i === full + 1 && half) html += '<span style="color:#FFD700">⯨</span>';
-    else html += '<span style="color:#333">★</span>';
-  }
-  return html;
-}
 
 function renderStockStatus(stock) {
   const el = document.getElementById('product-stock-status');
@@ -606,17 +625,22 @@ function buyNow() {
   window.location.href = 'checkout.html?buynow=true';
 }
 
+function askOnWhatsApp() {
+  orderViaWhatsApp();
+}
+
 function orderViaWhatsApp() {
   if (!currentProduct) return;
   const total = (currentProduct.price || 0) * selectedQuantity;
   const totalFormatted = total.toLocaleString('en-IN');
   const msg = encodeURIComponent(
-    `Hi! I want to order:\n\n` +
+    `Hi! I would like to enquire about:\n\n` +
     `🛒 *${currentProduct.name}*\n` +
     `Quantity: ${selectedQuantity}\n` +
     `Price: ₹${(currentProduct.price || 0).toLocaleString('en-IN')} each\n` +
-    `Total: ₹${totalFormatted}\n\n` +
-    `Please confirm availability and delivery details. Thank you! 🙏`
+    `Total: ₹${totalFormatted}\n` +
+    `Link: ${window.location.href}\n\n` +
+    `Please share availability and details. Thank you! 🙏`
   );
   window.open(`https://wa.me/916383793890?text=${msg}`, '_blank', 'noopener,noreferrer');
 }
@@ -735,182 +759,6 @@ function switchTab(btn, panelId) {
   if (panel) panel.classList.add('active');
 }
 
-function switchToReviewTab() {
-  const reviewBtn = document.querySelector('.tab-btn[onclick*="reviews-panel"]');
-  if (reviewBtn) {
-    reviewBtn.click();
-    setTimeout(() => {
-      document.getElementById('tab-reviews-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  }
-}
-
-/* =====================================================================
-   REVIEWS
-   ===================================================================== */
-async function loadReviews(productId) {
-  const container = document.getElementById('reviews-container');
-  if (!container) return;
-
-  try {
-    let reviews = [];
-    if (typeof DB !== 'undefined' && DB.getReviews) {
-      reviews = await DB.getReviews(productId);
-    } else {
-      // Fallback: use product's embedded reviews if any
-      reviews = currentProduct?.reviews || [];
-    }
-
-    renderReviews(reviews);
-  } catch (err) {
-    console.error('[product.js] loadReviews error:', err);
-    container.innerHTML = '<div class="no-reviews"><span class="emoji">📝</span>Could not load reviews.</div>';
-  }
-}
-
-function renderReviews(reviews) {
-  const container = document.getElementById('reviews-container');
-  if (!container) return;
-
-  if (!reviews || !reviews.length) {
-    container.innerHTML = '<div class="no-reviews"><span class="emoji">📝</span>No reviews yet. Be the first to review this product!</div>';
-    return;
-  }
-
-  // Update tab badge
-  setTextContent('review-tab-count', `(${reviews.length})`);
-
-  container.innerHTML = reviews.map(review => {
-    const stars = renderStarsSimple(review.rating || 5);
-    const date = review.created_at ? new Date(review.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
-    const verified = review.verified_purchase || review.verifiedPurchase;
-    return `
-      <div class="review-card">
-        <div class="review-header">
-          <div>
-            <div class="reviewer-name">${escapeHtml(review.user_name || review.name || 'Anonymous')}</div>
-            <div class="review-date">${date}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            ${verified ? '<span class="verified-badge">✓ Verified</span>' : ''}
-          </div>
-        </div>
-        <div class="review-stars">${stars}</div>
-        ${review.title ? `<div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:6px;">${escapeHtml(review.title)}</div>` : ''}
-        <div class="review-text">${escapeHtml(review.text || review.comment || review.body || '')}</div>
-      </div>
-    `;
-  }).join('');
-
-  // Show/hide review form based on auth
-  checkReviewFormAuth();
-}
-
-function renderStarsSimple(rating) {
-  const full = Math.floor(rating);
-  return '★'.repeat(full) + '☆'.repeat(5 - full);
-}
-
-function checkReviewFormAuth() {
-  const form = document.getElementById('review-form-wrap');
-  const loginPrompt = document.getElementById('review-login-prompt');
-
-  let isLoggedIn = false;
-  if (typeof Auth !== 'undefined' && Auth.isLoggedIn) isLoggedIn = Auth.isLoggedIn();
-  else isLoggedIn = !!localStorage.getItem('epictoyz_user');
-
-  if (form) form.style.display = isLoggedIn ? 'block' : 'none';
-  if (loginPrompt) loginPrompt.style.display = isLoggedIn ? 'none' : 'block';
-}
-
-async function submitReview(e) {
-  e.preventDefault();
-
-  const ratingVal = parseInt(document.getElementById('review-rating-value')?.value || '0', 10);
-  const title = document.getElementById('review-title')?.value?.trim() || '';
-  const text = document.getElementById('review-text')?.value?.trim() || '';
-
-  if (ratingVal < 1) {
-    showToast('Please select a star rating.', 'error');
-    return;
-  }
-  if (!text || text.length < 20) {
-    showToast('Review must be at least 20 characters.', 'error');
-    return;
-  }
-
-  const submitBtn = document.querySelector('.btn-submit-review');
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
-
-  try {
-    const reviewData = {
-      product_id: currentProduct.id,
-      rating: ratingVal,
-      title,
-      text,
-      created_at: new Date().toISOString(),
-    };
-
-    if (typeof DB !== 'undefined' && DB.submitReview) {
-      await DB.submitReview(reviewData);
-    } else {
-      // Local fallback
-      const key = `epictoyz_reviews_${currentProduct.id}`;
-      const existing = JSON.parse(localStorage.getItem(key) || '[]');
-      existing.unshift({ ...reviewData, user_name: 'You', id: Date.now() });
-      localStorage.setItem(key, JSON.stringify(existing));
-    }
-
-    showToast('✅ Review submitted! Thank you.', 'success');
-    document.getElementById('review-form')?.reset();
-    resetStarRating();
-    await loadReviews(currentProduct.id);
-
-  } catch (err) {
-    console.error('[product.js] submitReview error:', err);
-    showToast('Could not submit review. Please try again.', 'error');
-  } finally {
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Review'; }
-  }
-}
-
-/* Star rating input */
-function setReviewRating(value) {
-  reviewRating = value;
-  const hiddenInput = document.getElementById('review-rating-value');
-  if (hiddenInput) hiddenInput.value = value;
-  document.querySelectorAll('.star-input').forEach((star, i) => {
-    star.classList.toggle('selected', i < value);
-    star.classList.remove('hovered');
-  });
-}
-
-function resetStarRating() {
-  reviewRating = 0;
-  const hiddenInput = document.getElementById('review-rating-value');
-  if (hiddenInput) hiddenInput.value = '0';
-  document.querySelectorAll('.star-input').forEach(star => {
-    star.classList.remove('selected', 'hovered');
-  });
-}
-
-// Hover effects on stars
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.star-input').forEach((star, i, stars) => {
-    star.addEventListener('mouseenter', () => {
-      stars.forEach((s, j) => {
-        s.classList.toggle('hovered', j <= i);
-        s.classList.remove('selected');
-      });
-    });
-    star.addEventListener('mouseleave', () => {
-      stars.forEach((s, j) => {
-        s.classList.remove('hovered');
-        s.classList.toggle('selected', j < reviewRating);
-      });
-    });
-  });
-});
 
 /* =====================================================================
    RELATED PRODUCTS
@@ -922,18 +770,35 @@ async function loadRelatedProducts(category) {
 
   try {
     let relatedAll = [];
-    if (typeof DB !== 'undefined' && DB.getProductsByCategory) {
-      relatedAll = await DB.getProductsByCategory(category);
+    const filterCat = category || currentProduct?.category || currentProduct?.category_id || '';
+
+    if (typeof DB !== 'undefined' && DB.getProducts) {
+      if (filterCat) {
+        relatedAll = await DB.getProducts({ category: filterCat });
+      }
+      // Fallback: if category query returned nothing or only current product, match across all products or show other products
+      if (!relatedAll || relatedAll.filter(p => p.id !== currentProduct.id).length === 0) {
+        const allProds = await DB.getProducts();
+        const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const targetNorm = norm(filterCat);
+        const byCat = targetNorm
+          ? allProds.filter(p => {
+              const pCats = Array.isArray(p.categories) ? p.categories : [p.category || ''];
+              return pCats.some(c => norm(c) === targetNorm || norm(c).includes(targetNorm) || targetNorm.includes(norm(c)));
+            })
+          : [];
+        relatedAll = byCat.filter(p => p.id !== currentProduct.id).length > 0 ? byCat : allProds;
+      }
     } else if (typeof PRODUCTS_DATA !== 'undefined') {
       relatedAll = PRODUCTS_DATA.filter(p => {
         const catSlug = (p.category || '').toLowerCase().replace(/\s+/g, '-');
-        const filterSlug = (category || '').toLowerCase().replace(/\s+/g, '-');
+        const filterSlug = (filterCat || '').toLowerCase().replace(/\s+/g, '-');
         return catSlug === filterSlug && p.id !== currentProduct.id;
       });
     }
 
     // Exclude current product and limit to 4
-    const related = relatedAll
+    const related = (relatedAll || [])
       .filter(p => p.id !== currentProduct.id)
       .slice(0, 4);
 
@@ -944,9 +809,9 @@ async function loadRelatedProducts(category) {
 
     // Update "see all" link
     const seeAll = document.getElementById('related-see-all');
-    if (seeAll) {
-      const catSlug = category.toLowerCase().replace(/\s+/g, '-');
-      seeAll.href = `shop.html?category=${catSlug}`;
+    if (seeAll && filterCat) {
+      const catSlug = String(filterCat).toLowerCase().replace(/\s+/g, '-');
+      seeAll.href = `shop.html?category=${encodeURIComponent(catSlug)}`;
     }
 
     grid.innerHTML = related.map(p => renderMiniCard(p)).join('');
@@ -1014,7 +879,6 @@ function renderMiniCard(product) {
   const originalPrice = product.original_price || product.originalPrice || 0;
   const discount = originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
   const image = (product.images && product.images[0]) || product.image || 'assets/images/placeholder.svg';
-  const rating = product.rating || 0;
   const badge = product.badge || '';
   const stock = product.stock;
   const isOutOfStock = stock !== undefined && stock !== null && stock <= 0;
@@ -1034,28 +898,33 @@ function renderMiniCard(product) {
       </div>
       <div class="product-card-body">
         <h3 class="product-name" style="font-size:13px;">${name}</h3>
-        <div class="product-card-rating">
-          <span class="stars" style="font-size:11px;">${renderStarsSimple(rating)}</span>
-          <span class="rating-count">${rating.toFixed(1)}</span>
-        </div>
         <div class="product-card-price">
           <span class="price-current" style="font-size:15px;">₹${price.toLocaleString('en-IN')}</span>
           ${originalPrice > price ? `<span class="price-original" style="font-size:12px;">₹${originalPrice.toLocaleString('en-IN')}</span>` : ''}
           ${discount > 0 ? `<span class="price-discount">${discount}% OFF</span>` : ''}
         </div>
         <div class="product-card-actions">
-          <button
-            class="btn-add-cart"
-            onclick="event.stopPropagation();addRelatedToCart('${product.id}','${escapeAttr(name)}',${price})"
-            ${isOutOfStock ? 'disabled' : ''}
-            style="font-size:12px;padding:8px;"
-          >
-            ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
-          </button>
+          ${product.paymentMethod === 'whatsapp'
+            ? `<button class="btn-add-cart" style="font-size:12px;padding:8px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;" onclick="event.stopPropagation();askMiniWhatsApp('${escapeAttr(name)}',${price},'${slug}')">Ask on WhatsApp</button>`
+            : `<button
+                class="btn-add-cart"
+                onclick="event.stopPropagation();addRelatedToCart('${product.id}','${escapeAttr(name)}',${price})"
+                ${isOutOfStock ? 'disabled' : ''}
+                style="font-size:12px;padding:8px;"
+              >
+                ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+              </button>`
+          }
         </div>
       </div>
     </div>
   `;
+}
+
+function askMiniWhatsApp(name, price, slug) {
+  const url = `${window.location.origin}/product.html?slug=${encodeURIComponent(slug)}`;
+  const msg = encodeURIComponent(`Hi! I would like to enquire about *${name}* (₹${Number(price || 0).toLocaleString('en-IN')}).\n${url}`);
+  window.open(`https://wa.me/916383793890?text=${msg}`, '_blank', 'noopener,noreferrer');
 }
 
 function addRelatedToCart(productId, name, price) {
@@ -1205,10 +1074,6 @@ function escapeAttr(str) {
   return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
-function renderStarsSimple(rating) {
-  const full = Math.floor(rating || 0);
-  return '★'.repeat(full) + '☆'.repeat(5 - full);
-}
 
 /* Generate WhatsApp message (can be called externally) */
 function generateWhatsAppMessage(items, notes) {

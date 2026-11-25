@@ -95,9 +95,6 @@ function getSortedItems() {
     case 'name-asc':
       items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       break;
-    case 'rating-desc':
-      items.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      break;
     default:
       // Date added (newest first)
       items.sort((a, b) => (b.date_added || 0) - (a.date_added || 0));
@@ -112,8 +109,6 @@ function renderWishlistCard(item, idx) {
   const img = item.image || item.images?.[0] || 'assets/images/placeholder.svg';
   const price = (item.price || 0).toLocaleString('en-IN');
   const originalPrice = item.original_price || item.originalPrice;
-  const rating = item.rating || 4.5;
-  const reviewCount = item.reviews_count || item.reviewCount || 0;
   const delay = idx * 60;
 
   // Discount
@@ -166,10 +161,6 @@ function renderWishlistCard(item, idx) {
         <h3 class="wish-name">
           <a href="product.html?slug=${item.slug || item.id}" style="color:inherit; text-decoration:none;">${escapeHtml(item.name || '')}</a>
         </h3>
-        <div class="wish-rating">
-          <span class="wish-stars" style="display: none !important;">${renderStars(rating)}</span>
-          <span class="wish-review-count">(${reviewCount})</span>
-        </div>
         <div class="wish-price-row">
           <span class="wish-price">₹${price}</span>
           ${originalPrice ? `<span class="wish-original-price">₹${Number(originalPrice).toLocaleString('en-IN')}</span>` : ''}
@@ -316,16 +307,6 @@ function sortWishlist(mode) {
 /* ============================================================
    UTILITIES
    ============================================================ */
-function renderStars(rating) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  let stars = '';
-  for (let i = 0; i < full; i++) stars += '★';
-  if (half) stars += '½';
-  const empty = 5 - full - (half ? 1 : 0);
-  for (let i = 0; i < empty; i++) stars += '☆';
-  return stars;
-}
 
 function escapeHtml(str) {
   if (!str) return '';

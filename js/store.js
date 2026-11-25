@@ -58,6 +58,7 @@ const Store = {
         name: product.name,
         price: product.price,
         image: product.imageUrl || (product.images && product.images[0]) || 'assets/images/placeholder.svg',
+        paymentMethod: product.paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay',
         category: product.category || 'RC Cars',
         quantity: quantity,
         slug: product.slug
@@ -180,6 +181,7 @@ const Store = {
         name: product.name,
         price: product.price,
         image: product.imageUrl || (product.images && product.images[0]) || 'assets/images/placeholder.svg',
+        paymentMethod: product.paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay',
         category: product.category,
         slug: product.slug,
         rating: product.rating,
@@ -238,6 +240,7 @@ const Store = {
         name: product.name,
         price: product.price,
         image: product.imageUrl || (product.images && product.images[0]) || 'assets/images/placeholder.svg',
+        paymentMethod: product.paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay',
         category: product.category,
         slug: product.slug,
         rating: product.rating,

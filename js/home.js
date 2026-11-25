@@ -33,7 +33,7 @@ async function initHomePage() {
     Perf.renderSkeletons(document.getElementById('bestsellers-grid'), 4);
     Perf.renderSkeletons(document.getElementById('new-arrivals-grid'), 4);
     Perf.renderSkeletons(document.getElementById('featured-grid'), 4);
-    Perf.renderCategorySkeletons(document.getElementById('categories-grid'), 5);
+    Perf.renderCategorySkeletons(document.getElementById('categories-grid'), 6);
   }
 
   // Load navbar & footer components (if ui.js provides it)
@@ -87,7 +87,37 @@ async function initHomePage() {
  * CSS animations are defined via keyframes in index.html.
  */
 function initHeroAnimations() {
-  // Hero animations and parallax removed to keep loading clean, static and instant.
+  const track = document.getElementById('hero-slides');
+  const carousel = document.querySelector('.hero-banner-section');
+  if (!track || !carousel) return;
+  const dots = [...carousel.querySelectorAll('.hero-carousel-dots button')];
+  const slides = [...track.children];
+  let index = 0;
+  let startX = 0;
+  let timer;
+  const show = (next) => {
+    index = (next + slides.length) % slides.length;
+    track.style.transform = `translateX(-${index * 100}%)`;
+    dots.forEach((dot, i) => dot.setAttribute('aria-current', String(i === index)));
+  };
+  const restart = () => {
+    clearInterval(timer);
+    timer = setInterval(() => show(index + 1), 5500);
+  };
+  carousel.querySelector('.prev')?.addEventListener('click', () => { show(index - 1); restart(); });
+  carousel.querySelector('.next')?.addEventListener('click', () => { show(index + 1); restart(); });
+  dots.forEach((dot, i) => dot.addEventListener('click', () => { show(i); restart(); }));
+  track.addEventListener('touchstart', e => { startX = e.changedTouches[0].clientX; }, { passive: true });
+  track.addEventListener('touchend', e => {
+    const delta = e.changedTouches[0].clientX - startX;
+    if (Math.abs(delta) > 45) { show(index + (delta < 0 ? 1 : -1)); restart(); }
+  }, { passive: true });
+  carousel.addEventListener('mouseenter', () => clearInterval(timer));
+  carousel.addEventListener('mouseleave', restart);
+  carousel.addEventListener('focusin', () => clearInterval(timer));
+  carousel.addEventListener('focusout', restart);
+  show(0);
+  restart();
 }
 
 /**
@@ -187,6 +217,26 @@ function initScrollReveal() {
 /**
  * Fetches categories from DB/data and renders them into #categories-grid.
  */
+function sortCategoriesByOrder(categories) {
+  const rankMap = [
+    ['hobby grade', 'hobby-grade'],
+    ['drift', 'drift cars', 'drift car', 'drift-cars', 'drift-car'],
+    ['crawler', 'crawlers'],
+    ['mini rc', 'mini rc cars', 'mini-rc', 'mini-rc-cars'],
+    ['construction', 'construction rc', 'construction-rc'],
+    ['unique rc', 'unique-rc']
+  ];
+  const getRank = (cat) => {
+    const name = (cat.name || '').toLowerCase().trim();
+    const slug = (cat.slug || '').toLowerCase().trim();
+    for (let i = 0; i < rankMap.length; i++) {
+      if (rankMap[i].includes(name) || rankMap[i].includes(slug)) return i;
+    }
+    return 999;
+  };
+  return (categories || []).slice().sort((a, b) => getRank(a) - getRank(b));
+}
+
 async function renderCategories() {
   const grid = document.getElementById('categories-grid');
   if (!grid) return;
@@ -208,6 +258,7 @@ async function renderCategories() {
       categories = getDefaultCategories();
     }
 
+    categories = sortCategoriesByOrder(categories);
     grid.innerHTML = categories.map(cat => renderCategoryCard(cat)).join('');
     initScrollReveal(); // Re-observe newly added elements
 
@@ -315,6 +366,8 @@ async function renderCategoryProductRows() {
       container.innerHTML = '';
       return;
     }
+
+    categories = sortCategoriesByOrder(categories);
 
     // 2. Show skeleton loaders first
     const skeletonCount = 4;
@@ -445,13 +498,22 @@ function renderCatProductCard(p) {
         ${discountPct ? `<span class="cat-prod-discount">${discountPct}</span>` : ''}
       </div>
       <div class="cat-prod-actions">
-        <button
-          class="btn btn-primary btn-sm"
-          onclick="addToCartFromCard(event, '${id}')"
-          ${outOfStock ? 'disabled style="opacity:0.45;cursor:not-allowed;"' : ''}
-        >
-          ${outOfStock ? 'Sold Out' : 'Add to Cart'}
-        </button>
+        ${p.paymentMethod === 'whatsapp'
+          ? `<button
+              class="btn btn-primary btn-sm"
+              style="background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;"
+              onclick="askOnWhatsAppFromCard(event, '${id}')"
+            >
+              Ask on WhatsApp
+            </button>`
+          : `<button
+              class="btn btn-primary btn-sm"
+              onclick="addToCartFromCard(event, '${id}')"
+              ${outOfStock ? 'disabled style="opacity:0.45;cursor:not-allowed;"' : ''}
+            >
+              ${outOfStock ? 'Sold Out' : 'Add to Cart'}
+            </button>`
+        }
       </div>
     </div>
   `;
@@ -606,13 +668,22 @@ function renderProductCard(product) {
             ${discountHtml}
           </div>
           <div class="product-card-actions">
-            <button
-              class="btn btn-primary btn-sm"
-              onclick="addToCartFromCard(event, '${id}')"
-              ${outOfStock ? 'disabled style="opacity:0.45;cursor:not-allowed;"' : ''}
-            >
-              ${outOfStock ? 'Sold Out' : 'Add to Cart'}
-            </button>
+            ${product.paymentMethod === 'whatsapp'
+              ? `<button
+                  class="btn btn-primary btn-sm"
+                  style="background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;"
+                  onclick="askOnWhatsAppFromCard(event, '${id}')"
+                >
+                  Ask on WhatsApp
+                </button>`
+              : `<button
+                  class="btn btn-primary btn-sm"
+                  onclick="addToCartFromCard(event, '${id}')"
+                  ${outOfStock ? 'disabled style="opacity:0.45;cursor:not-allowed;"' : ''}
+                >
+                  ${outOfStock ? 'Sold Out' : 'Add to Cart'}
+                </button>`
+            }
           </div>
         </div>
       </div>
@@ -809,108 +880,6 @@ function initFeaturedTabs() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  TESTIMONIALS                                                        */
-/* ------------------------------------------------------------------ */
-
-/**
- * Renders testimonials from SAMPLE_DATA.testimonials.
- */
-async function renderTestimonials() {
-  const grid = document.getElementById('testimonials-grid');
-  if (!grid) return;
-
-  let testimonials;
-
-  if (typeof window.SAMPLE_DATA !== 'undefined' && window.SAMPLE_DATA.testimonials) {
-    testimonials = window.SAMPLE_DATA.testimonials;
-  } else {
-    testimonials = getDefaultTestimonials();
-  }
-
-  grid.innerHTML = testimonials.map(t => renderTestimonialCard(t)).join('');
-  refreshReveal(grid);
-}
-
-/**
- * Returns HTML for a single testimonial card.
- */
-function renderTestimonialCard(t) {
-  const stars = '★'.repeat(Math.min(Math.round(t.rating || 5), 5));
-  const initials = getInitials(t.name || 'Anonymous');
-
-  return `
-    <div class="testimonial-card reveal">
-      <div class="testimonial-stars">${stars}</div>
-      <p class="testimonial-text">"${escapeHtml(t.review || t.text || '')}"</p>
-      <div class="testimonial-author">
-        <div class="testimonial-avatar">${initials}</div>
-        <div>
-          <div class="testimonial-name">${escapeHtml(t.name || 'Anonymous')}</div>
-          <div class="testimonial-location">${escapeHtml(t.location || 'India')}</div>
-          ${t.verified !== false ? `<div class="verified-badge">✓ Verified Buyer</div>` : ''}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/**
- * Fallback testimonials.
- */
-function getDefaultTestimonials() {
-  return [
-    {
-      name: 'Arjun Sharma',
-      location: 'Chennai, Tamil Nadu',
-      rating: 5,
-      review: 'Ordered a Traxxas Slash 4x4 — got it in 2 days! Quality is top-notch and the support team helped me set it up over WhatsApp. Best RC store in India!',
-      verified: true,
-    },
-    {
-      name: 'Priya Menon',
-      location: 'Bangalore, Karnataka',
-      rating: 5,
-      review: 'Amazing collection and super fast delivery. The drift car I bought is absolutely incredible. Will definitely order again. Epic Toyz lives up to its name!',
-      verified: true,
-    },
-    {
-      name: 'Rahul Verma',
-      location: 'Mumbai, Maharashtra',
-      rating: 4,
-      review: 'Great prices and genuine products. Ordered a hobby-grade rock crawler and it arrived perfectly packed. The WhatsApp order feature is super convenient!',
-      verified: true,
-    },
-    {
-      name: 'Kiran Reddy',
-      location: 'Hyderabad, Telangana',
-      rating: 5,
-      review: 'Been buying RC cars for 5 years — Epic Toyz is by far the most reliable store. Fast shipping, great prices, and they actually know their products!',
-      verified: true,
-    },
-    {
-      name: 'Sanjay Kumar',
-      location: 'Delhi, NCR',
-      rating: 5,
-      review: 'Bought two monster trucks for my kids. Outstanding quality, fast delivery and the packaging was perfect. Highly recommended for all RC enthusiasts!',
-      verified: true,
-    },
-    {
-      name: 'Deepa Iyer',
-      location: 'Coimbatore, Tamil Nadu',
-      rating: 4,
-      review: 'First time buying an RC car online — was a bit nervous but Epic Toyz made it so easy. Responsive team, good product and great prices. 10/10!',
-      verified: true,
-    },
-  ];
-}
-
-/* ------------------------------------------------------------------ */
-/*  NEWSLETTER                                                          */
-/* ------------------------------------------------------------------ */
-
-/**
- * Sets up the newsletter form submission handler.
- */
 function setupNewsletterForm() {
   const form = document.getElementById('newsletter-form');
   if (!form) return;
@@ -1029,6 +998,18 @@ function heartFilledIcon() {
  * @param {Event}  e   - Click event (stops propagation)
  * @param {string} id  - Product ID
  */
+function askOnWhatsAppFromCard(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  const product = findProductById(id);
+  if (!product) return;
+  const link = `${window.location.origin}/product.html?id=${encodeURIComponent(id)}`;
+  const msg = encodeURIComponent(
+    `Hi! I would like to enquire about *${product.name}* (₹${Number(product.price || 0).toLocaleString('en-IN')}).\n${link}`
+  );
+  window.open(`https://wa.me/916383793890?text=${msg}`, '_blank', 'noopener,noreferrer');
+}
+
 function addToCartFromCard(e, id) {
   if (e && e.stopPropagation) e.stopPropagation();
 
@@ -1094,6 +1075,7 @@ function addToCartFromCard(e, id) {
 
 // Expose globally
 window.addToCartFromCard = addToCartFromCard;
+window.askOnWhatsAppFromCard = askOnWhatsAppFromCard;
 
 /**
  * Updates cart count badge in navbar.
@@ -1114,7 +1096,7 @@ function updateCartBadge() {
  * @param {string} id - Product ID
  */
 function viewProduct(id) {
-  window.location.href = `product.html?id=${id}`;
+  window.location.href = `product.html?id=${encodeURIComponent(String(id))}`;
 }
 
 // Expose globally
@@ -1181,16 +1163,7 @@ function getDefaultProducts(type, count = 4) {
 /*  HELPER UTILITIES                                                    */
 /* ------------------------------------------------------------------ */
 
-/**
- * Returns star HTML string for a given rating.
- * @param {number} rating - Rating value (0–5)
- */
-function renderStars(rating) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5 ? 1 : 0;
-  const empty = 5 - full - half;
-  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
-}
+
 
 /**
  * Formats a price number with Indian number formatting.
@@ -1252,9 +1225,7 @@ function slugify(str) {
  * Gets initials from a full name.
  * @param {string} name
  */
-function getInitials(name) {
-  return name.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
-}
+
 
 /**
  * Re-runs IntersectionObserver on newly added .reveal elements within a container.

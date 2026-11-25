@@ -134,13 +134,13 @@ function renderOrderSummary() {
   }
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = 50;
+  const shipping = 150;
   const total = subtotal + shipping;
 
   const subtotalFmt = subtotal.toLocaleString('en-IN');
   const totalFmt = total.toLocaleString('en-IN');
 
-  const promoHTML = `<div class="shipping-promo">🚚 Flat Delivery Charge of ₹50 applies to all orders</div>`;
+  const promoHTML = `<div class="shipping-promo">🚚 Flat Delivery Charge of ₹150 applies to all orders</div>`;
 
   container.innerHTML = `
     ${promoHTML}
@@ -150,7 +150,7 @@ function renderOrderSummary() {
     </div>
     <div class="summary-row">
       <span class="label">Shipping</span>
-      <span class="value">₹50</span>
+      <span class="value">₹150</span>
     </div>
     <hr class="summary-divider">
     <div class="summary-total">
@@ -267,8 +267,6 @@ function renderSuggestedCard(product) {
   const price = (product.price || 0).toLocaleString('en-IN');
   const originalPrice = product.original_price || product.originalPrice;
   const img = product.image || product.images?.[0] || 'assets/images/placeholder.svg';
-  const rating = product.rating || 4.5;
-  const stars = renderStars(rating);
   const discount = originalPrice && originalPrice > product.price
     ? Math.round((1 - product.price / originalPrice) * 100)
     : null;
@@ -287,10 +285,6 @@ function renderSuggestedCard(product) {
         <div style="padding:14px;">
           <p style="font-size:0.75rem; color:#457B9D; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 4px;">${escapeHtml(product.category || 'RC Car')}</p>
           <h4 style="font-size:0.9rem; font-weight:600; color:#fff; margin:0 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${escapeHtml(product.name || '')}</h4>
-          <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
-            <span style="color:#FFD700; font-size:0.8rem;">${stars}</span>
-            <span style="font-size:0.75rem; color:#ADB5BD;">(${product.reviews_count || product.reviewCount || 0})</span>
-          </div>
           <div style="display:flex; align-items:center; justify-content:space-between;">
             <div>
               <span style="font-size:1rem; font-weight:700; color:#fff;">₹${price}</span>
@@ -337,16 +331,6 @@ function initCartEventListeners() {
 /* ============================================================
    UTILITIES
    ============================================================ */
-function renderStars(rating) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  let stars = '';
-  for (let i = 0; i < full; i++) stars += '★';
-  if (half) stars += '½';
-  const empty = 5 - full - (half ? 1 : 0);
-  for (let i = 0; i < empty; i++) stars += '☆';
-  return stars;
-}
 
 function escapeHtml(str) {
   if (!str) return '';
