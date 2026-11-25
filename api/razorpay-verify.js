@@ -13,6 +13,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const { sendOrderConfirmationWhatsApp } = require('../lib/whatsapp.js');
 
 function getEnvConfig() {
   const keyId = process.env.RAZORPAY_KEY_ID || '';
@@ -194,11 +195,11 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid payment signature.' });
     }
 
-    // 2. Fetch order from Supabase
+    // 2. Fetch order from Supabase (including address & whatsapp_sent for post-payment confirmation)
     const orders = await supabaseRest(
       cfg.supabaseUrl,
       cfg.serviceKey,
-      `orders?id=eq.${encodeURIComponent(dbOrderId)}&select=id,order_number,user_id,customer_name,customer_phone,total,payment_status,order_status,notes`
+      `orders?id=eq.${encodeURIComponent(dbOrderId)}&select=id,order_number,user_id,customer_name,customer_phone,address_line1,address_line2,city,state,pincode,total,payment_status,order_status,whatsapp_sent,notes`
     );
     const order = Array.isArray(orders) ? orders[0] : null;
     if (!order) {
@@ -302,13 +303,54 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // 8. Send Customer Order Confirmation via Meta WhatsApp Cloud API
+    //    Only after verified paid order, explicit [WA_OPT_IN] consent, and not already sent.
+    let whatsappRetryNeeded = false;
+    const hasWhatsAppOptIn = updatedNotes.includes('[WA_OPT_IN]');
+    if (hasWhatsAppOptIn && !order.whatsapp_sent && !updatedNotes.includes('[WA_SENT]')) {
+      try {
+        const orderItems = await supabaseRest(
+          cfg.supabaseUrl,
+          cfg.serviceKey,
+          `order_items?order_id=eq.${encodeURIComponent(dbOrderId)}&select=product_name,quantity,price`
+        ).catch(() => []);
+
+        const waResult = await sendOrderConfirmationWhatsApp({ order, items: orderItems });
+        if (waResult.status === 'sent') {
+          const cleanNotes = updatedNotes.replace(/\s*\|\s*\[WA_PENDING_RETRY\]/g, '').replace(/\[WA_PENDING_RETRY\]/g, '').trim();
+          updatedNotes = appendNoteMarker(cleanNotes, '[WA_SENT]');
+          if (waResult.messageId) {
+            updatedNotes = appendNoteMarker(updatedNotes, `[WA_MSG_ID:${waResult.messageId}]`);
+          }
+          await supabaseRest(
+            cfg.supabaseUrl,
+            cfg.serviceKey,
+            `orders?id=eq.${encodeURIComponent(dbOrderId)}`,
+            { method: 'PATCH', body: { whatsapp_sent: true, notes: updatedNotes } }
+          ).catch(() => { });
+        } else if (waResult.status === 'retry_needed') {
+          whatsappRetryNeeded = true;
+          updatedNotes = appendNoteMarker(updatedNotes, '[WA_PENDING_RETRY]');
+          await supabaseRest(
+            cfg.supabaseUrl,
+            cfg.serviceKey,
+            `orders?id=eq.${encodeURIComponent(dbOrderId)}`,
+            { method: 'PATCH', body: { notes: updatedNotes } }
+          ).catch(() => { });
+        }
+      } catch (waFatalErr) {
+        whatsappRetryNeeded = true;
+        console.warn('[razorpay-verify] WhatsApp confirmation error (non-fatal):', waFatalErr.message);
+      }
+    }
+
     return res.status(200).json({
       verified: true,
       orderId: order.id,
       orderNumber: order.order_number,
       paymentId: razorpay_payment_id,
       total: Number(order.total),
-      retryNeeded: { push: pushRetryNeeded }
+      retryNeeded: { push: pushRetryNeeded, whatsapp: whatsappRetryNeeded }
     });
   } catch (err) {
     console.error('[razorpay-verify] Error:', err);

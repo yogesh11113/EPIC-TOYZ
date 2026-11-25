@@ -335,6 +335,7 @@ function handleDeliverySubmit() {
   const city      = getValue('d-city');
   const state     = getValue('d-state');
   const phone2    = getValue('d-phone2');
+  const whatsappOptIn = Boolean(document.getElementById('d-wa-opt-in')?.checked);
 
   let valid = true;
   if (!firstName) { showFieldError('d-first-name', 'd-first-name-error'); valid = false; }
@@ -362,7 +363,8 @@ function handleDeliverySubmit() {
     addressLine2: address2,
     city,
     state,
-    address: fullAddress
+    address: fullAddress,
+    whatsappOptIn
   };
 
   // Populate address review box
@@ -533,7 +535,10 @@ async function payWithRazorpay() {
 
     if (!dbOrderId) {
       guestToken = accessToken ? null : generateGuestToken();
-      const guestHashNote = guestToken ? `[GUEST_TOKEN:${await sha256Hex(guestToken)}]` : '';
+      const noteMarkers = [];
+      if (guestToken) noteMarkers.push(`[GUEST_TOKEN:${await sha256Hex(guestToken)}]`);
+      if (CheckoutState.delivery && CheckoutState.delivery.whatsappOptIn) noteMarkers.push('[WA_OPT_IN]');
+      const orderNotes = noteMarkers.join(' | ');
 
       const orderData = {
         items: cart.map(item => ({
@@ -549,7 +554,7 @@ async function payWithRazorpay() {
         total,
         paymentMethod: 'razorpay',
         user: CheckoutState.user,
-        notes: guestHashNote
+        notes: orderNotes
       };
 
       if (typeof DB === 'undefined' || !DB.createOrder) {
@@ -625,8 +630,8 @@ async function payWithRazorpay() {
           });
           const { data: verifyData } = await parseApiResponse(verifyRes);
 
-          // Safe idempotent retry if admin push notification had a transient failure
-          if (verifyRes.ok && verifyData.verified && verifyData.retryNeeded && verifyData.retryNeeded.push) {
+          // Safe idempotent retry if admin push or WhatsApp notification had a transient failure
+          if (verifyRes.ok && verifyData.verified && verifyData.retryNeeded && (verifyData.retryNeeded.push || verifyData.retryNeeded.whatsapp)) {
             await fetch('/api/razorpay-verify', {
               method: 'POST',
               headers: verifyHeaders,
