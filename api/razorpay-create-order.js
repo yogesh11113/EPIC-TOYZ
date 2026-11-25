@@ -12,7 +12,7 @@
 
 const crypto = require('crypto');
 
-const DELIVERY_CHARGE_INR = 150;
+const DEFAULT_DELIVERY_CHARGE_INR = 150;
 
 function getEnvConfig() {
   const keyId = process.env.RAZORPAY_KEY_ID || '';
@@ -143,6 +143,7 @@ module.exports = async function handler(req, res) {
     const productMap = new Map((products || []).map(p => [String(p.id), p]));
 
     let authoritativeSubtotal = 0;
+    let authoritativeShipping = 0;
     for (const item of orderItems) {
       const qty = Number(item.quantity);
       if (!Number.isInteger(qty) || qty <= 0) {
@@ -161,16 +162,22 @@ module.exports = async function handler(req, res) {
       if (isNaN(unitPrice) || unitPrice < 0) {
         return res.status(400).json({ error: `Invalid price for product ${dbProduct.name}.` });
       }
+      const rawDelivery = dbProduct.specifications && dbProduct.specifications._delivery_charge;
+      const unitDelivery = (rawDelivery !== undefined && rawDelivery !== null && rawDelivery !== '' && !isNaN(Number(rawDelivery)))
+        ? Math.max(0, Number(rawDelivery))
+        : DEFAULT_DELIVERY_CHARGE_INR;
+
       authoritativeSubtotal += unitPrice * qty;
+      authoritativeShipping += unitDelivery * qty;
     }
 
-    const authoritativeTotal = authoritativeSubtotal + DELIVERY_CHARGE_INR;
+    const authoritativeTotal = authoritativeSubtotal + authoritativeShipping;
     const expectedAmountPaise = Math.round(authoritativeTotal * 100);
     const orderTotalPaise = Math.round(Number(order.total) * 100);
 
     if (orderTotalPaise !== expectedAmountPaise) {
       return res.status(400).json({
-        error: 'Order total mismatch against authoritative product prices and ₹150 delivery charge.'
+        error: 'Order total mismatch against authoritative product prices and delivery charges.'
       });
     }
 

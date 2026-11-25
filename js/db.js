@@ -143,8 +143,15 @@ function mapSupabaseProduct(p) {
     : (p.specifications || {});
   const rawPaymentMethod = p.payment_method || rawSpecs._payment_method || 'razorpay';
   const paymentMethod = rawPaymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay';
+  const rawDelivery = p.delivery_charge !== undefined && p.delivery_charge !== null
+    ? p.delivery_charge
+    : rawSpecs._delivery_charge;
+  const deliveryCharge = (rawDelivery !== undefined && rawDelivery !== null && rawDelivery !== '' && !isNaN(Number(rawDelivery)))
+    ? Math.max(0, Number(rawDelivery))
+    : 150;
   if (rawSpecs && typeof rawSpecs === 'object' && !Array.isArray(rawSpecs)) {
     delete rawSpecs._payment_method;
+    delete rawSpecs._delivery_charge;
   }
 
   return {
@@ -164,6 +171,8 @@ function mapSupabaseProduct(p) {
     specifications: rawSpecs,
     paymentMethod,
     payment_method: paymentMethod,
+    deliveryCharge,
+    delivery_charge: deliveryCharge,
     category: resolvedCategory || p.category_id || p.category || '',
     categoryId: p.category_id || '',
     badges: Array.isArray(p.badges) ? p.badges : (p.badge ? [p.badge] : []),
@@ -562,9 +571,14 @@ const DB = {
     else if (data.specs !== undefined) p.specifications = { ...(data.specs || {}) };
 
     const pm = (data.paymentMethod || data.payment_method) === 'whatsapp' ? 'whatsapp' : 'razorpay';
-    if (data.paymentMethod !== undefined || data.payment_method !== undefined || p.specifications !== undefined) {
+    const rawDc = data.deliveryCharge !== undefined ? data.deliveryCharge : data.delivery_charge;
+    const hasDc = rawDc !== undefined && rawDc !== null && rawDc !== '' && !isNaN(Number(rawDc));
+    if (data.paymentMethod !== undefined || data.payment_method !== undefined || hasDc || p.specifications !== undefined) {
       p.specifications = p.specifications && typeof p.specifications === 'object' ? { ...p.specifications } : {};
       p.specifications._payment_method = pm;
+      if (hasDc) {
+        p.specifications._delivery_charge = Math.max(0, Number(rawDc));
+      }
     }
 
     if (data.features !== undefined) p.features = data.features;
@@ -1096,8 +1110,8 @@ const DB = {
           city:            city,
           state:           state,
           pincode:         pincode || '000000',
-          subtotal:        orderData.subtotal || (orderData.total ? orderData.total - 150 : 0) || 0,
-          shipping:        orderData.shipping ?? 150,
+          subtotal:        orderData.subtotal ?? Math.max(0, (orderData.total || 0) - (orderData.shipping ?? 0)),
+          shipping:        orderData.shipping ?? 0,
           total:           orderData.total || 0,
           payment_method:  orderData.paymentMethod || 'whatsapp',
           payment_status:  'pending',

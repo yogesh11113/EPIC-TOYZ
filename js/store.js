@@ -59,6 +59,7 @@ const Store = {
         price: product.price,
         image: product.imageUrl || (product.images && product.images[0]) || 'assets/images/placeholder.svg',
         paymentMethod: product.paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay',
+        deliveryCharge: (product.deliveryCharge !== undefined && product.deliveryCharge !== null && !isNaN(Number(product.deliveryCharge))) ? Math.max(0, Number(product.deliveryCharge)) : 150,
         category: product.category || 'RC Cars',
         quantity: quantity,
         slug: product.slug
@@ -182,6 +183,7 @@ const Store = {
         price: product.price,
         image: product.imageUrl || (product.images && product.images[0]) || 'assets/images/placeholder.svg',
         paymentMethod: product.paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay',
+        deliveryCharge: (product.deliveryCharge !== undefined && product.deliveryCharge !== null && !isNaN(Number(product.deliveryCharge))) ? Math.max(0, Number(product.deliveryCharge)) : 150,
         category: product.category,
         slug: product.slug,
         rating: product.rating,
@@ -241,6 +243,7 @@ const Store = {
         price: product.price,
         image: product.imageUrl || (product.images && product.images[0]) || 'assets/images/placeholder.svg',
         paymentMethod: product.paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay',
+        deliveryCharge: (product.deliveryCharge !== undefined && product.deliveryCharge !== null && !isNaN(Number(product.deliveryCharge))) ? Math.max(0, Number(product.deliveryCharge)) : 150,
         category: product.category,
         slug: product.slug,
         rating: product.rating,

@@ -123,6 +123,16 @@ function removeItem(productId) {
 /* ============================================================
    ORDER SUMMARY
    ============================================================ */
+function calculateCartDelivery(cart) {
+  return (cart || []).reduce((sum, item) => {
+    const qty = Math.max(1, Number(item.quantity || 1));
+    const dc = (item.deliveryCharge !== undefined && item.deliveryCharge !== null && !isNaN(Number(item.deliveryCharge)))
+      ? Math.max(0, Number(item.deliveryCharge))
+      : 150;
+    return sum + dc * qty;
+  }, 0);
+}
+
 function renderOrderSummary() {
   const cart = Store.getCart();
   const container = document.getElementById('summary-content');
@@ -134,13 +144,16 @@ function renderOrderSummary() {
   }
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = 150;
+  const shipping = calculateCartDelivery(cart);
   const total = subtotal + shipping;
 
   const subtotalFmt = subtotal.toLocaleString('en-IN');
+  const shippingFmt = shipping === 0 ? 'Free' : `₹${shipping.toLocaleString('en-IN')}`;
   const totalFmt = total.toLocaleString('en-IN');
 
-  const promoHTML = `<div class="shipping-promo">🚚 Flat Delivery Charge of ₹150 applies to all orders</div>`;
+  const promoHTML = shipping === 0
+    ? `<div class="shipping-promo">🚚 Free Delivery on your selected items</div>`
+    : `<div class="shipping-promo">🚚 Product-wise Delivery Charge: ₹${shipping.toLocaleString('en-IN')}</div>`;
 
   container.innerHTML = `
     ${promoHTML}
@@ -150,7 +163,7 @@ function renderOrderSummary() {
     </div>
     <div class="summary-row">
       <span class="label">Shipping</span>
-      <span class="value">₹150</span>
+      <span class="value">${shippingFmt}</span>
     </div>
     <hr class="summary-divider">
     <div class="summary-total">

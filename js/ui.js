@@ -695,7 +695,13 @@ function generateWhatsAppMessage(cart, customer) {
     subtotal += item.price * item.quantity;
   });
   
-  const shipping = 150;
+  const shipping = cart.reduce((sum, item) => {
+    const qty = Math.max(1, Number(item.quantity || 1));
+    const dc = (item.deliveryCharge !== undefined && item.deliveryCharge !== null && !isNaN(Number(item.deliveryCharge)))
+      ? Math.max(0, Number(item.deliveryCharge))
+      : 150;
+    return sum + dc * qty;
+  }, 0);
   const total = subtotal + shipping;
   
   message += `\n*Subtotal:* ${formatPrice(subtotal)}`;

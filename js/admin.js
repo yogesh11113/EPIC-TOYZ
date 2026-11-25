@@ -1032,6 +1032,8 @@ const Admin = {
     document.getElementById('product-id').value = '';
     const pmSelect = document.getElementById('product-payment-method');
     if (pmSelect) pmSelect.value = 'razorpay';
+    const dcInput = document.getElementById('product-delivery-charge');
+    if (dcInput) dcInput.value = '0';
     this.clearImageRows();
     this.addImageRow(); // Start with one empty image row
     this.clearSpecRows();
@@ -1093,6 +1095,12 @@ const Admin = {
       document.getElementById('product-featured').checked = !!product.featured || !!product.isFeatured;
       const pmEditSelect = document.getElementById('product-payment-method');
       if (pmEditSelect) pmEditSelect.value = product.paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay';
+      const dcEditInput = document.getElementById('product-delivery-charge');
+      if (dcEditInput) {
+        dcEditInput.value = (product.deliveryCharge !== undefined && product.deliveryCharge !== null)
+          ? String(product.deliveryCharge)
+          : '150';
+      }
 
       // Images
       this.clearImageRows();
@@ -1111,7 +1119,7 @@ const Admin = {
       const specEntries = (Array.isArray(specs)
         ? specs
         : Object.entries(specs).map(([key, value]) => ({ key, value })))
-        .filter(s => s && s.key !== '_payment_method');
+        .filter(s => s && s.key !== '_payment_method' && s.key !== '_delivery_charge');
       if (specEntries.length > 0) {
         specEntries.forEach(s => this.addSpecRow(s.key || '', s.value || ''));
       } else {
@@ -1360,6 +1368,10 @@ const Admin = {
     const desc = document.getElementById('product-desc').value.trim();
     const featured = document.getElementById('product-featured').checked;
     const paymentMethod = document.getElementById('product-payment-method')?.value === 'whatsapp' ? 'whatsapp' : 'razorpay';
+    const rawDeliveryCharge = document.getElementById('product-delivery-charge')?.value;
+    const deliveryCharge = (rawDeliveryCharge !== undefined && rawDeliveryCharge !== '' && !isNaN(Number(rawDeliveryCharge)))
+      ? Math.max(0, Number(rawDeliveryCharge))
+      : 0;
     const images = this.getImagesFromForm();
     const imageUrl = images.length > 0 ? images[0] : '';
     const specs = this.getSpecsFromForm();
@@ -1395,6 +1407,8 @@ const Admin = {
       isFeatured: featured,
       paymentMethod,
       payment_method: paymentMethod,
+      deliveryCharge,
+      delivery_charge: deliveryCharge,
       image: imageUrl || null,
       images: images.length > 0 ? images : (imageUrl ? [imageUrl] : []),
       specifications: specs,
@@ -1552,6 +1566,10 @@ const Admin = {
     const desc = document.getElementById('product-desc').value.trim();
     const featured = document.getElementById('product-featured').checked;
     const paymentMethod = document.getElementById('product-payment-method')?.value === 'whatsapp' ? 'whatsapp' : 'razorpay';
+    const rawDeliveryCharge = document.getElementById('product-delivery-charge')?.value;
+    const deliveryCharge = (rawDeliveryCharge !== undefined && rawDeliveryCharge !== '' && !isNaN(Number(rawDeliveryCharge)))
+      ? Math.max(0, Number(rawDeliveryCharge))
+      : 0;
     const images = this.getImagesFromForm();
     const imageUrl = images.length > 0 ? images[0] : '';
     const specs = this.getSpecsFromForm();
@@ -1588,6 +1606,8 @@ const Admin = {
       isFeatured: featured,
       paymentMethod,
       payment_method: paymentMethod,
+      deliveryCharge,
+      delivery_charge: deliveryCharge,
       image: imageUrl || null,
       images: images.length > 0 ? images : (imageUrl ? [imageUrl] : []),
       specifications: specs,

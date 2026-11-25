@@ -618,6 +618,8 @@ function buyNow() {
     image: currentProduct.image || (currentProduct.images && currentProduct.images[0]) || 'assets/images/placeholder.svg',
     quantity: selectedQuantity,
     category: currentProduct.category || '',
+    paymentMethod: currentProduct.paymentMethod === 'whatsapp' ? 'whatsapp' : 'razorpay',
+    deliveryCharge: (currentProduct.deliveryCharge !== undefined && currentProduct.deliveryCharge !== null && !isNaN(Number(currentProduct.deliveryCharge))) ? Math.max(0, Number(currentProduct.deliveryCharge)) : 150,
   };
   localStorage.setItem('et_buy_now', JSON.stringify(buyNowItem));
 

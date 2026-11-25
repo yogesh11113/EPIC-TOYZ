@@ -34,6 +34,49 @@ function getCheckoutItems() {
   return typeof Store !== 'undefined' ? Store.getCart() : [];
 }
 
+function calculateCartDelivery(cart) {
+  return (cart || []).reduce((sum, item) => {
+    const qty = Math.max(1, Number(item.quantity || 1));
+    const dc = (item.deliveryCharge !== undefined && item.deliveryCharge !== null && !isNaN(Number(item.deliveryCharge)))
+      ? Math.max(0, Number(item.deliveryCharge))
+      : 150;
+    return sum + dc * qty;
+  }, 0);
+}
+
+async function syncCheckoutDeliveryCharges() {
+  try {
+    if (typeof DB === 'undefined' || !DB.getProducts) return;
+    const products = await DB.getProducts();
+    if (!Array.isArray(products) || products.length === 0) return;
+    const map = new Map(products.map(p => [String(p.id), p]));
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('buynow') === 'true') {
+      const raw = localStorage.getItem('et_buy_now');
+      if (raw) {
+        const item = JSON.parse(raw);
+        const p = map.get(String(item.id || item.productId));
+        if (p) {
+          item.deliveryCharge = p.deliveryCharge;
+          localStorage.setItem('et_buy_now', JSON.stringify(item));
+        }
+      }
+    } else if (typeof Store !== 'undefined' && Store.getCart && Store.saveCart) {
+      const cart = Store.getCart();
+      let changed = false;
+      for (const item of cart) {
+        const p = map.get(String(item.id || item.productId));
+        if (p && item.deliveryCharge !== p.deliveryCharge) {
+          item.deliveryCharge = p.deliveryCharge;
+          changed = true;
+        }
+      }
+      if (changed) Store.saveCart(cart);
+    }
+  } catch (e) {}
+}
+
 /* ============================================================
    INIT
    ============================================================ */
@@ -49,6 +92,7 @@ async function initCheckoutPage() {
     return;
   }
 
+  await syncCheckoutDeliveryCharges();
   renderSidebar();
   updateStandardShippingLabel();
 
@@ -376,7 +420,7 @@ function generateWhatsAppOrder() {
   const { delivery } = CheckoutState;
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = 150;
+  const shipping = calculateCartDelivery(cart);
   const total = subtotal + shipping;
 
   const itemLines = cart.map(item =>
@@ -479,7 +523,7 @@ async function payWithRazorpay() {
 
   try {
     const subtotal = cart.reduce((s, i) => s + Number(i.price) * Number(i.quantity), 0);
-    const shipping = 150;
+    const shipping = calculateCartDelivery(cart);
     const total = subtotal + shipping;
 
     const accessToken = await getSupabaseAccessToken();
@@ -644,7 +688,7 @@ async function placeOrder() {
 
   // Save the order to DB
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = 150;
+  const shipping = calculateCartDelivery(cart);
   const total = subtotal + shipping;
 
   const orderData = {
@@ -722,8 +766,9 @@ function renderSidebar() {
 
   // Summary
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = 150;
+  const shipping = calculateCartDelivery(cart);
   const total = subtotal + shipping;
+  const shippingLabel = shipping === 0 ? 'Free' : `₹${shipping.toLocaleString('en-IN')}`;
 
   sidebarSummary.innerHTML = `
     <div class="sidebar-summary-row">
@@ -732,7 +777,7 @@ function renderSidebar() {
     </div>
     <div class="sidebar-summary-row">
       <span class="lbl">Shipping</span>
-      <span class="val">₹${shipping}</span>
+      <span class="val">${shippingLabel}</span>
     </div>
     <div class="sidebar-total">
       <span class="lbl">Total</span>
