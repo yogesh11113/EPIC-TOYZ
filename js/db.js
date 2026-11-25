@@ -1105,10 +1105,11 @@ const DB = {
           notes:           notesParts.join(' | '),
         };
 
-        const { data: rawOrder, error: orderErr } = await window.EpicSupabase
-          .from('orders').insert([dbOrder]).select();
+        // Insert without .select() so anonymous/Incognito guest visitors
+        // (who have INSERT permission but not SELECT RLS permission) succeed.
+        const { error: orderErr } = await window.EpicSupabase
+          .from('orders').insert([dbOrder]);
         if (orderErr) throw orderErr;
-        const insertedOrder = (Array.isArray(rawOrder) && rawOrder.length > 0) ? rawOrder[0] : (rawOrder || dbOrder);
 
         const items = orderData.items || [];
         if (items.length > 0) {
@@ -1126,9 +1127,18 @@ const DB = {
           if (itemsErr) console.warn('[DB] Failed to insert order items to Supabase:', itemsErr.message);
         }
 
-        return await this.getOrderById(orderId) || mapSupabaseOrder(insertedOrder);
+        // Logged-in users can read back via getOrderById; guest/Incognito users
+        // fall back cleanly to the inserted dbOrder object with the real Supabase UUID.
+        let fetched = null;
+        if (userId) {
+          try { fetched = await this.getOrderById(orderId); } catch (e) {}
+        }
+        return fetched || mapSupabaseOrder(dbOrder);
       } catch (err) {
         console.warn('[DB] Supabase createOrder failed:', err.message);
+        if (orderData.paymentMethod === 'razorpay') {
+          throw err;
+        }
       }
     }
     const orders = lsOrders();
