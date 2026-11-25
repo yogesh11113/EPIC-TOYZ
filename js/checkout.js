@@ -153,8 +153,23 @@ function switchAuthTab(tab) {
 }
 
 /* ============================================================
-   STEP 1: LOGIN
+   STEP 1: GOOGLE & EMAIL LOGIN
    ============================================================ */
+async function handleGoogleLogin() {
+  const btn = document.getElementById('btn-google-checkout');
+  if (btn) { btn.disabled = true; btn.textContent = 'Redirecting to Google...'; }
+  try {
+    if (typeof Auth === 'undefined' || !Auth.loginWithGoogle) {
+      throw new Error('Google Sign-In is unavailable.');
+    }
+    const res = await Auth.loginWithGoogle(window.location.origin + '/checkout.html');
+    if (res && res.error) throw new Error(res.error);
+  } catch (err) {
+    showToast(err.message || 'Could not start Google Sign-In.', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Continue with Google'; }
+  }
+}
+
 async function handleLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
@@ -584,7 +599,10 @@ async function payWithRazorpay() {
             orderId: verifyData.orderId,
             orderNumber: verifyData.orderNumber || dbOrderNumber,
             paymentId: verifyData.paymentId,
-            total: verifyData.total || total
+            total: verifyData.total || total,
+            checkoutEmail: CheckoutState.user?.email || '',
+            guestToken: guestToken || null,
+            isGuestOrder: !accessToken
           }));
 
           clearCheckoutCart();

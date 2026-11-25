@@ -113,6 +113,35 @@ const Auth = {
     return { user: null, error: 'Invalid email or password.' };
   },
 
+  /**
+   * Sign in or register via Google OAuth (Supabase Auth).
+   * @param {string|null} [redirectTo] - Optional absolute redirect URL
+   * @param {string|null} [loginHint] - Optional email hint for Google account chooser
+   */
+  async loginWithGoogle(redirectTo = null, loginHint = null) {
+    if (!isSupabaseConfigured() || !window.EpicSupabase) {
+      return { error: 'Supabase authentication is not configured.' };
+    }
+    try {
+      const targetUrl = redirectTo || (window.location.origin + '/' + this._getPath('profile.html').replace(/^\.\.\//, ''));
+      const queryParams = { prompt: 'select_account' };
+      if (loginHint && String(loginHint).trim()) {
+        queryParams.login_hint = String(loginHint).trim().toLowerCase();
+      }
+      const { data, error } = await window.EpicSupabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: targetUrl,
+          queryParams
+        }
+      });
+      if (error) return { error: error.message };
+      return { data, error: null };
+    } catch (err) {
+      return { error: err.message || 'Google Sign-In failed.' };
+    }
+  },
+
   /* ══════════════════════════════════════════════════════════
      LOGOUT
      ══════════════════════════════════════════════════════════ */
