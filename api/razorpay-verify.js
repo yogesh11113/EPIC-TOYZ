@@ -1,4 +1,4 @@
-/**
+/*  *//**
  * Vercel Serverless Function: POST /api/razorpay-verify
  *
  * Security & Reliability guarantees:
@@ -58,7 +58,7 @@ async function supabaseRest(supabaseUrl, serviceKey, path, options = {}) {
   });
   const text = await res.text();
   let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch {}
+  try { data = text ? JSON.parse(text) : null; } catch { }
   if (!res.ok) {
     throw new Error((data && (data.message || data.error)) || `Supabase error (${res.status})`);
   }
@@ -145,7 +145,7 @@ async function sendAdminPushNotifications(cfg, order) {
           cfg.serviceKey,
           `admin_push_subscriptions?id=eq.${encodeURIComponent(sub.id)}`,
           { method: 'DELETE' }
-        ).catch(() => {});
+        ).catch(() => { });
       } else {
         hadTransientFailure = true;
         console.warn('[razorpay-verify] Push send error:', pushErr.message);
@@ -295,7 +295,7 @@ module.exports = async function handler(req, res) {
           cfg.serviceKey,
           `orders?id=eq.${encodeURIComponent(dbOrderId)}`,
           { method: 'PATCH', body: { notes: updatedNotes } }
-        ).catch(() => {});
+        ).catch(() => { });
       } catch (pushFatalErr) {
         pushRetryNeeded = true;
         console.warn('[razorpay-verify] Push notification error (non-fatal):', pushFatalErr.message);
